@@ -30,6 +30,7 @@ Appen får inte se ut som en testprototyp fylld med "Lorem Ipsum"-texter eller b
 - fixa så man får notiser i och utanför appen när något händer, tex en kommentar eller gilla markering
 - fixa ett språk filter mot fula ord?! 
 - redan inskrivna sociala användarnamn fylls inte i när man klickar edit profile på profilsidan
+- fixa så enter och mellanslag sparas i skapta inlägg. just nu tas enters bort vilket gör att all text flyter samman och blir svårt att läsa, även lägga till fet/kursiv text etc när man skapar..? 
 
 - fixa betalplan för server så den alltid är uppe??
 - fixa så appen kan lanseras hos app store och andriod för att lätt laddas ner
