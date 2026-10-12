@@ -2,6 +2,7 @@ import { HttpError } from "../models/errorModel.js"
 import { User } from "../models/userModel.js"
 import { Post } from "../models/postModel.js"
 import { Comment } from "../models/commentModel.js";
+import { ReportUser } from '../models/reportUserModel.js';
 import validator from "validator";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
@@ -16,6 +17,8 @@ import { getPagination, formatPaginatedResponse } from "../utils/pagination.js";
 // loading env var from .env
 import 'dotenv/config';
 
+// Initiera Resend med API-nyckeln från .env
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // ---------------------------- REGISTER USER --------------------------- 
 // POST req: api/users/register
@@ -525,6 +528,68 @@ export const getFollowers = async (req, res, next) => {
     }
 };
 
+// ---------------------------- REPORT USER --------------------------- 
+// POST req: api/users/:userId/report
+// PROTECTED
+export const reportUser = async (req, res) => {
+    try {
+        const { userId } = req.params; // Användaren som rapporteras
+        const { reason } = req.body;
+        const reporterId = req.user._id || req.user.id; // Den inloggade användaren
+
+        // Kontrollera att användaren som rapporteras finns
+        const targetUser = await User.findById(userId);
+        if (!targetUser) {
+            return res.status(404).json({ message: "User not found." });
+        }
+
+        // Förhindra att man rapporterar sig själv
+        if (userId === reporterId.toString()) {
+            return res.status(400).json({ message: "You cannot report your own profile." });
+        }
+
+        // Skapa och spara rapporten i databasen
+        await ReportUser.create({
+            reportedUser: userId,
+            reportedBy: reporterId,
+            reason: reason || 'Inappropriate profile or behavior'
+        });
+
+        // Hämta info om rapportören för e-posten
+        const reporter = await User.findById(reporterId);
+
+        // Skicka e-post via Resend
+        try {
+            await resend.emails.send({
+                from: 'Liftly <onboarding@resend.dev>', // Eller din verifierade domän
+                to: 'kimskogfelter@outlook.com',
+                subject: `🚨 New User Report: @${targetUser.username}`,
+                html: `
+                    <h2>A user profile has been reported</h2>
+                    <p><strong>Reported User:</strong> @${targetUser.username} (ID: ${userId})</p>
+                    <p><strong>Reported By:</strong> @${reporter ? reporter.username : 'Unknown'} (ID: ${reporterId})</p>
+                    <p><strong>Reason:</strong> ${reason}</p>
+                    <p><strong>Time:</strong> ${new Date().toLocaleString()}</p>
+                    <p>Please log in to the admin/database tools to review this profile.</p>
+                `
+            });
+        } catch (emailErr) {
+            console.error("Failed to send report email via Resend:", emailErr);
+            // Vi låter själva rapporten gå igenom i databasen även om mailet skulle misslyckas
+        }
+
+        res.status(201).json({
+            success: true,
+            message: "User reported successfully. Thank you for keeping the community safe."
+        });
+
+    } catch (err) {
+        console.error("Error reporting user:", err);
+        res.status(500).json({ message: "Server error while reporting user." });
+    }
+};
+
+
 // ---------------------------- CHANGE PROFILE PICTURE --------------------------- 
 // no id required, only logged in user should be able to do this, verified thru auth middleware
 // POST req: api/users/profile-image
@@ -690,10 +755,6 @@ export const authUser = async (req, res, next) => {
 
 
 // ---------------------------- FORGOT PASSWORD --------------------------- 
-
-// Initiera Resend med API-nyckeln från .env
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export const forgotPassword = async (req, res, next) => {
 
     const { email } = req.body;

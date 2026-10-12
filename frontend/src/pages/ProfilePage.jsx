@@ -6,10 +6,11 @@ import EditProfileImage from "../components/users/EditProfileImage";
 import EditProfileModal from "../components/users/EditProfileModal";
 import PostFeed from "../components/posts/PostFeed";
 import SettingsModal from "../components/users/SettingsModal";
+import UserActionsMenu from "../components/users/UserActionsMenu";
 import { FollowModal } from "../components/users/FollowModal";
 import { handleFollowUserToggle } from "../functions/user/handleFollowUserToggle";
 import { FaCamera } from "react-icons/fa";
-import { FiSettings } from "react-icons/fi";
+import { FiSettings, FiMoreHorizontal } from "react-icons/fi";
 
 function ProfilePage({ currentUser, setCurrentUser }) {
   const [error, setError] = useState("");
@@ -28,6 +29,7 @@ function ProfilePage({ currentUser, setCurrentUser }) {
   const [showEditProfileImage, setShowEditProfileImage] = useState(false);
   const [showEditProfileModal, setShowEditProfileModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const [followModalType, setFollowModalType] = useState(null);
 
   const myId = (currentUser?._id || currentUser?.id)?.toString();
@@ -126,6 +128,25 @@ function ProfilePage({ currentUser, setCurrentUser }) {
           >
             <FiSettings size={18} />
           </button>
+        )}
+
+        {/* Options button for other users */}
+        {!isOwnProfile && (
+          <button
+            onClick={() => setShowUserMenu(true)}
+            className="absolute top-5 right-5 text-gray-400 hover:text-gray-800 transition-colors p-1.5 rounded-full hover:bg-gray-100 cursor-pointer"
+            title="Options"
+          >
+            <FiMoreHorizontal size={18} />
+          </button>
+        )}
+
+        {showUserMenu && (
+          <UserActionsMenu
+            targetUser={targetUser}
+            currentUser={currentUser}
+            closeMenu={() => setShowUserMenu(false)}
+          />
         )}
 
         {/* ÖVRE RADEN: Bild & Info bredvid varandra */}
