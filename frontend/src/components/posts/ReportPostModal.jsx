@@ -1,8 +1,16 @@
-import { useState } from "react";
+import React, { useState } from "react";
+import { IoClose } from 'react-icons/io5';
 import api from "../../api/axios";
 
 function ReportPostModal({ postId, onClose }) {
-    const [reason, setReason] = useState("Inappropriate content");
+    const reasons = [
+        "Inappropriate content",
+        "Harassment or bullying",
+        "Spam or fake accounts",
+        "Violence or threats"
+    ];
+
+    const [reason, setReason] = useState(reasons[0]);
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState("");
@@ -17,63 +25,67 @@ function ReportPostModal({ postId, onClose }) {
             setSuccess(true);
             setTimeout(() => {
                 onClose();
-            }, 2000);
+            }, 4000); // Fortfarande kvar 4 sekunder, men nu kan man stänga tidigare med X
         } catch (err) {
             setError("Could not send report. Please try again.");
-        } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 font-sans">
-            <div className="w-full max-w-sm bg-white rounded-lg p-5 shadow-xl border border-gray-100 animate-in fade-in zoom-in-95 duration-150">
-                <h3 className="text-sm font-bold text-gray-900 mb-2 text-left">Report Post</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4 animate-in fade-in duration-200">
+            <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl relative animate-in zoom-in-95 duration-150">
+                {/* Stängningsknapp (X) - matchar ReportUserModal */}
+                <button 
+                    onClick={onClose}
+                    className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+                >
+                    <IoClose size={22} />
+                </button>
+
+                <h3 className="text-base font-bold text-gray-900 tracking-tight mb-1 text-left">
+                    Report Post
+                </h3>
                 <p className="text-xs text-gray-500 mb-4 text-left">
                     Thank you for helping keep the platform safe. Why are you reporting this post?
                 </p>
 
                 {success ? (
-                    <div className="bg-green-50 text-green-700 p-3 rounded-lg text-xs font-medium text-center">
+                    <div className="bg-green-50 text-green-700 p-3 rounded-lg text-xs font-medium text-center my-2">
                         Thank you! Your report has been submitted.
                     </div>
                 ) : (
-                    <form onSubmit={handleReport} className="space-y-3">
-                        <div className="space-y-2 text-xs text-left">
-                            {[
-                                "Inappropriate content",
-                                "Harassment or bullying",
-                                "Spam or fake accounts",
-                                "Violence or threats"
-                            ].map((item) => (
-                                <label key={item} className="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-gray-50">
+                    <form onSubmit={handleReport} className="space-y-4">
+                        <div className="space-y-3 my-3 text-left">
+                            {reasons.map((item) => (
+                                <label key={item} className="flex items-center gap-3 text-xs font-medium text-gray-800 cursor-pointer hover:bg-gray-50 p-2 rounded-xl transition-colors">
                                     <input
                                         type="radio"
                                         name="reportReason"
                                         value={item}
                                         checked={reason === item}
                                         onChange={(e) => setReason(e.target.value)}
-                                        className="accent-black"
+                                        className="w-4 h-4 text-red-600 focus:ring-red-500 border-gray-300 cursor-pointer"
                                     />
-                                    <span className="text-gray-700 font-medium">{item}</span>
+                                    {item}
                                 </label>
                             ))}
                         </div>
 
                         {error && <div className="text-red-600 text-xs">{error}</div>}
 
-                        <div className="flex gap-2 justify-end pt-3 border-t border-gray-100">
+                        <div className="border-t border-gray-100 pt-4 flex items-center justify-end gap-2">
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="bg-gray-100 hover:bg-gray-200 text-gray-600 font-semibold py-1.5 px-3 rounded-md transition-colors cursor-pointer text-xs"
+                                className="px-4 py-2 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors cursor-pointer"
                             >
                                 Cancel
                             </button>
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="bg-red-600 hover:bg-red-700 text-white font-semibold py-1.5 px-3 rounded-md transition-colors cursor-pointer text-xs shadow-sm disabled:opacity-50"
+                                className="px-4 py-2 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 rounded-xl transition-colors disabled:opacity-50 cursor-pointer shadow-xs"
                             >
                                 {loading ? "Submitting..." : "Submit Report"}
                             </button>
