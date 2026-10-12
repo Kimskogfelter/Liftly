@@ -711,7 +711,7 @@ export const deleteUser = async (req, res, next) => {
             }
         );
 
-        // 7. Ta bort användaren från alla andra användares followers & following
+        // 7a. Ta bort användaren från alla andra användares followers & following
         await User.updateMany(
             {},
             {
@@ -721,6 +721,15 @@ export const deleteUser = async (req, res, next) => {
                 }
             }
         );
+
+        // 7b. Ta bort användarens kalenderloggar
+        await CalendarLog.deleteMany({ user: userId });
+
+        // 7c. Ta bort användarens matloggar
+        await FoodLog.deleteMany({ user: userId });
+
+        // 7d. Ta bort användarens träningspass
+        await Workout.deleteMany({ createdBy: userId });
 
         // 8. Radera själva användaren
         await User.findByIdAndDelete(userId);
