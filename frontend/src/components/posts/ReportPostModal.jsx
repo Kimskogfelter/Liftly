@@ -11,6 +11,7 @@ function ReportPostModal({ postId, onClose }) {
     ];
 
     const [reason, setReason] = useState(reasons[0]);
+    const [details, setDetails] = useState('');
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState("");
@@ -21,21 +22,22 @@ function ReportPostModal({ postId, onClose }) {
         setError("");
 
         try {
-            await api.post(`/posts/${postId}/report`, { reason });
+            // Skickar med både reason och details
+            await api.post(`/posts/${postId}/report`, { reason, details });
             setSuccess(true);
             setTimeout(() => {
+                setDetails(''); // Rensa fältet
                 onClose();
-            }, 4000); // Fortfarande kvar 4 sekunder, men nu kan man stänga tidigare med X
+            }, 4000);
         } catch (err) {
-            setError("Could not send report. Please try again.");
+            setError(err.response?.data?.message || "Could not send report. Please try again.");
             setLoading(false);
         }
     };
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4 animate-in fade-in duration-200">
-            <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl relative animate-in zoom-in-95 duration-150">
-                {/* Stängningsknapp (X) - matchar ReportUserModal */}
+            <div className="bg-white rounded-lg w-full max-w-md p-6 shadow-xl relative animate-in zoom-in-95 duration-150">
                 <button 
                     onClick={onClose}
                     className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
@@ -56,7 +58,7 @@ function ReportPostModal({ postId, onClose }) {
                     </div>
                 ) : (
                     <form onSubmit={handleReport} className="space-y-4">
-                        <div className="space-y-3 my-3 text-left">
+                        <div className="space-y-2 my-2 text-left">
                             {reasons.map((item) => (
                                 <label key={item} className="flex items-center gap-3 text-xs font-medium text-gray-800 cursor-pointer hover:bg-gray-50 p-2 rounded-xl transition-colors">
                                     <input
@@ -65,11 +67,24 @@ function ReportPostModal({ postId, onClose }) {
                                         value={item}
                                         checked={reason === item}
                                         onChange={(e) => setReason(e.target.value)}
-                                        className="w-4 h-4 text-red-600 focus:ring-red-500 border-gray-300 cursor-pointer"
+                                        className="w-4 h-4 text-red-600 border-gray-300 cursor-pointer"
                                     />
                                     {item}
                                 </label>
                             ))}
+                        </div>
+
+                        {/* Extra textfält för detaljer */}
+                        <div className="space-y-1 text-left">
+                            <label className="text-xs font-semibold text-gray-700">
+                                Additional details <span className="text-gray-400 font-normal">(optional)</span>
+                            </label>
+                            <textarea
+                                value={details}
+                                onChange={(e) => setDetails(e.target.value)}
+                                placeholder="Provide any extra context..."
+                                className="w-full text-xs p-2.5 border border-gray-200 rounded-xl resize-none focus:border-gray-400 focus:outline-none h-16 text-gray-800"
+                            />
                         </div>
 
                         {error && <div className="text-red-600 text-xs">{error}</div>}

@@ -622,7 +622,7 @@ export const unlikePost = async (req, res, next) => {
 export const reportPost = async (req, res, next) => {
     try {
         const { postId } = req.params;
-        const { reason } = req.body;
+        const { reason, details } = req.body;
 
         // 1. Kontrollera att ID är giltigt
         if (!mongoose.Types.ObjectId.isValid(postId)) {
@@ -645,7 +645,8 @@ export const reportPost = async (req, res, next) => {
         await ReportPost.create({
             post: postId,
             reportedBy: req.user.id,
-            reason: reason || "Inappropriate content"
+            reason: reason || "Inappropriate content",
+            details: details || ''
         });
 
         // 5. Skicka e-post via Resend till dig själv
@@ -659,6 +660,7 @@ export const reportPost = async (req, res, next) => {
                       `Author: @${post.createdBy?.username || "Unknown"}\n` +
                       `Reported by: @${reportingUser.username}\n` +
                       `Reason: ${reason}\n\n` +
+                      `Additional Details: ${details || "None provided"}\n\n` +
                       `Post content: "${post.content || "[Media/Other content]"}"`,
             });
         } catch (emailError) {
@@ -666,7 +668,7 @@ export const reportPost = async (req, res, next) => {
             // Vi låter inte ett misslyckat mailstopp stoppa databasen, men loggar felet
         }
 
-        return res.status(200).json({
+        return res.status(201).json({
             success: true,
             message: "Report submitted successfully."
         });

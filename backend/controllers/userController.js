@@ -531,28 +531,34 @@ export const getFollowers = async (req, res, next) => {
 // ---------------------------- REPORT USER --------------------------- 
 // POST req: api/users/:userId/report
 // PROTECTED
-export const reportUser = async (req, res) => {
+export const reportUser = async (req, res, next) => {
     try {
         const { userId } = req.params; // Användaren som rapporteras
-        const { reason } = req.body;
+        const { reason, details } = req.body;
         const reporterId = req.user._id || req.user.id; // Den inloggade användaren
+
+        // Kontrollera att ID är giltigt
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            return next(new HttpError("User Id is not valid", 404));
+        }
 
         // Kontrollera att användaren som rapporteras finns
         const targetUser = await User.findById(userId);
         if (!targetUser) {
-            return res.status(404).json({ message: "User not found." });
+            return next(new HttpError("User not found.", 404));
         }
 
         // Förhindra att man rapporterar sig själv
         if (userId === reporterId.toString()) {
-            return res.status(400).json({ message: "You cannot report your own profile." });
+            return next(new HttpError("You cannot report your own profile.", 400));
         }
 
         // Skapa och spara rapporten i databasen
         await ReportUser.create({
             reportedUser: userId,
             reportedBy: reporterId,
-            reason: reason || 'Inappropriate profile or behavior'
+            reason: reason || 'Inappropriate profile or behavior',
+            details: details || ''
         });
 
         // Hämta info om rapportören för e-posten
@@ -561,7 +567,7 @@ export const reportUser = async (req, res) => {
         // Skicka e-post via Resend
         try {
             await resend.emails.send({
-                from: 'Liftly <onboarding@resend.dev>', // Eller din verifierade domän
+                from: 'Liftly <onboarding@resend.dev>',
                 to: 'kimskogfelter@outlook.com',
                 subject: `🚨 New User Report: @${targetUser.username}`,
                 html: `
@@ -569,6 +575,7 @@ export const reportUser = async (req, res) => {
                     <p><strong>Reported User:</strong> @${targetUser.username} (ID: ${userId})</p>
                     <p><strong>Reported By:</strong> @${reporter ? reporter.username : 'Unknown'} (ID: ${reporterId})</p>
                     <p><strong>Reason:</strong> ${reason}</p>
+                    <p><strong>Additional Details:</strong> ${details || 'None provided'}</p>
                     <p><strong>Time:</strong> ${new Date().toLocaleString()}</p>
                     <p>Please log in to the admin/database tools to review this profile.</p>
                 `
@@ -578,14 +585,13 @@ export const reportUser = async (req, res) => {
             // Vi låter själva rapporten gå igenom i databasen även om mailet skulle misslyckas
         }
 
-        res.status(201).json({
+        return res.status(201).json({
             success: true,
             message: "User reported successfully. Thank you for keeping the community safe."
         });
 
-    } catch (err) {
-        console.error("Error reporting user:", err);
-        res.status(500).json({ message: "Server error while reporting user." });
+    } catch (error) {
+        return next(new HttpError(error.message || "Could not report user", 500));
     }
 };
 
