@@ -38,28 +38,26 @@ const PostHeader = ({
                     {displayCategory}
                 </span>
 
-                {post.createdBy?._id === currentUser?.id && (
-                    <div className="relative flex items-center justify-center">
-                        {showPostActions && (
-                            <div className="absolute right-9 top-1/2 -translate-y-1/2 z-35 flex items-center gap-1 bg-white border border-gray-200 rounded-xl p-1 shadow-md whitespace-nowrap">
-                                <PostActionsMenu
-                                    currentUser={currentUser}
-                                    post={post}
-                                    handleEditPost={handleEditPost}
-                                    handleDeletePost={handleDeletePost}
-                                    closeMenu={() => setShowPostActions(false)}
-                                />
-                            </div>
-                        )}
+                <div className="relative flex items-center justify-center">
+                    {showPostActions && (
+                        <div className="absolute right-9 top-1/2 -translate-y-1/2 z-35 flex items-center gap-1 bg-white border border-gray-200 rounded-xl p-1 shadow-md whitespace-nowrap">
+                            <PostActionsMenu
+                                currentUser={currentUser}
+                                post={post}
+                                handleEditPost={handleEditPost}
+                                handleDeletePost={handleDeletePost}
+                                closeMenu={() => setShowPostActions(false)}
+                            />
+                        </div>
+                    )}
 
-                        <button
-                            className={`p-1 rounded-full transition-colors cursor-pointer text-gray-500 hover:bg-gray-100 z-10 ${showPostActions ? 'bg-gray-100 text-black' : ''}`}
-                            onClick={() => setShowPostActions(!showPostActions)}
-                        >
-                            {showPostActions ? <FiX size={16} /> : <BsThreeDots size={16} />}
-                        </button>
-                    </div>
-                )}
+                    <button
+                        className={`p-1 rounded-full transition-colors cursor-pointer text-gray-500 hover:bg-gray-100 z-10 ${showPostActions ? 'bg-gray-100 text-black' : ''}`}
+                        onClick={() => setShowPostActions(!showPostActions)}
+                    >
+                        {showPostActions ? <FiX size={16} /> : <BsThreeDots size={16} />}
+                    </button>
+                </div>
             </div>
         </div>
     );

@@ -1,12 +1,19 @@
 import React, { useState } from "react";
 import { createPortal } from "react-dom";
-import { FiEdit2, FiTrash2, FiX } from "react-icons/fi";
+import { FiEdit2, FiTrash2, FiFlag, FiX } from "react-icons/fi";
 import EditPostModal from "./EditPostModal";
 import DeletePostModal from "./DeletePostModal";
+import ReportPostModal from "./ReportPostModal";
 
 function PostActionsMenu({ post, handleDeletePost, handleEditPost, currentUser, closeMenu }) {
     const [showEditPostModal, setShowEditPostModal] = useState(false);
     const [showDeletePostModal, setShowDeletePostModal] = useState(false);
+    const [showReportPostModal, setShowReportPostModal] = useState(false);
+
+    // Hämta IDs på ett säkert sätt och använd createdBy (vilket är namnet i din Mongoose-modell)
+    const currentUserId = currentUser?._id || currentUser?.id;
+    const authorId = typeof post?.createdBy === "object" ? (post.createdBy?._id || post.createdBy?.id) : post?.createdBy;
+    const isMyPost = currentUserId && authorId && currentUserId.toString() === authorId.toString();
 
     // Gemensam bakgrundsklass för alla modaler så att blur/mörker är 100% identiskt
     const backdropClasses = "fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4 animate-in fade-in duration-200";
@@ -14,7 +21,7 @@ function PostActionsMenu({ post, handleDeletePost, handleEditPost, currentUser, 
     return (
         <>
             {/* 1. Huvudmeny */}
-            {!showEditPostModal && !showDeletePostModal && createPortal(
+            {!showEditPostModal && !showDeletePostModal && !showReportPostModal && createPortal(
                 <div
                     className={backdropClasses}
                     onClick={closeMenu}
@@ -43,39 +50,60 @@ function PostActionsMenu({ post, handleDeletePost, handleEditPost, currentUser, 
 
                         {/* Vertikala knappar */}
                         <div className="flex flex-col gap-2 my-2">
-                            {/* Edit */}
-                            <button
-                                type="button"
-                                onClick={() => setShowEditPostModal(true)}
-                                className="w-full flex items-center justify-between p-3.5 bg-gray-50 hover:bg-gray-100 rounded-2xl transition-colors text-left cursor-pointer group"
-                            >
-                                <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-white rounded-xl shadow-xs text-gray-700 group-hover:scale-105 transition-transform">
-                                        <FiEdit2 size={16} />
-                                    </div>
-                                    <div>
-                                        <p className="text-xs font-bold text-gray-800">Edit Post</p>
-                                        <p className="text-[10px] text-gray-400">Update caption & recipe</p>
-                                    </div>
-                                </div>
-                            </button>
+                            {isMyPost ? (
+                                <>
+                                    {/* Edit */}
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowEditPostModal(true)}
+                                        className="w-full flex items-center justify-between p-3.5 bg-gray-50 hover:bg-gray-100 rounded-2xl transition-colors text-left cursor-pointer group"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-2 bg-white rounded-xl shadow-xs text-gray-700 group-hover:scale-105 transition-transform">
+                                                <FiEdit2 size={16} />
+                                            </div>
+                                            <div>
+                                                <p className="text-xs font-bold text-gray-800">Edit Post</p>
+                                                <p className="text-[10px] text-gray-400">Update caption & recipe</p>
+                                            </div>
+                                        </div>
+                                    </button>
 
-                            {/* Delete */}
-                            <button
-                                type="button"
-                                onClick={() => setShowDeletePostModal(true)}
-                                className="w-full flex items-center justify-between p-3.5 bg-red-50/60 hover:bg-red-50 rounded-2xl transition-colors text-left cursor-pointer group"
-                            >
-                                <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-white rounded-xl shadow-xs text-red-500 group-hover:scale-105 transition-transform">
-                                        <FiTrash2 size={16} />
+                                    {/* Delete */}
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowDeletePostModal(true)}
+                                        className="w-full flex items-center justify-between p-3.5 bg-red-50/60 hover:bg-red-50 rounded-2xl transition-colors text-left cursor-pointer group"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-2 bg-white rounded-xl shadow-xs text-red-500 group-hover:scale-105 transition-transform">
+                                                <FiTrash2 size={16} />
+                                            </div>
+                                            <div>
+                                                <p className="text-xs font-bold text-red-600">Delete Post</p>
+                                                <p className="text-[10px] text-red-400">Permanently remove this post</p>
+                                            </div>
+                                        </div>
+                                    </button>
+                                </>
+                            ) : (
+                                /* Report (för andras inlägg) */
+                                <button
+                                    type="button"
+                                    onClick={() => setShowReportPostModal(true)}
+                                    className="w-full flex items-center justify-between p-3.5 bg-red-50/60 hover:bg-red-50 rounded-2xl transition-colors text-left cursor-pointer group"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-white rounded-xl shadow-xs text-red-500 group-hover:scale-105 transition-transform">
+                                            <FiFlag size={16} />
+                                        </div>
+                                        <div>
+                                            <p className="text-xs font-bold text-red-600">Report Post</p>
+                                            <p className="text-[10px] text-red-400">Flag inappropriate content</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className="text-xs font-bold text-red-600">Delete Post</p>
-                                        <p className="text-[10px] text-red-400">Permanently remove this post</p>
-                                    </div>
-                                </div>
-                            </button>
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>,
@@ -88,7 +116,6 @@ function PostActionsMenu({ post, handleDeletePost, handleEditPost, currentUser, 
                     className={backdropClasses}
                     onClick={() => setShowEditPostModal(false)}
                 >
-                    {/* Endast stoppar klicket från att nå bakgrunden, ingen extra styling */}
                     <div onClick={(e) => e.stopPropagation()}>
                         <EditPostModal 
                             currentUser={currentUser} 
@@ -115,6 +142,20 @@ function PostActionsMenu({ post, handleDeletePost, handleEditPost, currentUser, 
                             onClose={() => setShowDeletePostModal(false)} 
                         />
                     </div>
+                </div>,
+                document.body
+            )}
+
+            {/* 4. Report Post Modal */}
+            {showReportPostModal && createPortal(
+                <div onClick={(e) => e.stopPropagation()}>
+                    <ReportPostModal 
+                        postId={post._id} 
+                        onClose={() => {
+                            setShowReportPostModal(false);
+                            closeMenu();
+                        }} 
+                    />
                 </div>,
                 document.body
             )}

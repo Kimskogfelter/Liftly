@@ -2,13 +2,18 @@ import { HttpError } from "../models/errorModel.js"
 import { Post } from "../models/postModel.js";
 import { User } from "../models/userModel.js";
 import { Comment } from "../models/commentModel.js";
+import { ReportPost } from '../models/reportPostModel.js';
 import mongoose from "mongoose";
+import { Resend } from 'resend';
 import { upload } from "../middleware/cloudinaryUpload.js";
 // loading env var from .env
 import 'dotenv/config';
 // funktion för pagination/scroll
 import { getPagination, formatPaginatedResponse } from '../utils/pagination.js';
 import path from "path";
+
+// to send emails 
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 
 // ---------------------------- CREATE POST --------------------------- 
@@ -611,6 +616,65 @@ export const unlikePost = async (req, res, next) => {
 
 }
 
+// ---------------------------- REPORT POST --------------------------- 
+// POST req: api/posts/:postId/report
+// PROTECTED
+export const reportPost = async (req, res, next) => {
+    try {
+        const { postId } = req.params;
+        const { reason } = req.body;
+
+        // 1. Kontrollera att ID är giltigt
+        if (!mongoose.Types.ObjectId.isValid(postId)) {
+            return next(new HttpError("Post Id is not valid", 404));
+        }
+
+        // 2. Kontrollera att inlägget finns
+        const post = await Post.findById(postId).populate("createdBy", "username");
+        if (!post) {
+            return next(new HttpError("Post not found", 404));
+        }
+
+        // 3. Hämta den inloggade användaren som gör anmälan
+        const reportingUser = await User.findById(req.user.id);
+        if (!reportingUser) {
+            return next(new HttpError("User not found", 404));
+        }
+
+        // 4. Spara rapporten i databasen
+        await ReportPost.create({
+            post: postId,
+            reportedBy: req.user.id,
+            reason: reason || "Inappropriate content"
+        });
+
+        // 5. Skicka e-post via Resend till dig själv
+        try {
+            await resend.emails.send({
+                from: 'Liftly Moderation <onboarding@resend.dev>',
+                to: 'kimskogfelter@outlook.com', // Din e-post
+                subject: `🚨 Liftly Alert: Post reported by @${reportingUser.username}`,
+                text: `A post has been reported in the Liftly app.\n\n` +
+                      `Post ID: ${postId}\n` +
+                      `Author: @${post.createdBy?.username || "Unknown"}\n` +
+                      `Reported by: @${reportingUser.username}\n` +
+                      `Reason: ${reason}\n\n` +
+                      `Post content: "${post.content || "[Media/Other content]"}"`,
+            });
+        } catch (emailError) {
+            console.error("Resend error (report):", emailError);
+            // Vi låter inte ett misslyckat mailstopp stoppa databasen, men loggar felet
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Report submitted successfully."
+        });
+
+    } catch (error) {
+        return next(new HttpError(error.message || "Could not report post", 500));
+    }
+};
 
 // ---------------------------- UPDATE POST --------------------------- 
 // PATCH req: api/posts/:postId/update
