@@ -1,12 +1,14 @@
 import React, { useState } from "react";
 import { createPortal } from "react-dom";
+import { useNavigate } from "react-router-dom";
 import ContactModal from "./ContactModal";
 import DeleteAccountModal from "./DeleteAccountModal";
-import { FiTrash2, FiX, FiMail } from "react-icons/fi";
+import { FiTrash2, FiX, FiMail, FiShield } from "react-icons/fi";
 
 function SettingsModal({ onClose, currentUser, setCurrentUser }) {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
+  const navigate = useNavigate();
 
   const backdropClasses =
     "fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4 animate-in fade-in duration-200";
@@ -26,7 +28,7 @@ function SettingsModal({ onClose, currentUser, setCurrentUser }) {
               Manage your preferences
             </p>
           </div>
-          
+
           <button
             onClick={onClose}
             className="p-1.5 rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
@@ -37,6 +39,8 @@ function SettingsModal({ onClose, currentUser, setCurrentUser }) {
 
         {/* Huvudmeny */}
         <div className="flex flex-col gap-2 my-2">
+
+          {/* Contact & Feedback */}
           <button
             type="button"
             onClick={() => setShowContactModal(true)}
@@ -55,9 +59,32 @@ function SettingsModal({ onClose, currentUser, setCurrentUser }) {
             </div>
           </button>
 
+          {/* Privacy Policy */}
           <button
             type="button"
-            onClick={() => setShowDeleteModal(true)} // <-- Öppnar den nya modalen
+            onClick={() => {
+              window.open("/privacy", "_blank");
+              onClose();
+            }}
+            className="w-full flex items-center justify-between p-3.5 bg-gray-50 hover:bg-gray-100 rounded-2xl transition-colors text-left cursor-pointer group"
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-white rounded-xl shadow-xs text-gray-700 group-hover:scale-105 transition-transform">
+                <FiShield size={16} />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-gray-900">Privacy Policy</p>
+                <p className="text-[10px] text-gray-500">
+                  Read our data protection and GDPR terms
+                </p>
+              </div>
+            </div>
+          </button>
+
+          {/* Delete Account */}
+          <button
+            type="button"
+            onClick={() => setShowDeleteModal(true)}
             className="w-full flex items-center justify-between p-3.5 bg-red-50/60 hover:bg-red-50 rounded-2xl transition-colors text-left cursor-pointer group"
           >
             <div className="flex items-center gap-3">
@@ -81,10 +108,10 @@ function SettingsModal({ onClose, currentUser, setCurrentUser }) {
       )}
 
       {showDeleteModal && (
-        <DeleteAccountModal 
-          onClose={() => setShowDeleteModal(false)} 
-          currentUser={currentUser} 
-          setCurrentUser={setCurrentUser} 
+        <DeleteAccountModal
+          onClose={() => setShowDeleteModal(false)}
+          currentUser={currentUser}
+          setCurrentUser={setCurrentUser}
         />
       )}
     </div>,

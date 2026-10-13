@@ -130,13 +130,18 @@ function RegisterPage() {
               id="gdpr"
               checked={acceptedGDPR}
               onChange={(e) => setAcceptedGDPR(e.target.checked)}
-              className="mt-0.5 h-4 w-4 rounded border-zinc-300 text-black focus:ring-black cursor-pointer"
+              className="mt-0.5 h-4 w-4 rounded border-zinc-700 bg-zinc-900 text-black focus:ring-zinc-400 cursor-pointer"
             />
-            <label htmlFor="gdpr" className="text-xs text-zinc-600 select-none  leading-tight">
+            <label htmlFor="gdpr" className="text-xs text-zinc-400 select-none leading-tight">
               I agree that my personal data and workout information can be stored in accordance with the{' '}
-              <Link to="/privacy" className="underline font-medium text-zinc-900 hover:text-black cursor-pointer">
+              <a 
+                href="/privacy" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="underline font-semibold text-white hover:text-zinc-200 cursor-pointer"
+              >
                 Privacy Policy
-              </Link>{' '}
+              </a>{' '}
               and GDPR.
             </label>
           </div>
