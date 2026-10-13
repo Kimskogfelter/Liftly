@@ -5,18 +5,6 @@ Apple är kända för att vara strikta vid granskningen (App Store Review). Om d
 
 
 
-2. Användarvillkor och Integritetspolicy (Terms & Privacy Policy):
-
-Du måste ha en länk till en integritetspolicy (Privacy Policy) som förklarar vilka uppgifter ni sparar (e-post, lösenord, bilder). Den måste finnas tillgänglig både på en webbsida och i appen.
-
-3. Radering av konto:
-
-Sedan några år tillbaka kräver Apple att om en app låter användare skapa ett konto, så måste det också finnas en enkel knapp inne i appen för att radera sitt konto och all sin data permanent.
-
-4. "Placeholder"-innehåll / Skräpdata:
-
-Appen får inte se ut som en testprototyp fylld med "Lorem Ipsum"-texter eller buggiga element som inte fungerar när granskaren klickar runt.
-
 
 ## Säkerhet & Autentisering
 - Ändra namnet token till accessToken i både frontend och backend för bättre förståelse av vad den gör
@@ -27,12 +15,21 @@ Appen får inte se ut som en testprototyp fylld med "Lorem Ipsum"-texter eller b
 - fixa ett språk filter mot fula ord?! 
 - redan inskrivna sociala användarnamn fylls inte i när man klickar edit profile på profilsidan
 - fixa så enter och mellanslag sparas i skapta inlägg. just nu tas enters bort vilket gör att all text flyter samman och blir svårt att läsa, även lägga till fet/kursiv text etc när man skapar..? 
+- på mobil så aktiveras inte tangentbordet direkt när man kommer till söksidan... useRef och timeouts funkar inte!
+- byt plats så add ingredient och add step när man skapar recept hamnar under varje tillagd del? blir irriterande på mobil att behöva scrolla upp varje gång man ska lägga till något nytt i receptet
+
+- FIXA så användare kan redigera email, användarnamn och ändra lösenord
+ på sina skapade användare!!
+
+- FIXA SUPPORT MEJL?! support@liftly.app  // annan mejl?? info??
+
+- FIXA tillbaka knapp på privacy policy sidan då det behövs för mobiler då sidan ej kommer upp på separat flik då det öppnas direkt i appen
 
 - fixa betalplan för server så den alltid är uppe??
 - fixa så appen kan lanseras hos app store och andriod för att lätt laddas ner
 
 - uppdatera README.md med screenshots från de olika delarna på appen
-- RENSA APPEN på test konton, onödiga kommentarer etc!!
+
 
 ## ✅ Redan Klart
 - [x] Vända inläggsordning (`.reverse()`) på profilsidan så nyaste inläggen visas överst.
@@ -79,6 +76,7 @@ Skapa en dedikerad vy som visar alla inlägg taggade med en viss hashtag när ma
 - [x] fixa att man kan klicka i avklarat träningspass på single workout page vyn, så bockas de av automatiskt i kalendern
 - [x] dubbelkolla att ingen del i backend skickar med känslig information till frontend!!
 - [x] se till så det syns att det är en delad kalender vy i post grid item komponenten
+- [x] RENSA APPEN på test konton, onödiga kommentarer etc!!
 
 ### Apple store krav klara
 - [x] 1. Innehållsmoderering (Kopplat till din fulords- och gilla-fråga!):
@@ -86,3 +84,14 @@ Skapa en dedikerad vy som visar alla inlägg taggade med en viss hashtag när ma
 Apple kräver att appar som tillåter användare att generera eget innehåll (som inlägg, kommentarer och bilder) har ett system för att hantera kränkande innehåll.
 
 Krav för att inte få nej: Du måste ha en funktion för att rapportera inlägg/användare (ReportPostModal i post components KLAR, samt ReportUserModal i user components KLAR), Utan detta blir det nästan garanterat ett nej. (Ett automatiskt fulordsfilter är ett stort plus, men rapporteringsknappen är ett absolut krav). inge fulordsfilter tillagt just nu
+- [x] 2. Användarvillkor och Integritetspolicy (Terms & Privacy Policy):
+
+Du måste ha en länk till en integritetspolicy (Privacy Policy) som förklarar vilka uppgifter ni sparar (e-post, lösenord, bilder). Den måste finnas tillgänglig både på en webbsida och i appen.
+
+- [x] 3. Radering av konto:
+
+Sedan några år tillbaka kräver Apple att om en app låter användare skapa ett konto, så måste det också finnas en enkel knapp inne i appen för att radera sitt konto och all sin data permanent.
+
+- [x] 4. "Placeholder"-innehåll / Skräpdata:
+
+Appen får inte se ut som en testprototyp fylld med "Lorem Ipsum"-texter eller buggiga element som inte fungerar när granskaren klickar runt.
