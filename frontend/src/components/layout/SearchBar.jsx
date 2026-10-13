@@ -6,28 +6,6 @@ function SearchBar() {
   const [searchParams] = useSearchParams();
   const [query, setQuery] = useState(searchParams.get("query") || "");
   const navigate = useNavigate();
-  const inputRef = useRef(null);
-
-  useEffect(() => {
-    // Försök tvinga fokus direkt samt via en kort timer
-    const focusInput = () => {
-      if (inputRef.current) {
-        inputRef.current.focus();
-      }
-    };
-
-    focusInput();
-    const timer = setTimeout(focusInput, 150);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Extra säkerhetsåtgärd för mobil: om hela sökarean nuddas, tvinga fokus
-  const handleContainerClick = () => {
-    if (inputRef.current) {
-      inputRef.current.focus();
-    }
-  };
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -40,13 +18,9 @@ function SearchBar() {
 
   return (
     <form onSubmit={handleSearch} className="w-full">
-      <div 
-        className="relative w-full cursor-text" 
-        onClick={handleContainerClick}
-        onTouchStart={handleContainerClick}
-      >
+      <div className="relative w-full">
         <input
-          ref={inputRef}
+          autoFocus
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
