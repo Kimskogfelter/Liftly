@@ -3,6 +3,9 @@ import { User } from "../models/userModel.js"
 import { Post } from "../models/postModel.js"
 import { Comment } from "../models/commentModel.js";
 import { ReportUser } from '../models/reportUserModel.js';
+import { CalendarLog } from "../models/calendarModel.js";
+import { FoodLog } from "../models/foodLogModel.js";
+import { Workout } from "../models/workoutModel.js";
 import validator from "validator";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
