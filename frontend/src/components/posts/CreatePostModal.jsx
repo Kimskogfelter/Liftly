@@ -41,7 +41,7 @@ function CreatePostModal({ currentUser, onClose }) {
   const [protein, setProtein] = useState("");
   const [ingredients, setIngredients] = useState([""]);
   const [instructions, setInstructions] = useState([""]);
-  
+
   // Sparar enbart det färdiga receptet när man trycker på "Save Recipe"
   const [savedRecipeData, setSavedRecipeData] = useState(null);
 
@@ -233,21 +233,24 @@ function CreatePostModal({ currentUser, onClose }) {
               )}
 
               {/* Hashtag-fält */}
-              <div className="text-xs [&_.rti\--container]:border-zinc-200! [&_.rti\--container]:bg-gray-50/30 [&_.rti\--container]:rounded-lg [&_.rti\--container]:p-2.5 [&_.rti\--container]:transition-colors [&_.rti\--container]:focus-within:border-zinc-400! [&_.rti\--tag]:bg-zinc-200/60 [&_.rti\--tag]:text-zinc-800 [&_.rti\--tag]:text-[11px] [&_.rti\--tag]:font-medium [&_.rti\--tag]:py-0.5 [&_.rti\--tag]:px-2 [&_.rti\--tag]:rounded-md [&_.rti\--input]:bg-transparent [&_.rti\--input]:text-xs [&_.rti\--input]:text-gray-800 [&_.rti\--input]:placeholder-gray-400 [&_.rti\--input]:p-0 [&_.rti\--input]:m-0">
-                <TagsInput
-                  value={hashtags}
-                  onChange={(newTags) => {
-                    const formatted = newTags.map((tag) => {
-                      const cleanTag = tag.trim().replace(/^#+/, "");
-                      return cleanTag ? `#${cleanTag.toLowerCase()}` : "";
-                    }).filter(Boolean);
-                    const uniqueTags = [...new Set(formatted)];
-                    setHashtags(uniqueTags);
-                  }}
-                  name="hashtags"
-                  placeHolder="hashtags (Space/Enter to add)"
-                  separators={[" "]}
-                />
+              <div className="space-y-1">
+                <div className="text-xs [&_.rti\--container]:border-zinc-200! [&_.rti\--container]:bg-gray-50/30 [&_.rti\--container]:rounded-lg [&_.rti\--container]:p-2.5 [&_.rti\--container]:transition-colors [&_.rti\--container]:focus-within:border-zinc-400! [&_.rti\--tag]:bg-zinc-200/60 [&_.rti\--tag]:text-zinc-800 [&_.rti\--tag]:text-[11px] [&_.rti\--tag]:font-medium [&_.rti\--tag]:py-0.5 [&_.rti\--tag]:px-2 [&_.rti\--tag]:rounded-md [&_.rti\--input]:bg-transparent [&_.rti\--input]:text-xs [&_.rti\--input]:text-gray-800 [&_.rti\--input]:placeholder-gray-400 [&_.rti\--input]:p-0 [&_.rti\--input]:m-0">
+                  <TagsInput
+                    value={hashtags}
+                    onChange={(newTags) => {
+                      const formatted = newTags.map((tag) => {
+                        const cleanTag = tag.trim().replace(/^#+/, "");
+                        return cleanTag ? `#${cleanTag.toLowerCase()}` : "";
+                      }).filter(Boolean);
+                      const uniqueTags = [...new Set(formatted)];
+                      setHashtags(uniqueTags);
+                    }}
+                    name="hashtags"
+                    placeHolder="Add hashtags"
+                    separators={[" "]}
+                  />
+                </div>
+                <p className="text-[10px] text-zinc-400 px-1">Press Space to add hashtag</p>
               </div>
 
               {/* Spotify-länk input */}
@@ -286,7 +289,7 @@ function CreatePostModal({ currentUser, onClose }) {
               {/* Verktygsfält (Media, Spotify, Recept & Kategori) */}
               <div className="space-y-2 pt-2">
                 <div className="flex items-center gap-2 w-full">
-                  
+
                   {/* Media-knapp */}
                   <label htmlFor="media" className="flex-1 h-10 flex items-center justify-center gap-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs font-semibold px-3 rounded-lg cursor-pointer transition-colors">
                     <FiImage size={15} className="text-zinc-800 shrink-0" />
@@ -312,11 +315,10 @@ function CreatePostModal({ currentUser, onClose }) {
                   <button
                     type="button"
                     onClick={() => setShowSpotifyInput((prev) => !prev)}
-                    className={`flex-1 h-10 flex items-center justify-center gap-1.5 text-xs font-semibold px-3 rounded-lg transition-colors cursor-pointer ${
-                      spotifyUrl || showSpotifyInput
-                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                        : "bg-zinc-100 hover:bg-zinc-200 text-zinc-700"
-                    }`}
+                    className={`flex-1 h-10 flex items-center justify-center gap-1.5 text-xs font-semibold px-3 rounded-lg transition-colors cursor-pointer ${spotifyUrl || showSpotifyInput
+                      ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                      : "bg-zinc-100 hover:bg-zinc-200 text-zinc-700"
+                      }`}
                   >
                     <BsSpotify size={15} className={spotifyUrl || showSpotifyInput ? "text-emerald-500" : "text-zinc-800 shrink-0"} />
                     <span>Spotify</span>
@@ -326,11 +328,10 @@ function CreatePostModal({ currentUser, onClose }) {
                   <button
                     type="button"
                     onClick={() => setShowRecipeView(true)}
-                    className={`flex-1 h-10 flex items-center justify-center gap-1.5 text-xs font-semibold px-3 rounded-lg transition-colors cursor-pointer text-center ${
-                      savedRecipeData
-                        ? "bg-orange-50 text-orange-700 border border-orange-200"
-                        : "bg-zinc-100 hover:bg-zinc-200 text-zinc-700"
-                    }`}
+                    className={`flex-1 h-10 flex items-center justify-center gap-1.5 text-xs font-semibold px-3 rounded-lg transition-colors cursor-pointer text-center ${savedRecipeData
+                      ? "bg-orange-50 text-orange-700 border border-orange-200"
+                      : "bg-zinc-100 hover:bg-zinc-200 text-zinc-700"
+                      }`}
                   >
                     {savedRecipeData ? (
                       <span className="leading-tight">Recipe added</span>
@@ -353,7 +354,7 @@ function CreatePostModal({ currentUser, onClose }) {
 
                   {isDropdownOpen && (
                     <div className="absolute left-0 bottom-full mb-1 w-full bg-white rounded-xl shadow-xl border border-zinc-100 py-1.5 z-50 text-xs font-medium text-zinc-700 max-h-64 overflow-y-auto">
-                      
+
                       <button
                         type="button"
                         onClick={() => { setCategory("General"); setSubCategory(""); setIsDropdownOpen(false); setExpandedCategory(null); }}
