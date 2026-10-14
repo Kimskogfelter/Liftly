@@ -15,7 +15,6 @@ function RecipeForm({
 
   const handleIngredientChange = (index, value) => {
     const newIngredients = [...ingredients];
-    // Stödjer både strängar och objekt beroende på hur state skickas in
     if (typeof newIngredients[index] === 'object' && newIngredients[index] !== null) {
       newIngredients[index] = { ...newIngredients[index], name: value };
     } else {
@@ -25,7 +24,6 @@ function RecipeForm({
   };
 
   const addIngredient = () => {
-    // Om state använder objekt med name/amount, skicka med det, annars tom sträng
     setIngredients([...ingredients, ""]);
   };
 
@@ -47,7 +45,6 @@ function RecipeForm({
     setInstructions(instructions.filter((_, i) => i !== index));
   };
 
-  // Strikt validering för ALLA fält innan onSave får köra igång
   const handleSaveClick = () => {
     setErrorMsg("");
 
@@ -68,7 +65,6 @@ function RecipeForm({
       return;
     }
     
-    // Hantera validering oavsett om ingredienser är strängar eller objekt
     const hasEmptyIngredients = ingredients.length === 0 || ingredients.some(ing => {
       const val = typeof ing === 'object' ? ing?.name : ing;
       return !val || !val.trim();
@@ -180,13 +176,13 @@ function RecipeForm({
           );
         })}
 
-        {/* Add Ingredient Knapp placerad i botten */}
+        {/* Add Ingredient Knapp (Matchar träningsdelarnas stil) */}
         <button
           type="button"
           onClick={addIngredient}
-          className="w-full border-2 border-dashed border-zinc-200 hover:border-zinc-300 text-zinc-600 rounded-xl py-2.5 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer bg-white mt-1"
+          className="w-full py-2.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer mt-1"
         >
-          <FiPlus size={15} /> Add Ingredient
+          <FiPlus size={14} /> Add Ingredient
         </button>
       </div>
 
@@ -216,13 +212,13 @@ function RecipeForm({
           </div>
         ))}
 
-        {/* Add Step Knapp placerad i botten */}
+        {/* Add Step Knapp (Matchar träningsdelarnas stil) */}
         <button
           type="button"
           onClick={addInstruction}
-          className="w-full border-2 border-dashed border-zinc-200 hover:border-zinc-300 text-zinc-600 rounded-xl py-2.5 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer bg-white mt-1"
+          className="w-full py-2.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer mt-1"
         >
-          <FiPlus size={15} /> Add Step
+          <FiPlus size={14} /> Add Step
         </button>
       </div>
 

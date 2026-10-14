@@ -187,7 +187,7 @@ function EditWorkoutModal({ onClose, handleEditWorkout, workout, currentUser }) 
                     <button
                         type="button"
                         onClick={addExercise}
-                        className="mt-3 w-full py-2.5 border border-dashed border-zinc-300 text-zinc-600 hover:border-zinc-400 hover:text-black rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
+                        className="mt-3 w-full py-2.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                     >
                         <FiPlus size={14} /> Add Exercise
                     </button>

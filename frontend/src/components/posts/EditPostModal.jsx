@@ -53,7 +53,7 @@ function EditPostModal({ onClose, handleEditPost, post, currentUser }) {
   };
 
   // Spara ändringar
-const editPost = async (e) => {
+  const editPost = async (e) => {
     e.preventDefault();
 
     try {
@@ -132,7 +132,7 @@ const editPost = async (e) => {
               ></textarea>
             </div>
 
-            {/* OM POSTEN HAR ETT RECEPT: Styling som matchar Workout Routine */}
+            {/* OM POSTEN HAR ETT RECEPT */}
             {post.recipe && (
               <div className="space-y-4 pt-2 border-t border-gray-100">
                 
@@ -201,13 +201,13 @@ const editPost = async (e) => {
                     </div>
                   ))}
 
-                  {/* Add Ingredient Knapp (Strålande streckad stil) */}
+                  {/* Add Ingredient Knapp (Matchar träningsdelarnas stil) */}
                   <button
                     type="button"
                     onClick={addIngredient}
-                    className="w-full border-2 border-dashed border-zinc-200 hover:border-zinc-300 text-zinc-600 rounded-xl py-2.5 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer bg-white"
+                    className="w-full py-2.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer mt-1"
                   >
-                    <FiPlus size={15} /> Add Ingredient
+                    <FiPlus size={14} /> Add Ingredient
                   </button>
                 </div>
 
@@ -237,13 +237,13 @@ const editPost = async (e) => {
                     </div>
                   ))}
 
-                  {/* Add Step Knapp */}
+                  {/* Add Step Knapp (Matchar träningsdelarnas stil) */}
                   <button
                     type="button"
                     onClick={addInstruction}
-                    className="w-full border-2 border-dashed border-zinc-200 hover:border-zinc-300 text-zinc-600 rounded-xl py-2.5 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer bg-white"
+                    className="w-full py-2.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer mt-1"
                   >
-                    <FiPlus size={15} /> Add Step
+                    <FiPlus size={14} /> Add Step
                   </button>
                 </div>
 
