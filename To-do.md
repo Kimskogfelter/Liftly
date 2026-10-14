@@ -1,11 +1,5 @@
 # Liftly - Project To-Do List
 
-## APPLE STORE KRAV: Vad krävs för att slippa ett "nej" från Apple (App Store)?
-Apple är kända för att vara strikta vid granskningen (App Store Review). Om du skickar in appen i sitt nuvarande skick finns det några vanliga fallgropar som riskerar att ge dig ett avslag:
-
-
-
-
 ## Säkerhet & Autentisering
 - Ändra namnet token till accessToken i både frontend och backend för bättre förståelse av vad den gör
 
@@ -13,17 +7,10 @@ Apple är kända för att vara strikta vid granskningen (App Store Review). Om d
 - skönhetsfilter till bild/video, måste väll finnas enkla tillägg för detta?? eller måste man koda allt själv??
 - fixa så man får notiser i och utanför appen när något händer, tex en kommentar eller gilla markering
 - fixa ett språk filter mot fula ord?! 
-- redan inskrivna sociala användarnamn fylls inte i när man klickar edit profile på profilsidan
-- fixa så enter och mellanslag sparas i skapta inlägg. just nu tas enters bort vilket gör att all text flyter samman och blir svårt att läsa, även lägga till fet/kursiv text etc när man skapar..? 
 - på mobil så aktiveras inte tangentbordet direkt när man kommer till söksidan... useRef och timeouts funkar inte!
-- byt plats så add ingredient och add step när man skapar recept hamnar under varje tillagd del? blir irriterande på mobil att behöva scrolla upp varje gång man ska lägga till något nytt i receptet
 
 - FIXA så användare kan redigera email, användarnamn och ändra lösenord
  på sina skapade användare!!
-
-- FIXA SUPPORT MEJL?! support@liftly.app  // annan mejl?? info??
-
-- FIXA tillbaka knapp på privacy policy sidan då det behövs för mobiler då sidan ej kommer upp på separat flik då det öppnas direkt i appen
 
 - fixa betalplan för server så den alltid är uppe??
 - fixa så appen kan lanseras hos app store och andriod för att lätt laddas ner
@@ -77,6 +64,14 @@ Skapa en dedikerad vy som visar alla inlägg taggade med en viss hashtag när ma
 - [x] dubbelkolla att ingen del i backend skickar med känslig information till frontend!!
 - [x] se till så det syns att det är en delad kalender vy i post grid item komponenten
 - [x] RENSA APPEN på test konton, onödiga kommentarer etc!!
+- [x] FIXA SUPPORT MEJL?! support@liftlyfit.com via Porkbun
+- [x] FIXA tillbaka knapp på privacy policy sidan då det behövs för mobiler då sidan ej kommer upp på separat flik då det öppnas direkt i appen
+- [x] byt plats så add ingredient och add step när man skapar recept hamnar under varje tillagd del? blir irriterande på mobil att behöva scrolla upp varje gång man ska lägga till något nytt i receptet
+- [x] redan inskrivna sociala användarnamn fylls inte i när man klickar edit profile på profilsidan FIXAT
+- [x] fixa så enter och mellanslag sparas i skapta inlägg. just nu tas enters bort vilket gör att all text flyter samman och blir svårt att läsa
+
+
+
 
 ### Apple store krav klara
 - [x] 1. Innehållsmoderering (Kopplat till din fulords- och gilla-fråga!):
