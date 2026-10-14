@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { registerUser, loginUser, logoutUser, getUser, getUsers, updateUser, followUser, unfollowUser, getFollowing, getFollowers, reportUser, changeProfileImage, deleteUser, getSavedPosts, authUser, forgotPassword, resetPassword, refreshToken} from '../controllers/userController.js';
+import { registerUser, loginUser, logoutUser, getUser, getUsers, updateUser, followUser, unfollowUser, getFollowing, getFollowers, reportUser, changeProfileImage, deleteUser, getSavedPosts, authUser, changePassword, forgotPassword, resetPassword, refreshToken} from '../controllers/userController.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';
 import { upload } from '../middleware/cloudinaryUpload.js'
 
@@ -36,7 +36,8 @@ userRouter.get('/verify', authMiddleware, authUser)
 userRouter.get('/:userId', authMiddleware, getUser)
 userRouter.delete('/:userId', authMiddleware, deleteUser)
 
-// ---------------------------- forgot/reset password --------------------------- 
+// ---------------------------- forgot/reset/change password --------------------------- 
+userRouter.patch('/change-password', authMiddleware, changePassword);
 userRouter.post('/forgot-password', forgotPassword)
 userRouter.patch('/reset-password/:token', resetPassword)
 

@@ -171,6 +171,7 @@ export const loginUser = async (req, res, next) => {
             token,
             id: user._id,
             username: user.username,
+            email: user.email,
             profileImage: user.profileImage,
             profileBio: user.profileBio,
             socialLinks: user.socialLinks,
@@ -320,7 +321,7 @@ export const updateUser = async (req, res, next) => {
             req.user.id,
             { $set: { username, email, profileBio, socialLinks } }, // $set ONLY updates the data that is sent from frontend, ex if only profile bio is edited only that is changed in the database
             { new: true, runValidators: true } // runValidators make sure that the backend rules (such as unique email, minLenght etc that is set in the user model) still follows 
-        ).select("-password -refreshTokens -email -resetPasswordToken -resetPasswordExpires");
+        ).select("-password -refreshTokens -resetPasswordToken -resetPasswordExpires");
 
         // error if no user could be found
         if (!updatedUser) {
@@ -329,11 +330,46 @@ export const updateUser = async (req, res, next) => {
         }
 
         // Send successful response with the updated user data
-        return res.status(200).json({ message: "User updated: ", updatedUser })
+        return res.status(200).json({
+            message: "User updated successfully",
+            updatedUser: {
+                id: updatedUser._id,
+                username: updatedUser.username,
+                email: updatedUser.email,
+                profileImage: updatedUser.profileImage,
+                profileBio: updatedUser.profileBio,
+                socialLinks: updatedUser.socialLinks,
+                savedPosts: updatedUser.savedPosts,
+                followers: updatedUser.followers,
+                following: updatedUser.following
+            }
+        })
 
 
     } catch (error) {
 
+        // 1. Fånga Mongoose valideringsfel (t.ex. för kort användarnamn)
+        if (error.name === "ValidationError") {
+            // Hämta det första felmeddelandet som Mongoose genererar
+            const messages = Object.values(error.errors).map(err => err.message);
+
+            // Gör meddelandet lite snyggare om det handlar om längd
+            let userFriendlyMsg = messages[0];
+            if (userFriendlyMsg.includes("shorter than the minimum allowed length")) {
+                userFriendlyMsg = "Username must be at least 5 characters long.";
+            }
+
+            return next(new HttpError(userFriendlyMsg, 400));
+        }
+
+        // 2. Fånga MongoDB:s unika index-fel (om användarnamn eller e-post redan är upptaget)
+        if (error.code === 11000) {
+            const field = Object.keys(error.keyPattern)[0];
+            const fieldName = field === "username" ? "Username" : "Email";
+            return next(new HttpError(`This ${fieldName.toLowerCase()} is already taken.`, 400));
+        }
+
+        // 3. Standardfel
         return next(new HttpError(error.message || "Could not update user", 500));
     }
 
@@ -772,6 +808,60 @@ export const authUser = async (req, res, next) => {
     }
 }
 
+
+// ---------------------------- CHANGE PASSWORD --------------------------- 
+// PATCH req: api/users/change-password
+// PROTECTED: Kräver att användaren är inloggad via authMiddleware
+
+export const changePassword = async (req, res, next) => {
+
+    try {
+
+        // hämta nuvarande lösenord, nytt lösenord och bekräftelse från frontend
+        const { currentPassword, newPassword, confirmPassword } = req.body;
+
+        // kontrollera att alla fält är ifyllda
+        if (!currentPassword || !newPassword || !confirmPassword) {
+            return next(new HttpError("Please fill in all password fields", 400));
+        }
+
+        // kontrollera att det nya lösenordet matchar bekräftelsefältet
+        if (newPassword !== confirmPassword) {
+            return next(new HttpError("New passwords do not match", 400));
+        }
+
+        // hämta användaren via req.user.id och inkludera lösenordet (.select('+password')) 
+        // eftersom det normalt sett är exkluderat i användarmodellen
+        const user = await User.findById(req.user.id).select('+password');
+
+        // felmeddelande om ingen användare hittas
+        if (!user) {
+            return next(new HttpError("User not found", 404));
+        }
+
+        // jämför det inskickade nuvarande lösenordet med det hashade i databasen via bcrypt
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+
+        if (!isMatch) {
+            return next(new HttpError("Current password is incorrect", 400));
+        }
+
+        // hasha det nya lösenordet innan det sparas
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(newPassword, salt);
+
+        // spara det uppdaterade dokumentet i databasen
+        await user.save();
+
+        // skicka ett lyckat svar tillbaka till frontend
+        return res.status(200).json({ message: "Password updated successfully" });
+
+    } catch (error) {
+
+        return next(new HttpError(error.message || "Could not change password", 500));
+    }
+
+};
 
 // ---------------------------- FORGOT PASSWORD --------------------------- 
 export const forgotPassword = async (req, res, next) => {
