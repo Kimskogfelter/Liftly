@@ -7,10 +7,11 @@
 - skönhetsfilter till bild/video, måste väll finnas enkla tillägg för detta?? eller måste man koda allt själv??
 - fixa så man får notiser i och utanför appen när något händer, tex en kommentar eller gilla markering
 - fixa ett språk filter mot fula ord?! 
+
 - på mobil så aktiveras inte tangentbordet direkt när man kommer till söksidan... useRef och timeouts funkar inte!
 
 - FIXA så användare kan redigera email, användarnamn och ändra lösenord
- på sina skapade användare!!
+ på sina skapade användare!! ... uppdaterar INTE användarnamnet i edit account delen i settings när det är ändrat, det är samma gamla som innan! den uppdateras överallt annars, dock inte direkt på profilsidan utan att den laddas om!!
 
 - fixa betalplan för server så den alltid är uppe??
 - fixa så appen kan lanseras hos app store och andriod för att lätt laddas ner
