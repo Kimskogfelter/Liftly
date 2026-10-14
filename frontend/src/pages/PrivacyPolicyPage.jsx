@@ -1,9 +1,14 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { FiArrowLeft } from 'react-icons/fi';
 import logo from '../assets/images/liftly-logo.png';
 
 const PrivacyPolicyPage = () => {
+    const navigate = useNavigate();
+
     return (
         <section className="flex min-h-screen flex-col items-center justify-start bg-[#0D0D0E] px-4 md:px-6 pt-12 md:pt-16 pb-24 font-sans text-white">
+            
             {/* Header med Liftly-logga */}
             <div className="w-full max-w-2xl text-center mb-8 border-b border-zinc-800 pb-6 flex flex-col items-center">
                 <img src={logo} alt="Liftly logo" className="h-8 w-auto object-contain mb-3" />
@@ -40,7 +45,18 @@ const PrivacyPolicyPage = () => {
 
                 <div>
                     <h2 className="font-bold text-white text-sm mb-1">5. Contact Us</h2>
-                    <p className="text-zinc-400">If you have any questions regarding this privacy policy or how your data is handled, you can reach out to us via the contact options inside the app or at support@liftly.app.</p>
+                    <p className="text-zinc-400">If you have any questions regarding this privacy policy or how your data is handled, you can reach out to us via the contact options inside the app or at support@liftlyfit.com.</p>
+                </div>
+
+                {/* Tillbakaknapp längst ner i kortet */}
+                <div className="pt-4 border-t border-zinc-800 flex justify-center mt-6">
+                    <button
+                        onClick={() => navigate(-1)}
+                        className="flex items-center gap-2 text-xs font-semibold text-white bg-zinc-800 hover:bg-zinc-700 px-4 py-2 rounded-lg transition-colors cursor-pointer"
+                    >
+                        <FiArrowLeft size={14} />
+                        <span>Back</span>
+                    </button>
                 </div>
             </div>
         </section>

@@ -28,7 +28,6 @@ function ContactModal({ onClose }) {
         setError("");
 
         try {
-            // Anropar din egna backend-route via din axios-instans
             const response = await api.post("/contact", {
                 name: formData.name,
                 email: formData.email,
@@ -160,6 +159,19 @@ function ContactModal({ onClose }) {
                             <FiSend size={13} />
                             <span>{isSubmitting ? "Sending..." : "Send Message"}</span>
                         </button>
+
+                        {/* Tydlig direkt-mejl för användare och granskare */}
+                        <div className="pt-2 text-center border-t border-gray-100 mt-3">
+                            <p className="text-[11px] text-gray-500">
+                                Or email us directly at{" "}
+                                <a 
+                                    href="mailto:support@liftlyfit.com" 
+                                    className="font-medium text-black hover:underline"
+                                >
+                                    support@liftlyfit.com
+                                </a>
+                            </p>
+                        </div>
                     </form>
                 )}
             </div>

@@ -63,7 +63,7 @@ function SettingsModal({ onClose, currentUser, setCurrentUser }) {
           <button
             type="button"
             onClick={() => {
-              window.open("/privacy", "_blank");
+              navigate("/privacy");
               onClose();
             }}
             className="w-full flex items-center justify-between p-3.5 bg-gray-50 hover:bg-gray-100 rounded-2xl transition-colors text-left cursor-pointer group"

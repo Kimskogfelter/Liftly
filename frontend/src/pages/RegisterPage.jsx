@@ -134,14 +134,12 @@ function RegisterPage() {
             />
             <label htmlFor="gdpr" className="text-xs text-zinc-400 select-none leading-tight">
               I agree that my personal data and workout information can be stored in accordance with the{' '}
-              <a 
-                href="/privacy" 
-                target="_blank" 
-                rel="noopener noreferrer" 
+              <Link
+                to="/privacy"
                 className="underline font-semibold text-white hover:text-zinc-200 cursor-pointer"
               >
                 Privacy Policy
-              </a>{' '}
+              </Link>{' '}
               and GDPR.
             </label>
           </div>
