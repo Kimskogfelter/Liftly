@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { FiPlus, FiTrash2 } from "react-icons/fi";
+import { FiPlus } from "react-icons/fi";
+import { FaRegTrashAlt } from "react-icons/fa";
 
 function RecipeForm({ 
   recipeTitle, setRecipeTitle, 
@@ -14,11 +15,17 @@ function RecipeForm({
 
   const handleIngredientChange = (index, value) => {
     const newIngredients = [...ingredients];
-    newIngredients[index] = value;
+    // Stödjer både strängar och objekt beroende på hur state skickas in
+    if (typeof newIngredients[index] === 'object' && newIngredients[index] !== null) {
+      newIngredients[index] = { ...newIngredients[index], name: value };
+    } else {
+      newIngredients[index] = value;
+    }
     setIngredients(newIngredients);
   };
 
   const addIngredient = () => {
+    // Om state använder objekt med name/amount, skicka med det, annars tom sträng
     setIngredients([...ingredients, ""]);
   };
 
@@ -60,21 +67,28 @@ function RecipeForm({
       setErrorMsg("Please enter protein");
       return;
     }
-    if (ingredients.length === 0 || ingredients.some(ing => !ing.trim())) {
+    
+    // Hantera validering oavsett om ingredienser är strängar eller objekt
+    const hasEmptyIngredients = ingredients.length === 0 || ingredients.some(ing => {
+      const val = typeof ing === 'object' ? ing?.name : ing;
+      return !val || !val.trim();
+    });
+
+    if (hasEmptyIngredients) {
       setErrorMsg("Please fill in all ingredients");
       return;
     }
-    if (instructions.length === 0 || instructions.some(step => !step.trim())) {
+
+    if (instructions.length === 0 || instructions.some(step => !step || !step.trim())) {
       setErrorMsg("Please fill in all instruction steps");
       return;
     }
 
-    // Om allt är godkänt, anropa spara
     onSave();
   };
 
   return (
-    <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
+    <div className="space-y-4 max-h-[80vh] overflow-y-auto pr-1">
       {/* Rubrik & Tillbaka */}
       <div className="flex items-center justify-between border-b border-gray-100 pb-2">
         <h4 className="text-xs font-bold text-gray-900">Add Recipe</h4>
@@ -95,120 +109,121 @@ function RecipeForm({
       )}
 
       {/* Recepttitel */}
-      <div>
-        <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1 block">Recipe Title *</label>
+      <div className="space-y-1">
+        <label className="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Recipe Title *</label>
         <input
           type="text"
           placeholder="e.g., Chicken Sandwich"
           value={recipeTitle}
           onChange={(e) => setRecipeTitle(e.target.value)}
-          className="w-full text-xs border border-zinc-200 rounded-lg p-2.5 bg-gray-50/30 focus:outline-none focus:border-zinc-400"
+          className="w-full bg-white border border-zinc-200 rounded-lg px-3.5 py-2.5 text-xs text-zinc-800 focus:outline-none focus:border-zinc-400 shadow-2xs"
         />
       </div>
 
-      {/* Tid & Makros (Nu med tvingande koll) */}
+      {/* Tid & Makros */}
       <div className="grid grid-cols-3 gap-2">
         <div>
-          <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1 block">Time (min) *</label>
+          <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1">Time (min) *</label>
           <input
             type="number"
             placeholder="10"
             value={prepTimeMinutes}
             onChange={(e) => setPrepTimeMinutes(e.target.value)}
-            className="w-full text-xs border border-zinc-200 rounded-lg p-2 bg-gray-50/30 focus:outline-none"
+            className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2 text-xs text-zinc-800 focus:outline-none focus:border-zinc-400"
           />
         </div>
         <div>
-          <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1 block">Calories *</label>
+          <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1">Calories *</label>
           <input
             type="number"
             placeholder="350"
             value={calories}
             onChange={(e) => setCalories(e.target.value)}
-            className="w-full text-xs border border-zinc-200 rounded-lg p-2 bg-gray-50/30 focus:outline-none"
+            className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2 text-xs text-zinc-800 focus:outline-none focus:border-zinc-400"
           />
         </div>
         <div>
-          <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1 block">Protein (g) *</label>
+          <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1">Protein (g) *</label>
           <input
             type="number"
             placeholder="30"
             value={protein}
             onChange={(e) => setProtein(e.target.value)}
-            className="w-full text-xs border border-zinc-200 rounded-lg p-2 bg-gray-50/30 focus:outline-none"
+            className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2 text-xs text-zinc-800 focus:outline-none focus:border-zinc-400"
           />
         </div>
       </div>
 
       {/* --- INGREDIENSER --- */}
       <div className="space-y-2 pt-1">
-        <div className="flex items-center justify-between">
-          <label className="text-[11px] font-bold text-zinc-700">Ingredients *</label>
-          <button
-            type="button"
-            onClick={addIngredient}
-            className="text-[11px] font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-1 cursor-pointer"
-          >
-            <FiPlus size={13} /> Add ingredient
-          </button>
-        </div>
+        <label className="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Ingredients *</label>
 
-        {ingredients.map((ing, index) => (
-          <div key={index} className="flex items-center gap-1.5">
-            <input
-              type="text"
-              placeholder="e.g. 300g chicken breast"
-              value={ing}
-              onChange={(e) => handleIngredientChange(index, e.target.value)}
-              className="flex-1 text-xs border border-zinc-200 rounded-lg p-2 bg-gray-50/30 focus:outline-none"
-            />
-            {ingredients.length > 1 && (
+        {ingredients.map((ing, index) => {
+          const val = typeof ing === 'object' && ing !== null ? (ing.name || "") : ing;
+          return (
+            <div key={index} className="bg-zinc-50/70 border border-zinc-200/80 rounded-xl p-3 flex items-center justify-between gap-2">
+              <input
+                type="text"
+                placeholder="e.g. 300g chicken breast"
+                value={val}
+                onChange={(e) => handleIngredientChange(index, e.target.value)}
+                className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2 text-xs text-zinc-800 focus:outline-none focus:border-zinc-400 shadow-2xs"
+              />
               <button
                 type="button"
                 onClick={() => removeIngredient(index)}
-                className="text-zinc-400 hover:text-red-500 transition-colors p-1 cursor-pointer"
+                className="p-2 text-zinc-400 hover:text-red-500 transition-colors cursor-pointer shrink-0"
               >
-                <FiTrash2 size={14} />
+                <FaRegTrashAlt size={14} />
               </button>
-            )}
-          </div>
-        ))}
+            </div>
+          );
+        })}
+
+        {/* Add Ingredient Knapp placerad i botten */}
+        <button
+          type="button"
+          onClick={addIngredient}
+          className="w-full border-2 border-dashed border-zinc-200 hover:border-zinc-300 text-zinc-600 rounded-xl py-2.5 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer bg-white mt-1"
+        >
+          <FiPlus size={15} /> Add Ingredient
+        </button>
       </div>
 
       {/* --- INSTRUKTIONER --- */}
       <div className="space-y-2 pt-2">
-        <div className="flex items-center justify-between">
-          <label className="text-[11px] font-bold text-zinc-700">Instructions / Steps *</label>
-          <button
-            type="button"
-            onClick={addInstruction}
-            className="text-[11px] font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-1 cursor-pointer"
-          >
-            <FiPlus size={13} /> Add step
-          </button>
-        </div>
+        <label className="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Instructions / Steps *</label>
 
         {instructions.map((step, index) => (
-          <div key={index} className="flex items-center gap-1.5">
-            <span className="text-[11px] font-semibold text-zinc-400 w-4 text-right">{index + 1}.</span>
-            <input
-              type="text"
-              placeholder={`Step ${index + 1}`}
-              value={step}
-              onChange={(e) => handleInstructionChange(index, e.target.value)}
-              className="flex-1 text-xs border border-zinc-200 rounded-lg p-2 bg-gray-50/30 focus:outline-none"
-            />
-            {instructions.length > 1 && (
-              <button
-                type="button"
-                onClick={() => removeInstruction(index)}
-                className="text-zinc-400 hover:text-red-500 transition-colors p-1 cursor-pointer"
-              >
-                <FiTrash2 size={14} />
-              </button>
-            )}
+          <div key={index} className="bg-zinc-50/70 border border-zinc-200/80 rounded-xl p-3 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 w-full">
+              <span className="text-xs font-bold text-zinc-400 shrink-0">{index + 1}.</span>
+              <input
+                type="text"
+                placeholder={`Describe step ${index + 1}`}
+                value={step || ""}
+                onChange={(e) => handleInstructionChange(index, e.target.value)}
+                className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2 text-xs text-zinc-800 focus:outline-none focus:border-zinc-400 shadow-2xs"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => removeInstruction(index)}
+              className="p-2 text-zinc-400 hover:text-red-500 transition-colors cursor-pointer shrink-0"
+            >
+              <FaRegTrashAlt size={14} />
+            </button>
           </div>
         ))}
+
+        {/* Add Step Knapp placerad i botten */}
+        <button
+          type="button"
+          onClick={addInstruction}
+          className="w-full border-2 border-dashed border-zinc-200 hover:border-zinc-300 text-zinc-600 rounded-xl py-2.5 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer bg-white mt-1"
+        >
+          <FiPlus size={15} /> Add Step
+        </button>
       </div>
 
       {/* --- KNAPPAR LÄNGST NER --- */}
