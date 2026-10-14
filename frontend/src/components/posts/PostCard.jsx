@@ -118,7 +118,7 @@ function PostCard({ post, currentUser, setCurrentUser, handleEditPost, handleDel
 
                         {/* TEXT & HASHTAGS */}
                         <div className="mb-2 px-0.5 space-y-1">
-                            <p className={`${isDetailView ? "" : "line-clamp-2 overflow-hidden"} text-xs text-gray-800 font-normal leading-relaxed`}>
+                            <p className={`${isDetailView ? "" : "line-clamp-2 overflow-hidden"} text-xs text-gray-800 font-normal leading-relaxed whitespace-pre-wrap`}>
                                 {post.content}
                             </p>
 
