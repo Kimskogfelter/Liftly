@@ -145,13 +145,12 @@ function RegisterPage() {
           </div>
 
           {/* Sign up button */}
-          <button
-            type="submit"
-            disabled={!acceptedGDPR}
-            className="mt-1 w-full rounded bg-[#4A4545] py-2 text-xs font-medium text-white transition-colors hover:bg-[#575151] focus:outline-none focus:ring-1 focus:ring-gray-400"
-          >
-            Sign up
-          </button>
+        <button
+          type="submit"
+          className="mt-1 w-full rounded bg-[#4A4545] py-2 text-xs font-medium text-white transition-colors hover:bg-[#575151] focus:outline-none focus:ring-1 focus:ring-gray-400 cursor-pointer"
+        >
+          Sign up
+        </button>
         </form>
 
         {/* Error message */}
