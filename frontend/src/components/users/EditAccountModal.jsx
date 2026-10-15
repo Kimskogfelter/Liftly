@@ -6,7 +6,7 @@ import { FiX } from "react-icons/fi";
 function EditAccountModal({ onClose, currentUser, setCurrentUser, getUserInfo }) {
     const [username, setUsername] = useState(currentUser?.username || "");
     const [email, setEmail] = useState(currentUser?.email || "");
-    const [currentPassword, setCurrentPassword] = useState(""); // <--- Nytt state för lösenord
+    const [currentPassword, setCurrentPassword] = useState("");
     const [error, setError] = useState("");
     const [success, setSuccess] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -22,7 +22,7 @@ function EditAccountModal({ onClose, currentUser, setCurrentUser, getUserInfo })
     // Kolla om något faktiskt har ändrats
     const hasChanges = username !== currentUser?.username || email !== currentUser?.email;
 
-    // Knappen ska vara inaktiverad om man inte gjort några ändringar ELLER inte fyllt i lösenordet
+    // Knappen är aktiv om man har gjort en ändring OCH fyllt i sitt nuvarande lösenord
     const isFormValid = hasChanges && currentPassword.trim().length > 0;
 
     const handleSubmit = async (e) => {
@@ -34,10 +34,10 @@ function EditAccountModal({ onClose, currentUser, setCurrentUser, getUserInfo })
 
         try {
             // Vi skickar med både nya uppgifterna och det nuvarande lösenordet till backend
-            const response = await api.patch("/users/update", { 
-                username, 
-                email, 
-                currentPassword 
+            const response = await api.patch("/users/update", {
+                username,
+                email,
+                currentPassword
             });
 
             if (response.status === 200) {
