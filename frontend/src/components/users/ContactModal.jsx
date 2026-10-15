@@ -48,7 +48,7 @@ function ContactModal({ onClose }) {
     };
 
     return createPortal(
-        <div className={backdropClasses} onClick={onClose}>
+        <div className={backdropClasses}>
             <div
                 className="w-full max-w-md bg-white rounded-lg p-6 text-gray-800 relative animate-in zoom-in-95 duration-150 shadow-xl"
                 onClick={(e) => e.stopPropagation()}

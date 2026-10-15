@@ -19,7 +19,7 @@ function SettingsModal({ onClose, currentUser, setCurrentUser, getUserInfo }) {
     "fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4 animate-in fade-in duration-200";
 
   return createPortal(
-    <div className={backdropClasses} onClick={onClose}>
+    <div className={backdropClasses}>
       <div
         className="w-full max-w-sm bg-white rounded-lg p-6 text-gray-800 relative animate-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}

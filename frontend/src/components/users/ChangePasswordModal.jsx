@@ -42,14 +42,12 @@ function ChangePasswordModal({ onClose }) {
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4">
       <div className="w-full max-w-sm bg-white rounded-lg p-6 text-gray-800 relative shadow-xl" onClick={(e) => e.stopPropagation()}>
         
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-base font-bold text-gray-900">Change Password</h3>
-          <button onClick={onClose} className="p-1.5 rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer">
-            <FiX size={18} />
-          </button>
+          
         </div>
 
         {success ? (

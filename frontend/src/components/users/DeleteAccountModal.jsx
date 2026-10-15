@@ -33,7 +33,7 @@ function DeleteAccountModal({ onClose, currentUser, setCurrentUser }) {
   };
 
   return createPortal(
-    <div className={backdropClasses} onClick={onClose}>
+    <div className={backdropClasses}>
       <div
         className="w-full max-w-sm bg-white rounded-lg p-6 text-gray-800 relative animate-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
@@ -49,12 +49,6 @@ function DeleteAccountModal({ onClose, currentUser, setCurrentUser }) {
             </p>
           </div>
           
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
-          >
-            <FiX size={18} />
-          </button>
         </div>
 
         {error && (
