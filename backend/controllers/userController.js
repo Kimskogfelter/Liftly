@@ -309,24 +309,40 @@ export const getUsers = async (req, res, next) => {
 // PROTECTED
 
 export const updateUser = async (req, res, next) => {
-
     try {
-
-        // get username, email and/or profile bio from frontend
         const { username, email, profileBio, socialLinks } = req.body;
 
-        // update only the fields sent in req.body
-        // check that the correct user are doing the changes via req.user.id and auth middleware
+        // 1. Kolla om användarnamnet redan är upptaget (skiftlägesokänsligt)
+        if (username) {
+            const existingUsername = await User.findOne({
+                username: { $regex: new RegExp(`^${username}$`, "i") },
+                _id: { $ne: req.user.id }
+            });
+            if (existingUsername) {
+                return next(new HttpError("This username is already taken.", 400));
+            }
+        }
+
+        // 2. Kolla om e-posten redan är upptagen (skiftlägesokänsligt, bra för e-post)
+        if (email) {
+            const existingEmail = await User.findOne({
+                email: { $regex: new RegExp(`^${email}$`, "i") },
+                _id: { $ne: req.user.id }
+            });
+            if (existingEmail) {
+                return next(new HttpError("This email is already taken.", 400));
+            }
+        }
+
+        // 3. Om allt är ledigt, uppdatera användaren
         const updatedUser = await User.findByIdAndUpdate(
             req.user.id,
-            { $set: { username, email, profileBio, socialLinks } }, // $set ONLY updates the data that is sent from frontend, ex if only profile bio is edited only that is changed in the database
-            { new: true, runValidators: true } // runValidators make sure that the backend rules (such as unique email, minLenght etc that is set in the user model) still follows 
+            { $set: { username, email, profileBio, socialLinks } },
+            { new: true, runValidators: true }
         ).select("-password -refreshTokens -resetPasswordToken -resetPasswordExpires");
 
-        // error if no user could be found
         if (!updatedUser) {
-
-            return next(new HttpError("User not found", 404))
+            return next(new HttpError("User not found", 404));
         }
 
         // Send successful response with the updated user data
@@ -343,36 +359,26 @@ export const updateUser = async (req, res, next) => {
                 followers: updatedUser.followers,
                 following: updatedUser.following
             }
-        })
-
+        });
 
     } catch (error) {
-
-        // 1. Fånga Mongoose valideringsfel (t.ex. för kort användarnamn)
+        // Fånga Mongoose valideringsfel
         if (error.name === "ValidationError") {
-            // Hämta det första felmeddelandet som Mongoose genererar
             const messages = Object.values(error.errors).map(err => err.message);
-
-            // Gör meddelandet lite snyggare om det handlar om längd
             let userFriendlyMsg = messages[0];
             if (userFriendlyMsg.includes("shorter than the minimum allowed length")) {
                 userFriendlyMsg = "Username must be at least 5 characters long.";
             }
-
             return next(new HttpError(userFriendlyMsg, 400));
         }
 
-        // 2. Fånga MongoDB:s unika index-fel (om användarnamn eller e-post redan är upptaget)
+        // Fånga MongoDB:s unika index-fel (som en extra säkerhetslina)
         if (error.code === 11000) {
-            const field = Object.keys(error.keyPattern)[0];
-            const fieldName = field === "username" ? "Username" : "Email";
-            return next(new HttpError(`This ${fieldName.toLowerCase()} is already taken.`, 400));
+            return next(new HttpError("This username or email is already taken.", 400));
         }
 
-        // 3. Standardfel
         return next(new HttpError(error.message || "Could not update user", 500));
     }
-
 }
 
 // ---------------------------- FOLLOW USER --------------------------- 
