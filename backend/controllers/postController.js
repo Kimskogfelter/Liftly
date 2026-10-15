@@ -12,6 +12,12 @@ import 'dotenv/config';
 import { getPagination, formatPaginatedResponse } from '../utils/pagination.js';
 import path from "path";
 
+// bad words filter for create and edit post
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const badWordsModule = require('bad-words');
+const filter = typeof badWordsModule === 'function' ? new badWordsModule() : new (badWordsModule.Filter || badWordsModule.default);
+
 // to send emails 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -30,6 +36,11 @@ export const createPost = async (req, res, next) => {
 
         // get inputs from frontend (including optional recipe, calenderShare from calendar)
         const { content, hashtags, category, subCategory, spotifyUrl, recipe, calendarShare } = req.body;
+
+        // Kontrollera om inlägget innehåller fula ord
+        if (content && filter.isProfane(content)) {
+            return res.status(400).json({ message: "Your post contains inappropriate language. Please keep it clean!" });
+        }
 
         // --------- media -----------
         let mediaFiles = req.files ? req.files.map(file => file.path) : [];
@@ -656,12 +667,12 @@ export const reportPost = async (req, res, next) => {
                 to: 'kimskogfelter@outlook.com', // Din e-post
                 subject: `🚨 Liftly Alert: Post reported by @${reportingUser.username}`,
                 text: `A post has been reported in the Liftly app.\n\n` +
-                      `Post ID: ${postId}\n` +
-                      `Author: @${post.createdBy?.username || "Unknown"}\n` +
-                      `Reported by: @${reportingUser.username}\n` +
-                      `Reason: ${reason}\n\n` +
-                      `Additional Details: ${details || "None provided"}\n\n` +
-                      `Post content: "${post.content || "[Media/Other content]"}"`,
+                    `Post ID: ${postId}\n` +
+                    `Author: @${post.createdBy?.username || "Unknown"}\n` +
+                    `Reported by: @${reportingUser.username}\n` +
+                    `Reason: ${reason}\n\n` +
+                    `Additional Details: ${details || "None provided"}\n\n` +
+                    `Post content: "${post.content || "[Media/Other content]"}"`,
             });
         } catch (emailError) {
             console.error("Resend error (report):", emailError);
@@ -713,6 +724,11 @@ export const updatePost = async (req, res, next) => {
         // Check if content is empty or only contains spaces
         if (!content || content.trim() === '') {
             return res.status(400).json({ message: "Post content cannot be empty" });
+        }
+
+        // Kontrollera fula ord vid uppdatering
+        if (filter.isProfane(content)) {
+            return res.status(400).json({ message: "Your post contains inappropriate language. Please keep it clean!" });
         }
 
         // PREPARE UPDATE OBJECT

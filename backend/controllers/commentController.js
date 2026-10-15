@@ -2,6 +2,11 @@ import { HttpError } from "../models/errorModel.js"
 import { Post } from "../models/postModel.js";
 import { Comment } from "../models/commentModel.js";
 import mongoose from "mongoose";
+// bad words filter for create and reply to comment
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const badWordsModule = require('bad-words');
+const filter = typeof badWordsModule === 'function' ? new badWordsModule() : new (badWordsModule.Filter || badWordsModule.default);
 
 // ---------------------------- CREATE COMMENT --------------------------- 
 // POST req: api/posts/:postId/comments/create
@@ -23,9 +28,14 @@ export const createComment = async (req, res, next) => {
         }
 
 
-        // validate if content length is too short
-        if (content.length < 5) {
-            return next(new HttpError("Content should be at least 5 characters long", 422))
+        // kolla att en kommentar finns
+        if (!content || content.trim().length === 0) {
+            return next(new HttpError("Comment cannot be empty", 422));
+        }
+
+        // Kontrollera fula ord i kommentaren
+        if (filter.isProfane(content)) {
+            return res.status(400).json({ message: "Your comment contains inappropriate language. Please keep it clean!" });
         }
 
         // --------- post ----------
@@ -63,7 +73,7 @@ export const createComment = async (req, res, next) => {
 
 
     } catch (error) {
-        
+
         return next(new HttpError(error.message || "Could not create comment", 500))
     }
 
@@ -180,6 +190,11 @@ export const replyComment = async (req, res, next) => {
             return next(new HttpError("Fill in content", 422));
         }
 
+        // Kontrollera fula ord i svaret
+        if (filter.isProfane(content)) {
+            return res.status(400).json({ message: "Your reply contains inappropriate language. Please keep it clean!" });
+        }
+
         // Check comment id
         if (!mongoose.Types.ObjectId.isValid(commentId)) {
             return res.status(404).json({ message: 'Comment Id is not valid' });
@@ -210,8 +225,8 @@ export const replyComment = async (req, res, next) => {
         // Hämta det nyss skapade svaret (det sista i arrayen)
         const addedReply = comment.replies[comment.replies.length - 1];
 
-        return res.status(201).json({ 
-            message: "Reply added successfully", 
+        return res.status(201).json({
+            message: "Reply added successfully",
             reply: addedReply,
             // comment 
         });

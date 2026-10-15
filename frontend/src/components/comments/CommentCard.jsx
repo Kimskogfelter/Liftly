@@ -17,6 +17,9 @@ function CommentCard({ comment, currentUser }) {
     const [replyToUser, setReplyToUser] = useState(""); // Sparar vem vi svarar
     const [replies, setReplies] = useState(comment.replies || []);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    
+    // 1. NYTT STATE FÖR FELMEDDELANDE PÅ SVAR
+    const [replyError, setReplyError] = useState("");
 
     // 1. Klicka "Reply" på HUVUDKOMMENTAR
     const handleReplyToComment = () => {
@@ -34,12 +37,14 @@ function CommentCard({ comment, currentUser }) {
         setShowReplyInput(true);
     };
 
-    // Skicka svaret till backend
+    // 2. UPPDATERAD FUNKTION FÖR ATT SKICKA SVAR MED FELHANTERING
     const handleSendReply = async (e) => {
         e.preventDefault();
         if (!replyContent.trim()) return;
 
         setIsSubmitting(true);
+        // Nollställ tidigare felmeddelanden
+        setReplyError("");
 
         try {
             const response = await api.post(`/posts/comments/${comment._id}/reply`, {
@@ -51,7 +56,9 @@ function CommentCard({ comment, currentUser }) {
             setReplyToUser("");
             setShowReplyInput(false);
         } catch (err) {
-            // console.error("Kunde inte skicka svaret:", err);
+            const errorResponse = err.response?.data;
+            // Sätt felmeddelandet från servern eller ett generellt meddelande
+            setReplyError(errorResponse?.message || "Could not add reply. Please try again.");
         } finally {
             setIsSubmitting(false);
         }
@@ -118,9 +125,10 @@ function CommentCard({ comment, currentUser }) {
                 </div>
             </div>
 
-            {/* FORMULÄR FÖR ATT SVARA PÅ EN KOMMENTAR */}
+            {/* 3. UPPDATERAT FORMULÄR MED FELMEDDELANDE */}
             {showReplyInput && (
-                <form onSubmit={handleSendReply} className="pl-11 pr-2 flex gap-2 items-center my-1.5 animate-in fade-in duration-150">
+                // Vi lägger till 'relative' här för att felmeddelandet ska positioneras rätt
+                <form onSubmit={handleSendReply} className="pl-11 pr-2 flex gap-2 items-center my-1.5 animate-in fade-in duration-150 relative">
                     <input
                         type="text"
                         placeholder={`Replying to @${replyToUser}...`}
@@ -136,6 +144,13 @@ function CommentCard({ comment, currentUser }) {
                     >
                         {isSubmitting ? "Post..." : "Post"}
                     </button>
+
+                    {/* FELMEDDELANDE FÖR SVAR (visas om det finns ett fel) */}
+                    {replyError && (
+                        <p className="absolute left-11 -bottom-4 text-[10px] text-red-500 font-medium">
+                            {replyError}
+                        </p>
+                    )}
                 </form>
             )}
 
