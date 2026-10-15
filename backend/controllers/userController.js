@@ -971,6 +971,11 @@ export const resetPassword = async (req, res, next) => {
         return next(new HttpError("Password must be at least 10 characters long.", 422));
     }
 
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)/;
+    if (!passwordRegex.test(password)) {
+        return next(new HttpError("Password must contain at least one letter and one number", 422));
+    }
+
     try {
         // 1. Hitta användaren med token OCH kontrollera att den inte gått ut ($gt = greater than)
         const user = await User.findOne({
