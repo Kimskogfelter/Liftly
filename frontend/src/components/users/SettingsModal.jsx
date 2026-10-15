@@ -8,7 +8,7 @@ import ChangePasswordModal from "./ChangePasswordModal";
 import { FiUser, FiLock } from "react-icons/fi";
 import { FiTrash2, FiX, FiMail, FiShield } from "react-icons/fi";
 
-function SettingsModal({ onClose, currentUser, setCurrentUser }) {
+function SettingsModal({ onClose, currentUser, setCurrentUser, getUserInfo }) {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
   const [showEditAccountModal, setShowEditAccountModal] = useState(false);
@@ -150,7 +150,8 @@ function SettingsModal({ onClose, currentUser, setCurrentUser }) {
       {showEditAccountModal && (
         <EditAccountModal onClose={() => setShowEditAccountModal(false)} 
         currentUser={currentUser}
-        setCurrentUser={setCurrentUser} />
+        setCurrentUser={setCurrentUser}
+        getUserInfo={getUserInfo} />
       )}
 
       {showChangePasswordModal && (

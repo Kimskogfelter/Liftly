@@ -303,6 +303,7 @@ function ProfilePage({ currentUser, setCurrentUser }) {
           onClose={() => setShowSettingsModal(false)}
           currentUser={currentUser}
           setCurrentUser={setCurrentUser}
+          getUserInfo={getUserInfo}
         />
       )}
     </section>

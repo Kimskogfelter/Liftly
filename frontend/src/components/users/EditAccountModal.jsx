@@ -1,14 +1,22 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import api from "../../api/axios";
 import { FiX } from "react-icons/fi";
 
-function EditAccountModal({ onClose, currentUser, setCurrentUser }) {
+function EditAccountModal({ onClose, currentUser, setCurrentUser, getUserInfo }) {
     const [username, setUsername] = useState(currentUser?.username || "");
     const [email, setEmail] = useState(currentUser?.email || "");
     const [error, setError] = useState("");
-    const [success, setSuccess] = useState(false); // <--- Lägg till success-state
+    const [success, setSuccess] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Synka lokalt state om currentUser ändras externt
+    useEffect(() => {
+        if (currentUser) {
+            setUsername(currentUser.username || "");
+            setEmail(currentUser.email || "");
+        }
+    }, [currentUser]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -19,11 +27,18 @@ function EditAccountModal({ onClose, currentUser, setCurrentUser }) {
             const response = await api.patch("/users/update", { username, email });
 
             if (response.status === 200) {
-                // Uppdatera currentUser säkert
-                setCurrentUser(prev => ({
-                    ...prev,
-                    ...response.data.updatedUser
-                }));
+                const updatedUserFromBackend = response.data.updatedUser;
+
+                const updatedUser = {
+                    ...currentUser,
+                    username: updatedUserFromBackend.username,
+                    email: updatedUserFromBackend.email
+                };
+
+                setCurrentUser(updatedUser);
+                localStorage.setItem("currentUser", JSON.stringify(updatedUser));
+
+                if (getUserInfo) await getUserInfo();
 
                 setSuccess(true);
 
@@ -48,7 +63,6 @@ function EditAccountModal({ onClose, currentUser, setCurrentUser }) {
                     </button>
                 </div>
 
-                {/* Om det lyckats visar vi en grön box istället för formuläret */}
                 {success ? (
                     <div className="bg-emerald-50 text-emerald-700 text-xs p-3 rounded-lg font-medium border border-emerald-100 text-center my-4 animate-in fade-in duration-150">
                         Account details updated successfully!
