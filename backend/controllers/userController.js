@@ -310,40 +310,52 @@ export const getUsers = async (req, res, next) => {
 
 export const updateUser = async (req, res, next) => {
     try {
-        const { username, email, profileBio, socialLinks } = req.body;
+        const { username, email, profileBio, socialLinks, currentPassword } = req.body;
 
-        // 1. Kolla om användarnamnet redan är upptaget (skiftlägesokänsligt)
+        // 1. Eftersom vi behöver verifiera lösenordet måste vi hämta användaren med lösenordet inkluderat
+        const user = await User.findById(req.user.id);
+        if (!user) {
+            return next(new HttpError("User not found", 404));
+        }
+
+        // 2. Om användaren ändrar uppgifter kräver vi att currentPassword är med och stämmer
+        if (currentPassword) {
+            const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+            if (!isPasswordValid) {
+                return next(new HttpError("Incorrect password. Please enter your correct current password.", 400));
+            }
+        } else {
+            return next(new HttpError("Current password is required to update account details.", 400));
+        }
+
+        // 3. Kolla om användarnamnet redan är upptaget av någon annan (skiftlägesokänsligt)
         if (username) {
-            const existingUsername = await User.findOne({
-                username: { $regex: new RegExp(`^${username}$`, "i") },
-                _id: { $ne: req.user.id }
+            const existingUsername = await User.findOne({ 
+                username: { $regex: new RegExp(`^${username}$`, "i") }, 
+                _id: { $ne: req.user.id } 
             });
             if (existingUsername) {
                 return next(new HttpError("This username is already taken.", 400));
             }
         }
 
-        // 2. Kolla om e-posten redan är upptagen (skiftlägesokänsligt, bra för e-post)
+        // 4. Kolla om e-posten redan är upptagen av någon annan (skiftlägesokänsligt)
         if (email) {
-            const existingEmail = await User.findOne({
-                email: { $regex: new RegExp(`^${email}$`, "i") },
-                _id: { $ne: req.user.id }
+            const existingEmail = await User.findOne({ 
+                email: { $regex: new RegExp(`^${email}$`, "i") }, 
+                _id: { $ne: req.user.id } 
             });
             if (existingEmail) {
                 return next(new HttpError("This email is already taken.", 400));
             }
         }
 
-        // 3. Om allt är ledigt, uppdatera användaren
+        // 5. Uppdatera användaren
         const updatedUser = await User.findByIdAndUpdate(
             req.user.id,
             { $set: { username, email, profileBio, socialLinks } },
             { new: true, runValidators: true }
         ).select("-password -refreshTokens -resetPasswordToken -resetPasswordExpires");
-
-        if (!updatedUser) {
-            return next(new HttpError("User not found", 404));
-        }
 
         // Send successful response with the updated user data
         return res.status(200).json({
@@ -362,7 +374,6 @@ export const updateUser = async (req, res, next) => {
         });
 
     } catch (error) {
-        // Fånga Mongoose valideringsfel
         if (error.name === "ValidationError") {
             const messages = Object.values(error.errors).map(err => err.message);
             let userFriendlyMsg = messages[0];
@@ -372,7 +383,6 @@ export const updateUser = async (req, res, next) => {
             return next(new HttpError(userFriendlyMsg, 400));
         }
 
-        // Fånga MongoDB:s unika index-fel (som en extra säkerhetslina)
         if (error.code === 11000) {
             return next(new HttpError("This username or email is already taken.", 400));
         }

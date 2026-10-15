@@ -6,6 +6,7 @@ import { FiX } from "react-icons/fi";
 function EditAccountModal({ onClose, currentUser, setCurrentUser, getUserInfo }) {
     const [username, setUsername] = useState(currentUser?.username || "");
     const [email, setEmail] = useState(currentUser?.email || "");
+    const [currentPassword, setCurrentPassword] = useState(""); // <--- Nytt state för lösenord
     const [error, setError] = useState("");
     const [success, setSuccess] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -18,13 +19,26 @@ function EditAccountModal({ onClose, currentUser, setCurrentUser, getUserInfo })
         }
     }, [currentUser]);
 
+    // Kolla om något faktiskt har ändrats
+    const hasChanges = username !== currentUser?.username || email !== currentUser?.email;
+
+    // Knappen ska vara inaktiverad om man inte gjort några ändringar ELLER inte fyllt i lösenordet
+    const isFormValid = hasChanges && currentPassword.trim().length > 0;
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (!isFormValid) return;
+
         setIsSubmitting(true);
         setError("");
 
         try {
-            const response = await api.patch("/users/update", { username, email });
+            // Vi skickar med både nya uppgifterna och det nuvarande lösenordet till backend
+            const response = await api.patch("/users/update", { 
+                username, 
+                email, 
+                currentPassword 
+            });
 
             if (response.status === 200) {
                 const updatedUserFromBackend = response.data.updatedUser;
@@ -58,7 +72,6 @@ function EditAccountModal({ onClose, currentUser, setCurrentUser, getUserInfo })
 
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="text-base font-bold text-gray-900">Edit Account Details</h3>
-                    
                 </div>
 
                 {success ? (
@@ -89,6 +102,19 @@ function EditAccountModal({ onClose, currentUser, setCurrentUser, getUserInfo })
                             />
                         </div>
 
+                        {/* Bekräfta med nuvarande lösenord */}
+                        <div>
+                            <label className="block text-[11px] font-semibold text-gray-600 mb-1">Current Password (required to save)</label>
+                            <input
+                                type="password"
+                                placeholder="Enter current password"
+                                value={currentPassword}
+                                onChange={(e) => setCurrentPassword(e.target.value)}
+                                className="w-full text-xs text-gray-800 border border-zinc-200 rounded-lg p-2.5 bg-gray-50/30 focus:outline-none focus:border-zinc-400"
+                                required
+                            />
+                        </div>
+
                         {error && (
                             <div className="bg-red-50 text-red-600 text-[11px] p-2 rounded-lg font-medium border border-red-100">
                                 {error}
@@ -106,8 +132,8 @@ function EditAccountModal({ onClose, currentUser, setCurrentUser, getUserInfo })
                             </button>
                             <button
                                 type="submit"
-                                disabled={isSubmitting}
-                                className="bg-[#3A3939] hover:bg-zinc-800 text-white font-semibold py-1.5 px-4 rounded-lg text-xs transition-colors cursor-pointer disabled:opacity-50"
+                                disabled={isSubmitting || !isFormValid}
+                                className="bg-[#3A3939] hover:bg-zinc-800 text-white font-semibold py-1.5 px-4 rounded-lg text-xs transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {isSubmitting ? "Saving..." : "Save changes"}
                             </button>
