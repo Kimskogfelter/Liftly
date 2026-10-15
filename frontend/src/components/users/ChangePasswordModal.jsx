@@ -11,15 +11,17 @@ function ChangePasswordModal({ onClose }) {
   const [success, setSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Knappen "update password" aktiveras så fort alla tre fält har text i sig
+  const isFormValid =
+    currentPassword.trim().length > 0 &&
+    newPassword.trim().length > 0 &&
+    confirmPassword.trim().length > 0;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!isFormValid) return;
+
     setError("");
-
-    if (newPassword !== confirmPassword) {
-      setError("New passwords do not match.");
-      return;
-    }
-
     setIsSubmitting(true);
 
     try {
@@ -44,10 +46,9 @@ function ChangePasswordModal({ onClose }) {
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4">
       <div className="w-full max-w-sm bg-white rounded-lg p-6 text-gray-800 relative shadow-xl" onClick={(e) => e.stopPropagation()}>
-        
+
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-base font-bold text-gray-900">Change Password</h3>
-          
         </div>
 
         {success ? (
@@ -106,8 +107,8 @@ function ChangePasswordModal({ onClose }) {
               </button>
               <button
                 type="submit"
-                disabled={isSubmitting}
-                className="bg-[#3A3939] hover:bg-zinc-800 text-white font-semibold py-1.5 px-4 rounded-lg text-xs transition-colors cursor-pointer disabled:opacity-50"
+                disabled={isSubmitting || !isFormValid}
+                className="bg-[#3A3939] hover:bg-zinc-800 text-white font-semibold py-1.5 px-4 rounded-lg text-xs transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? "Updating..." : "Update password"}
               </button>
