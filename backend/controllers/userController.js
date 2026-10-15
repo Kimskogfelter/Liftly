@@ -50,8 +50,8 @@ export const registerUser = async (req, res, next) => {
         const trimUsername = username.trim();
 
         // validate if username length is too short
-        if (trimUsername.length < 5) {
-            return next(new HttpError("Username is too short, should be at least 5 characters long", 422))
+        if (trimUsername.length < 3) {
+            return next(new HttpError("Username is too short, should be at least 3 characters long", 422))
         }
 
         // validate if username length is too long
@@ -96,6 +96,12 @@ export const registerUser = async (req, res, next) => {
         // validate password length requirement
         if (password.length < 10) {
             return next(new HttpError("Password must be at least 10 characters long", 422))
+        }
+
+        // validate password complexity (at least one letter and one number)
+        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)/;
+        if (!passwordRegex.test(password)) {
+            return next(new HttpError("Password must contain at least one letter and one number", 422));
         }
 
         // hash password with bcrypt before storing in database
@@ -828,12 +834,8 @@ export const authUser = async (req, res, next) => {
 // ---------------------------- CHANGE PASSWORD --------------------------- 
 // PATCH req: api/users/change-password
 // PROTECTED: Kräver att användaren är inloggad via authMiddleware
-
 export const changePassword = async (req, res, next) => {
-
     try {
-
-        // hämta nuvarande lösenord, nytt lösenord och bekräftelse från frontend
         const { currentPassword, newPassword, confirmPassword } = req.body;
 
         // kontrollera att alla fält är ifyllda
@@ -846,18 +848,25 @@ export const changePassword = async (req, res, next) => {
             return next(new HttpError("New passwords do not match", 400));
         }
 
-        // hämta användaren via req.user.id och inkludera lösenordet (.select('+password')) 
-        // eftersom det normalt sett är exkluderat i användarmodellen
-        const user = await User.findById(req.user.id).select('+password');
+        // --------- LÖSENORDSVALIDERING (Samma som vid registrering) ----------
+        if (newPassword.length < 10) {
+            return next(new HttpError("Password must be at least 10 characters long", 400));
+        }
 
-        // felmeddelande om ingen användare hittas
+        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)/;
+        if (!passwordRegex.test(newPassword)) {
+            return next(new HttpError("Password must contain at least one letter and one number", 400));
+        }
+        // -------------------------------------------------------------------
+
+        // hämta användaren via req.user.id och inkludera lösenordet
+        const user = await User.findById(req.user.id).select('+password');
         if (!user) {
             return next(new HttpError("User not found", 404));
         }
 
-        // jämför det inskickade nuvarande lösenordet med det hashade i databasen via bcrypt
+        // jämför det inskickade nuvarande lösenordet
         const isMatch = await bcrypt.compare(currentPassword, user.password);
-
         if (!isMatch) {
             return next(new HttpError("Current password is incorrect", 400));
         }
@@ -866,17 +875,13 @@ export const changePassword = async (req, res, next) => {
         const salt = await bcrypt.genSalt(10);
         user.password = await bcrypt.hash(newPassword, salt);
 
-        // spara det uppdaterade dokumentet i databasen
         await user.save();
 
-        // skicka ett lyckat svar tillbaka till frontend
         return res.status(200).json({ message: "Password updated successfully" });
 
     } catch (error) {
-
         return next(new HttpError(error.message || "Could not change password", 500));
     }
-
 };
 
 // ---------------------------- FORGOT PASSWORD --------------------------- 

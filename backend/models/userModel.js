@@ -2,7 +2,7 @@ import mongoose, { Schema } from "mongoose";
 
 // schema for user
 const userSchema = new mongoose.Schema({
-    username: { type: String, required: true, minlength: 5, maxlength: 20 },
+    username: { type: String, required: true, minlength: 3, maxlength: 20 },
     email: { type: String, required: true, unique: true, maxlength: 45 },
     password: { type: String, required: true, minlength: 10 },
     profileBio: { type: String, default: "No bio yet.", maxlength: 200 },
