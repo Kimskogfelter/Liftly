@@ -721,6 +721,7 @@ export const changeProfileImage = async (req, res, next) => {
 
 export const deleteUser = async (req, res, next) => {
     const { userId } = req.params;
+    const { password } = req.body; // Hämta lösenordet från request body
 
     // Check valid ObjectId
     if (!mongoose.Types.ObjectId.isValid(userId)) {
@@ -732,40 +733,46 @@ export const deleteUser = async (req, res, next) => {
         return next(new HttpError("You can only delete your own account", 403));
     }
 
+    // Kräv att lösenord är med
+    if (!password) {
+        return next(new HttpError("Password is required to delete your account", 400));
+    }
+
     try {
-        const findUser = await User.findById(userId);
+        // Hämta användaren OCH inkludera lösenordet (eftersom det ofta är exkluderat som standard)
+        const findUser = await User.findById(userId).select('+password');
 
         if (!findUser) {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        // 1. Hitta alla inlägg skapade av användaren
+        // Verifiera att lösenordet stämmer
+        const isPasswordValid = await bcrypt.compare(password, findUser.password);
+        if (!isPasswordValid) {
+            return next(new HttpError("Incorrect password. Please enter your correct password.", 400));
+        }
+
+        // --- HÄR TAR DU BORT ALL RELATERAD DATA (inlägg, kommentarer, loggar etc.) ---
         const userPosts = await Post.find({ createdBy: userId });
         const userPostIds = userPosts.map((post) => post._id);
 
-        // 2. Ta bort alla kommentarer som hör till användarens inlägg
         if (userPostIds.length > 0) {
             await Comment.deleteMany({ post: { $in: userPostIds } });
         }
 
-        // 3. Ta bort alla inlägg skapade av användaren
         await Post.deleteMany({ createdBy: userId });
 
-        // 4. Hitta alla kommentarer som användaren har skrivit på ANDRA inlägg och ta bort dem
         const userComments = await Comment.find({ createdBy: userId });
         const userCommentIds = userComments.map((comment) => comment._id);
 
         if (userCommentIds.length > 0) {
-            // Ta bort referensen från Post-modellens comments-array
             await Post.updateMany(
                 { comments: { $in: userCommentIds } },
-                { $pull: { comments: { $in: userCommentIds } } }
+                { $pull: { comments: {$in: userCommentIds } } }
             );
-            // Ta bort själva kommentarerna
             await Comment.deleteMany({ createdBy: userId });
         }
 
-        // 5. Ta bort användarens likes på inlägg och kommentarer
         await Post.updateMany(
             { likes: userId },
             { $pull: { likes: userId } }
@@ -774,7 +781,6 @@ export const deleteUser = async (req, res, next) => {
             { likes: userId },
             { $pull: { likes: userId } }
         );
-        // 6a. Ta bort användarens likes i replies (endast på kommentarer som har replies)
         await Comment.updateMany(
             { "replies.likes": userId },
             {
@@ -783,8 +789,6 @@ export const deleteUser = async (req, res, next) => {
                 }
             }
         );
-
-        // 6b. Ta bort användarens skapade replies på kommentarer
         await Comment.updateMany(
             { "replies.createdBy": userId },
             {
@@ -794,7 +798,6 @@ export const deleteUser = async (req, res, next) => {
             }
         );
 
-        // 7a. Ta bort användaren från alla andra användares followers & following
         await User.updateMany(
             {},
             {
@@ -805,16 +808,11 @@ export const deleteUser = async (req, res, next) => {
             }
         );
 
-        // 7b. Ta bort användarens kalenderloggar
         await CalendarLog.deleteMany({ user: userId });
-
-        // 7c. Ta bort användarens matloggar
         await FoodLog.deleteMany({ user: userId });
-
-        // 7d. Ta bort användarens träningspass
         await Workout.deleteMany({ createdBy: userId });
 
-        // 8. Radera själva användaren
+        // Radera själva användaren
         await User.findByIdAndDelete(userId);
 
         return res.status(200).json({
