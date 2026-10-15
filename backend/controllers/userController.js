@@ -310,7 +310,6 @@ export const getUsers = async (req, res, next) => {
 
 
 // ---------------------------- UPDATE USER --------------------------- 
-// ... inget :id behövs då det endast är den inloggade användare som ska kunna göra detta
 // PATCH req: api/users/update
 // PROTECTED
 
@@ -318,13 +317,13 @@ export const updateUser = async (req, res, next) => {
     try {
         const { username, email, profileBio, socialLinks, currentPassword } = req.body;
 
-        // 1. Eftersom vi behöver verifiera lösenordet måste vi hämta användaren med lösenordet inkluderat
+        // 1. Hämta användaren för att verifiera lösenordet
         const user = await User.findById(req.user.id);
         if (!user) {
             return next(new HttpError("User not found", 404));
         }
 
-        // 2. Om användaren ändrar uppgifter kräver vi att currentPassword är med och stämmer
+        // 2. Kräv att currentPassword är med och stämmer
         if (currentPassword) {
             const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
             if (!isPasswordValid) {
@@ -334,10 +333,25 @@ export const updateUser = async (req, res, next) => {
             return next(new HttpError("Current password is required to update account details.", 400));
         }
 
-        // 3. Kolla om användarnamnet redan är upptaget av någon annan (skiftlägesokänsligt)
+        // 3. Validera och kolla användarnamn
+        let trimUsername = username;
         if (username) {
+            trimUsername = username.trim();
+
+            if (trimUsername.length < 3) {
+                return next(new HttpError("Username is too short, should be at least 3 characters long", 400));
+            }
+            if (trimUsername.length > 20) {
+                return next(new HttpError("Username is too long, should be a maximum of 20 characters", 400));
+            }
+
+            const regex = /^[a-zA-Z0-9_]+$/;
+            if (!regex.test(trimUsername)) {
+                return next(new HttpError("Invalid username characters", 400));
+            }
+
             const existingUsername = await User.findOne({ 
-                username: { $regex: new RegExp(`^${username}$`, "i") }, 
+                username: { $regex: new RegExp(`^${trimUsername}$`, "i") }, 
                 _id: { $ne: req.user.id } 
             });
             if (existingUsername) {
@@ -345,10 +359,17 @@ export const updateUser = async (req, res, next) => {
             }
         }
 
-        // 4. Kolla om e-posten redan är upptagen av någon annan (skiftlägesokänsligt)
+        // 4. Validera och kolla e-post
+        let emailLowerCase = email;
         if (email) {
+            emailLowerCase = email.toLowerCase();
+
+            if (!validator.isEmail(emailLowerCase)) {
+                return next(new HttpError("Invalid email format", 400));
+            }
+
             const existingEmail = await User.findOne({ 
-                email: { $regex: new RegExp(`^${email}$`, "i") }, 
+                email: { $regex: new RegExp(`^${emailLowerCase}$`, "i") }, 
                 _id: { $ne: req.user.id } 
             });
             if (existingEmail) {
@@ -359,11 +380,11 @@ export const updateUser = async (req, res, next) => {
         // 5. Uppdatera användaren
         const updatedUser = await User.findByIdAndUpdate(
             req.user.id,
-            { $set: { username, email, profileBio, socialLinks } },
+            { $set: { username: trimUsername, email: emailLowerCase, profileBio, socialLinks } },
             { new: true, runValidators: true }
         ).select("-password -refreshTokens -resetPasswordToken -resetPasswordExpires");
 
-        // Send successful response with the updated user data
+        // Skicka svar
         return res.status(200).json({
             message: "User updated successfully",
             updatedUser: {
@@ -384,7 +405,7 @@ export const updateUser = async (req, res, next) => {
             const messages = Object.values(error.errors).map(err => err.message);
             let userFriendlyMsg = messages[0];
             if (userFriendlyMsg.includes("shorter than the minimum allowed length")) {
-                userFriendlyMsg = "Username must be at least 5 characters long.";
+                userFriendlyMsg = "Username must be at least 3 characters long.";
             }
             return next(new HttpError(userFriendlyMsg, 400));
         }
