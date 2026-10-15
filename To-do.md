@@ -6,12 +6,10 @@
 ## Nya Funktioner
 - skönhetsfilter till bild/video, måste väll finnas enkla tillägg för detta?? eller måste man koda allt själv??
 - fixa så man får notiser i och utanför appen när något händer, tex en kommentar eller gilla markering
-- fixa ett språk filter mot fula ord?! 
 
 - på mobil så aktiveras inte tangentbordet direkt när man kommer till söksidan... useRef och timeouts funkar inte!
 
-- FIXA så användare kan redigera email, användarnamn och ändra lösenord
- på sina skapade användare!! ... uppdaterar INTE användarnamnet i edit account delen i settings när det är ändrat, det är samma gamla som innan! den uppdateras överallt annars, dock inte direkt på profilsidan utan att den laddas om!!
+- FIXA så email valideras först, innan man kan ändra till en annan??
 
 - fixa betalplan för server så den alltid är uppe??
 - fixa så appen kan lanseras hos app store och andriod för att lätt laddas ner
@@ -70,8 +68,9 @@ Skapa en dedikerad vy som visar alla inlägg taggade med en viss hashtag när ma
 - [x] byt plats så add ingredient och add step när man skapar recept hamnar under varje tillagd del? blir irriterande på mobil att behöva scrolla upp varje gång man ska lägga till något nytt i receptet
 - [x] redan inskrivna sociala användarnamn fylls inte i när man klickar edit profile på profilsidan FIXAT
 - [x] fixa så enter och mellanslag sparas i skapta inlägg. just nu tas enters bort vilket gör att all text flyter samman och blir svårt att läsa
-
-
+- [x] FIXA så användare kan redigera email, användarnamn och ändra lösenord
+ på sina skapade användare!! 
+- [x] fixa ett språk filter mot fula ord?! 
 
 
 ### Apple store krav klara
