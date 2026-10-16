@@ -1,5 +1,4 @@
 import multer from 'multer';
-import path from 'path';
 import { CloudinaryStorage } from 'multer-storage-cloudinary';
 import { cloudinaryService } from '../config/cloudinaryConfig.js';
 import { HttpError } from '../models/errorModel.js';
@@ -53,7 +52,7 @@ const uploadFile = (folderName) => {
     },
     limits: {
       
-      fileSize: 50 * 1024 * 1024, 
+      fileSize: 150 * 1024 * 1024, 
     },
   });
 }
