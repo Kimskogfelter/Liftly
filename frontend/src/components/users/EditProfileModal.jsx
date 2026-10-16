@@ -1,11 +1,14 @@
 import { useState, React } from "react";
 import api from "../../api/axios";
-import EditProfileImage from "./EditProfileImage"; // Vi importerar din färdiga bildredigerare!
+import EditProfileImage from "./EditProfileImage";
 
 function EditProfileModal({ onClose, currentUser, setCurrentUser, getUserInfo }) {
 
     const [profileBio, setProfileBio] = useState(currentUser?.profileBio || "");
     const [showImagePicker, setShowImagePicker] = useState(false);
+    
+    // NYTT STATE FÖR LADDNINGSSTATUS
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     // State för de tre sociala plattformarna
     const [socialLinks, setSocialLinks] = useState({
@@ -27,9 +30,11 @@ function EditProfileModal({ onClose, currentUser, setCurrentUser, getUserInfo })
     // Funktion för att redigera profil (bio + sociala länkar)
     const editProfileBio = async (e) => {
         e.preventDefault();
+        setIsSubmitting(true); 
+        setError("");
 
         try {
-            const response = await api.patch(`/users/update`, {
+            const response = await api.patch(`/users/editProfile`, {
                 profileBio,
                 socialLinks
             });
@@ -54,6 +59,7 @@ function EditProfileModal({ onClose, currentUser, setCurrentUser, getUserInfo })
         } catch (err) {
             const errorResponse = err.response?.data;
             setError(errorResponse?.message || "Your profile could not be updated. Please try again.");
+            setIsSubmitting(false);
         }
     };
 
@@ -66,7 +72,7 @@ function EditProfileModal({ onClose, currentUser, setCurrentUser, getUserInfo })
 
                     <h3 className="text-sm font-bold text-gray-900 mb-4 text-left">Edit Profile</h3>
 
-                    {/* 1. SEKTION FÖR PROFILBILD (Återanvänder din befintliga bild) */}
+                    {/* 1. SEKTION FÖR PROFILBILD */}
                     <div className="flex flex-col items-center justify-center pb-4 mb-4 border-b border-gray-100">
                         <div className="w-28 h-28 rounded-full overflow-hidden border border-gray-200 shadow-sm mb-2">
                             {currentUser?.profileImage ? (
@@ -96,8 +102,9 @@ function EditProfileModal({ onClose, currentUser, setCurrentUser, getUserInfo })
                                 name="profileBio"
                                 placeholder="What's on your mind?"
                                 value={profileBio}
+                                disabled={isSubmitting} // <--- AVAKTIVERA UNDER LADDNING
                                 onChange={(e) => setProfileBio(e.target.value)}
-                                className="w-full min-h-20 p-3 text-gray-800 placeholder-gray-400 border border-gray-200 rounded-lg resize-none focus:outline-none text-xs bg-gray-50/50 transition-all focus:border-zinc-400"
+                                className="w-full min-h-20 p-3 text-gray-800 placeholder-gray-400 border border-gray-200 rounded-lg resize-none focus:outline-none text-xs bg-gray-50/50 transition-all focus:border-zinc-400 disabled:opacity-50"
                             ></textarea>
                         </div>
 
@@ -115,8 +122,9 @@ function EditProfileModal({ onClose, currentUser, setCurrentUser, getUserInfo })
                                     name="instagram"
                                     placeholder="instagram_username"
                                     value={socialLinks.instagram}
+                                    disabled={isSubmitting}
                                     onChange={handleSocialChange}
-                                    className="w-full text-xs text-gray-800 bg-transparent focus:outline-none"
+                                    className="w-full text-xs text-gray-800 bg-transparent focus:outline-none disabled:opacity-50"
                                 />
                             </div>
 
@@ -130,8 +138,9 @@ function EditProfileModal({ onClose, currentUser, setCurrentUser, getUserInfo })
                                     name="tiktok"
                                     placeholder="tiktok_username"
                                     value={socialLinks.tiktok}
+                                    disabled={isSubmitting}
                                     onChange={handleSocialChange}
-                                    className="w-full text-xs text-gray-800 bg-transparent focus:outline-none"
+                                    className="w-full text-xs text-gray-800 bg-transparent focus:outline-none disabled:opacity-50"
                                 />
                             </div>
 
@@ -145,8 +154,9 @@ function EditProfileModal({ onClose, currentUser, setCurrentUser, getUserInfo })
                                     name="youtube"
                                     placeholder="youtube_username"
                                     value={socialLinks.youtube}
+                                    disabled={isSubmitting}
                                     onChange={handleSocialChange}
-                                    className="w-full text-xs text-gray-800 bg-transparent focus:outline-none"
+                                    className="w-full text-xs text-gray-800 bg-transparent focus:outline-none disabled:opacity-50"
                                 />
                             </div>
                         </div>
@@ -163,15 +173,17 @@ function EditProfileModal({ onClose, currentUser, setCurrentUser, getUserInfo })
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="bg-gray-100 hover:bg-gray-200 text-gray-600 font-semibold py-1.5 px-3 rounded-md transition-colors cursor-pointer text-xs"
+                                disabled={isSubmitting}
+                                className="bg-gray-100 hover:bg-gray-200 text-gray-600 font-semibold py-1.5 px-3 rounded-md transition-colors cursor-pointer text-xs disabled:opacity-50"
                             >
                                 Cancel
                             </button>
                             <button
                                 type="submit"
-                                className="bg-[#3A3939] hover:bg-zinc-800 text-white font-semibold py-1.5 px-3 rounded-md transition-colors cursor-pointer text-xs shadow-sm"
+                                disabled={isSubmitting}
+                                className="bg-[#3A3939] hover:bg-zinc-800 text-white font-semibold py-1.5 px-3 rounded-md transition-colors cursor-pointer text-xs shadow-sm disabled:opacity-50"
                             >
-                                Save Changes
+                                {isSubmitting ? "Saving..." : "Save Changes"}
                             </button>
                         </div>
                     </form>
