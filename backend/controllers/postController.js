@@ -5,12 +5,11 @@ import { Comment } from "../models/commentModel.js";
 import { ReportPost } from '../models/reportPostModel.js';
 import mongoose from "mongoose";
 import { Resend } from 'resend';
-import { upload } from "../middleware/cloudinaryUpload.js";
+import { deleteFromCloudinary } from '../utils/cloudinaryUtils.js';
 // loading env var from .env
 import 'dotenv/config';
 // funktion för pagination/scroll
 import { getPagination, formatPaginatedResponse } from '../utils/pagination.js';
-import path from "path";
 
 // bad words filter for create and edit post
 import { createRequire } from 'module';
@@ -791,6 +790,13 @@ export const deletePost = async (req, res, next) => {
         if (!post.createdBy.equals(req.user.id)) {
 
             return res.status(403).json({ message: "You are not allowed to delete this post" })
+        }
+
+        // delete media from cloudinary
+        if (post.media && post.media.length > 0) {
+            for (const mediaUrl of post.media) {
+                await deleteFromCloudinary(mediaUrl);
+            }
         }
 
         // remove post from savedPosts list

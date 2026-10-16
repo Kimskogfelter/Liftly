@@ -58,4 +58,4 @@ const uploadFile = (folderName) => {
   });
 }
 
-export const upload = uploadFile("uploads");
+export const upload = uploadFile("liftly-uploads");
