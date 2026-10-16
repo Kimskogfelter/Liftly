@@ -40,7 +40,8 @@ function ReportPostModal({ postId, onClose }) {
             <div className="bg-white rounded-lg w-full max-w-md p-6 shadow-xl relative animate-in zoom-in-95 duration-150">
                 <button 
                     onClick={onClose}
-                    className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+                    disabled={loading}
+                    className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer disabled:opacity-50"
                 >
                     <IoClose size={22} />
                 </button>
@@ -67,6 +68,7 @@ function ReportPostModal({ postId, onClose }) {
                                         value={item}
                                         checked={reason === item}
                                         onChange={(e) => setReason(e.target.value)}
+                                        disabled={loading}
                                         className="w-4 h-4 text-red-600 border-gray-300 cursor-pointer"
                                     />
                                     {item}
@@ -83,7 +85,8 @@ function ReportPostModal({ postId, onClose }) {
                                 value={details}
                                 onChange={(e) => setDetails(e.target.value)}
                                 placeholder="Provide any extra context..."
-                                className="w-full text-xs p-2.5 border border-gray-200 rounded-xl resize-none focus:border-gray-400 focus:outline-none h-16 text-gray-800"
+                                disabled={loading}
+                                className="w-full text-xs p-2.5 border border-gray-200 rounded-xl resize-none focus:border-gray-400 focus:outline-none h-16 text-gray-800 disabled:opacity-50"
                             />
                         </div>
 
@@ -93,7 +96,8 @@ function ReportPostModal({ postId, onClose }) {
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="px-4 py-2 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors cursor-pointer"
+                                disabled={loading}
+                                className="px-4 py-2 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors cursor-pointer disabled:opacity-50"
                             >
                                 Cancel
                             </button>

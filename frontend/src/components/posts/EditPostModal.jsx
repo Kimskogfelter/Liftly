@@ -21,6 +21,7 @@ function EditPostModal({ onClose, handleEditPost, post, currentUser }) {
   const [instructions, setInstructions] = useState(post.recipe?.instructions || []);
 
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Hantera ingredienser
   const handleIngredientChange = (index, value) => {
@@ -55,6 +56,8 @@ function EditPostModal({ onClose, handleEditPost, post, currentUser }) {
   // Spara ändringar
   const editPost = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true); // <--- AKTIVERA LOADING
+    setError("");
 
     try {
       const updatedData = {
@@ -69,7 +72,7 @@ function EditPostModal({ onClose, handleEditPost, post, currentUser }) {
             
             return {
               name: nameVal.trim(),
-              amount: ing.amount || "" // Fångar upp eller sätter amount så Mongoose inte klagar
+              amount: ing.amount || "" 
             };
           })
           .filter(Boolean);
@@ -105,6 +108,7 @@ function EditPostModal({ onClose, handleEditPost, post, currentUser }) {
     } catch (err) {
       const errorResponse = err.response?.data;
       setError(errorResponse?.message || "Your post could not be updated. Please try again.");
+      setIsSubmitting(false); // <--- ÅTERSTÄLL VID FEL
     }
   };
 
@@ -201,7 +205,6 @@ function EditPostModal({ onClose, handleEditPost, post, currentUser }) {
                     </div>
                   ))}
 
-                  {/* Add Ingredient Knapp (Matchar träningsdelarnas stil) */}
                   <button
                     type="button"
                     onClick={addIngredient}
@@ -237,7 +240,6 @@ function EditPostModal({ onClose, handleEditPost, post, currentUser }) {
                     </div>
                   ))}
 
-                  {/* Add Step Knapp (Matchar träningsdelarnas stil) */}
                   <button
                     type="button"
                     onClick={addInstruction}
@@ -262,15 +264,17 @@ function EditPostModal({ onClose, handleEditPost, post, currentUser }) {
               <button
                 type="button"
                 onClick={onClose}
-                className="bg-gray-100 hover:bg-gray-200 text-gray-600 font-semibold py-2 px-4 rounded-xl transition-colors cursor-pointer text-xs"
+                disabled={isSubmitting} // <--- AVAKTIVERA UNDER SUBMIT
+                className="bg-gray-100 hover:bg-gray-200 text-gray-600 font-semibold py-2 px-4 rounded-xl transition-colors cursor-pointer text-xs disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="bg-[#3A3939] hover:bg-zinc-800 text-white font-semibold py-2 px-4 rounded-xl transition-colors cursor-pointer text-xs shadow-sm"
+                disabled={isSubmitting} // <--- AVAKTIVERA UNDER SUBMIT
+                className="bg-[#3A3939] hover:bg-zinc-800 text-white font-semibold py-2 px-4 rounded-xl transition-colors cursor-pointer text-xs shadow-sm disabled:opacity-50"
               >
-                Update Post
+                {isSubmitting ? "Updating..." : "Update Post"}
               </button>
             </div>
           </form>
