@@ -310,21 +310,21 @@ export const getUsers = async (req, res, next) => {
 }
 
 
-// ---------------------------- UPDATE USER --------------------------- 
-// PATCH req: api/users/update
+// ---------------------------- UPDATE ACCOUNT --------------------------- 
+// PATCH req: api/users/updateAccount
 // PROTECTED
 
-export const updateUser = async (req, res, next) => {
+export const updateAccount = async (req, res, next) => {
     try {
-        const { username, email, profileBio, socialLinks, currentPassword } = req.body;
+        const { username, email, currentPassword } = req.body;
 
-        // 1. Hämta användaren för att verifiera lösenordet
-        const user = await User.findById(req.user.id);
+        // 1. Hämta användaren för att verifiera lösenordet (inkludera lösenordet i sökningen)
+        const user = await User.findById(req.user.id).select("+password");
         if (!user) {
             return next(new HttpError("User not found", 404));
         }
 
-        // 2. Kräv att currentPassword är med och stämmer
+        // 2. Kräv att currentPassword är med och stämmer (eftersom det är känsliga uppgifter)
         if (currentPassword) {
             const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
             if (!isPasswordValid) {
@@ -334,8 +334,8 @@ export const updateUser = async (req, res, next) => {
             return next(new HttpError("Current password is required to update account details.", 400));
         }
 
-        // 3. Validera och kolla användarnamn
-        let trimUsername = username;
+        // 3. Validera och kolla användarnamn (om det skickats med)
+        let trimUsername = user.username;
         if (username) {
             trimUsername = username.trim();
 
@@ -360,8 +360,8 @@ export const updateUser = async (req, res, next) => {
             }
         }
 
-        // 4. Validera och kolla e-post
-        let emailLowerCase = email;
+        // 4. Validera och kolla e-post (om det skickats med)
+        let emailLowerCase = user.email;
         if (email) {
             emailLowerCase = email.toLowerCase();
 
@@ -378,16 +378,16 @@ export const updateUser = async (req, res, next) => {
             }
         }
 
-        // 5. Uppdatera användaren
+        // 5. Uppdatera endast användarnamn och e-post i databasen
         const updatedUser = await User.findByIdAndUpdate(
             req.user.id,
-            { $set: { username: trimUsername, email: emailLowerCase, profileBio, socialLinks } },
+            { $set: { username: trimUsername, email: emailLowerCase } },
             { new: true, runValidators: true }
         ).select("-password -refreshTokens -resetPasswordToken -resetPasswordExpires");
 
         // Skicka svar
         return res.status(200).json({
-            message: "User updated successfully",
+            message: "Account details updated successfully",
             updatedUser: {
                 id: updatedUser._id,
                 username: updatedUser.username,
@@ -415,7 +415,7 @@ export const updateUser = async (req, res, next) => {
             return next(new HttpError("This username or email is already taken.", 400));
         }
 
-        return next(new HttpError(error.message || "Could not update user", 500));
+        return next(new HttpError(error.message || "Could not update account details", 500));
     }
 }
 
@@ -679,6 +679,43 @@ export const reportUser = async (req, res, next) => {
     }
 };
 
+// ---------------------------- UPDATE PROFILE (Bio & Socials) --------------------------- 
+// PATCH req: api/users/editProfile
+// PROTECTED
+
+export const editProfile = async (req, res, next) => {
+    try {
+        const { profileBio, socialLinks } = req.body;
+
+        const updatedUser = await User.findByIdAndUpdate(
+            req.user.id,
+            { $set: { profileBio, socialLinks } },
+            { new: true, runValidators: true }
+        ).select("-password -refreshTokens -resetPasswordToken -resetPasswordExpires");
+
+        if (!updatedUser) {
+            return next(new HttpError("User not found", 404));
+        }
+
+        return res.status(200).json({
+            message: "Profile updated successfully",
+            updatedUser: {
+                id: updatedUser._id,
+                username: updatedUser.username,
+                email: updatedUser.email,
+                profileImage: updatedUser.profileImage,
+                profileBio: updatedUser.profileBio,
+                socialLinks: updatedUser.socialLinks,
+                savedPosts: updatedUser.savedPosts,
+                followers: updatedUser.followers,
+                following: updatedUser.following
+            }
+        });
+
+    } catch (error) {
+        return next(new HttpError(error.message || "Could not update profile", 500));
+    }
+}
 
 // ---------------------------- CHANGE PROFILE PICTURE --------------------------- 
 // no id required, only logged in user should be able to do this, verified thru auth middleware

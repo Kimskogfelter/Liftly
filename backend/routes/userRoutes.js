@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { registerUser, loginUser, logoutUser, getUser, getUsers, updateUser, followUser, unfollowUser, getFollowing, getFollowers, reportUser, changeProfileImage, deleteUser, getSavedPosts, authUser, changePassword, forgotPassword, resetPassword, refreshToken} from '../controllers/userController.js';
+import { registerUser, loginUser, logoutUser, getUser, getUsers, updateAccount, followUser, unfollowUser, getFollowing, getFollowers, reportUser, editProfile, changeProfileImage, deleteUser, getSavedPosts, authUser, changePassword, forgotPassword, resetPassword, refreshToken} from '../controllers/userController.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';
 import { upload } from '../middleware/cloudinaryUpload.js'
 
@@ -15,7 +15,8 @@ userRouter.post('/logout', logoutUser);
 
 userRouter.get('/', authMiddleware, getUsers)
 
-userRouter.patch('/update', authMiddleware, updateUser) 
+userRouter.patch('/updateAccount', authMiddleware, updateAccount) 
+userRouter.patch('/editProfile', authMiddleware, editProfile) 
 
 userRouter.post('/profile-image',authMiddleware, upload.single("profileImage"), changeProfileImage) 
 
