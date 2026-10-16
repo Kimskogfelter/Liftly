@@ -1,7 +1,7 @@
 # Liftly - Project To-Do List
 
 ## Säkerhet & Autentisering
-- Ändra namnet token till accessToken i både frontend och backend för bättre förståelse av vad den gör
+- KANSKE SENARE Ändra namnet token till accessToken i både frontend och backend för bättre förståelse av vad den gör
 
 ## Nya Funktioner
 - skönhetsfilter till bild/video, måste väll finnas enkla tillägg för detta?? eller måste man koda allt själv??
@@ -11,10 +11,11 @@
 
 - FIXA så email valideras först, innan man kan ändra till en annan??
 
-- fixa betalplan för server så den alltid är uppe??
 - fixa så appen kan lanseras hos app store och andriod för att lätt laddas ner
 
 - uppdatera README.md med screenshots från de olika delarna på appen
+
+
 
 
 ## ✅ Redan Klart
@@ -71,6 +72,9 @@ Skapa en dedikerad vy som visar alla inlägg taggade med en viss hashtag när ma
 - [x] FIXA så användare kan redigera email, användarnamn och ändra lösenord
  på sina skapade användare!! 
 - [x] fixa ett språk filter mot fula ord?! 
+- [x] fixa betalplan för server via Render så den alltid är uppe
+- [x] att alla delar som skapar, raderar, uppdaterar delar där de kan förekomma väntetid visar att saker laddas, tex deleting vid radering av inlägg, saving etc.. finns på create post men osäker på tex edit och delete post
+
 
 
 ### Apple store krav klara
