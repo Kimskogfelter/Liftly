@@ -12,6 +12,7 @@ import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import { Resend } from "resend";
+import { deleteFromCloudinary } from '../utils/cloudinaryUtils.js';
 import { v4 as uuidv4 } from "uuid";
 import { cloudinaryService } from "../config/cloudinaryConfig.js";
 // funktion för pagination/scroll
@@ -685,34 +686,35 @@ export const reportUser = async (req, res, next) => {
 // PROTECTED
 
 export const changeProfileImage = async (req, res, next) => {
-
-
     try {
-
-
         // check if a file is selected
         if (!req.file) {
-
-            return next(new HttpError("Please choose an image", 422))
-
+            return next(new HttpError("Please choose an image", 422));
         }
 
-        // profile image cloudinary url
+        // 1. Hämta nuvarande användare för att kolla om hen redan har en profilbild
+        const currentUser = await User.findById(req.user.id);
+        if (!currentUser) {
+            return next(new HttpError("User not found", 404));
+        }
+
+        // 2. Om det finns en gammal profilbild lagrad, radera den från Cloudinary
+        if (currentUser.profileImage) {
+            await deleteFromCloudinary(currentUser.profileImage);
+        }
+
+        // 3. profil image cloudinary url för den nya bilden
         const cloudinaryImagePath = req.file.path;
 
-        // uploads profile image to database
-        // fetch logged in user id through "req.user.id" and authMiddleware
-        await User.findByIdAndUpdate(req.user.id, { profileImage: cloudinaryImagePath }, { new: true })
+        // 4. Uppdatera databasen med den nya bilden
+        await User.findByIdAndUpdate(req.user.id, { profileImage: cloudinaryImagePath }, { new: true });
 
         // send response that upload was successfull
-        return res.status(200).json({ success: true, message: "You added a new profile picture ", cloudinaryImagePath })
-
+        return res.status(200).json({ success: true, message: "You added a new profile picture", cloudinaryImagePath });
 
     } catch (error) {
-
         return next(new HttpError(error.message || "Could not change profile image", 500));
     }
-
 }
 
 // ---------------------------- DELETE USER --------------------------- 
