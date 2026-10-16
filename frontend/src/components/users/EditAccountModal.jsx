@@ -34,7 +34,7 @@ function EditAccountModal({ onClose, currentUser, setCurrentUser, getUserInfo })
 
         try {
             // Vi skickar med både nya uppgifterna och det nuvarande lösenordet till backend
-            const response = await api.patch("/users/update", {
+            const response = await api.patch("/users/updateAccount", {
                 username,
                 email,
                 currentPassword
