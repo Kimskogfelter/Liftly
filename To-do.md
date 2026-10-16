@@ -15,6 +15,8 @@
 
 - uppdatera README.md med screenshots från de olika delarna på appen
 
+- TESTA Andriod studio, se till att live backend funkar mot android??!! 
+
 
 
 
