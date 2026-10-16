@@ -1,9 +1,11 @@
 import axios from 'axios';
 
-// Skapa en anpassad axios-instans med din bas-URL och tillåt cookies
+// Sätt live-URL direkt här för enkelhetens skull i din mobil-branch
+const API_BASE_URL = 'https://api.liftlyfit.com/api';
+
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
-    withCredentials: true // 🔴 KRÄVS för att HttpOnly cookies ska skickas med automatiskt!
+    baseURL: API_BASE_URL,
+    withCredentials: true
 });
 
 // Variabler för att hantera parallella refresh-anrop (kölapp)
@@ -43,7 +45,7 @@ api.interceptors.response.use(
 
         // Om svaret är 401 och det inte gällde själva refresh-anropet
         if (error.response?.status === 401 && !originalRequest._retry) {
-            
+
             // 🔒 OM ETT REFRESH-ANROP REDAN PÅGÅR: Lägg detta anrop i kön och vänta!
             if (isRefreshing) {
                 return new Promise((resolve, reject) => {
@@ -62,8 +64,8 @@ api.interceptors.response.use(
             try {
                 // 🔴 Cookien med refreshToken skickas automatiskt med tack vare withCredentials: true
                 const response = await axios.post(
-                    `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/users/refresh`,
-                    {}, // Tom body!
+                    `${API_BASE_URL}/users/refresh`,
+                    {},
                     { withCredentials: true }
                 );
 
@@ -73,7 +75,7 @@ api.interceptors.response.use(
                 const currentUser = JSON.parse(localStorage.getItem('currentUser'));
                 const updatedUser = { ...currentUser, token: newAccessToken };
                 localStorage.setItem('currentUser', JSON.stringify(updatedUser));
-                
+
                 window.dispatchEvent(new Event("userTokenRefreshed"));
 
                 // Släpp fram alla anrop som stod i kön och väntade
