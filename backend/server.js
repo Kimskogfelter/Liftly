@@ -29,7 +29,7 @@ server.use(cookieParser());
 server.use(express.urlencoded({extended: true}))
 server.use(express.json({extended: true}))
 server.use(cors({credentials: true, origin: ["http://localhost:5173", "https://liftly-examen.vercel.app", "https://liftlyfit.com",
-  "https://www.liftlyfit.com"]}))
+  "https://www.liftlyfit.com", "https://localhost", "capacitor://localhost"]}))
 // koppla ihop multer med cloudinary senare för storage av bilder/vidoes
 // const uploadImage = multer({dest: 'uploads'})
 
