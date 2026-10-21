@@ -1,7 +1,7 @@
 import Navbar from "./Navbar";
 import CreatePostModal from "../posts/CreatePostModal";
 import { useState } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 
 function AppLayout({ currentUser, setCurrentUser }) {
 
@@ -9,13 +9,23 @@ function AppLayout({ currentUser, setCurrentUser }) {
     // the state to controll if create post form should be visable or not must be in the app layout 
     // as we want the create post form to render in the overall layout, not in the navbar
     const [showCreatePost, setShowCreatePost] = useState(false);
+    const navigate = useNavigate();
+
+    // funktion för att hantera öppning av CreatePostModal, kolla om användaren är inloggad, annars navigera till login
+    const handleOpenCreatePost = () => {
+        if (!currentUser) {
+            navigate("/login"); // Skicka till inloggning om man är utloggad
+        } else {
+            setShowCreatePost(true); // Öppna modalen om man är inloggad
+        }
+    };
 
     return (
 
         <div className="flex min-h-screen flex-col">
             {/* Navbar */}
             {/* onOpenCreatePost function passed as prop to Navbar */}
-            <Navbar currentUser={currentUser} setCurrentUser={setCurrentUser} onOpenCreatePost={() => setShowCreatePost(true)} />
+            <Navbar currentUser={currentUser} setCurrentUser={setCurrentUser} onOpenCreatePost={handleOpenCreatePost} />
             {/* render CreatePost component when showCreatePost is true */}
             {
                 showCreatePost && (
