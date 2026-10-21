@@ -128,7 +128,13 @@ function HomePage({ currentUser, setCurrentUser }) {
       </div>
 
       {/* FEED CONTENT */}
-      {activeTab === "following" && followingPosts.length === 0 && !loadingMorePosts ? (
+      {activeTab === "following" && !currentUser ? (
+        <div className="text-center mt-10 pt-5">
+          <p className="text-gray-400 text-sm mb-2">
+            Log in to see posts from people you follow.
+          </p>
+        </div>
+      ) : activeTab === "following" && followingPosts.length === 0 && !loadingMorePosts ? (
         <p className="text-gray-400 text-sm text-center mt-10 pt-5">
           No posts from users you follow yet.
         </p>
