@@ -6,8 +6,10 @@ import { IoCloseCircle } from "react-icons/io5";
 import { BsSpotify } from "react-icons/bs";
 import { TagsInput } from "react-tag-input-component";
 import RecipeForm from "./RecipeForm";
+import { Capacitor } from '@capacitor/core';
+import { Camera } from '@capacitor/camera';
 
-function CreatePostModal({ currentUser, onClose }) {
+function CreatePostModal({ onClose }) {
   const navigate = useNavigate();
   const location = useLocation();
   const dropdownRef = useRef(null);
@@ -42,12 +44,31 @@ function CreatePostModal({ currentUser, onClose }) {
   const [ingredients, setIngredients] = useState([""]);
   const [instructions, setInstructions] = useState([""]);
 
-  // Sparar enbart det färdiga receptet när man trycker på "Save Recipe"
   const [savedRecipeData, setSavedRecipeData] = useState(null);
 
-  // -----------------------------------------------------------------
-  // 4. EFFEKTER & HJÄLPFUNKTIONER
-  // -----------------------------------------------------------------
+  // Hantera bildval via Capacitor på mobil
+  const handleNativeMediaPick = async () => {
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const image = await Camera.getPhoto({
+          quality: 90,
+          allowEditing: false,
+          resultType: 'uri', // Använd sträng i stället för CameraResultType.Uri
+          source: 'PROMPT'     // Använd sträng i stället för CameraSource.Prompt
+        });
+
+        if (image.webPath) {
+          const response = await fetch(image.webPath);
+          const blob = await response.blob();
+          const file = new File([blob], "post-camera.jpg", { type: blob.type });
+          setMedia((prev) => [...prev, file]);
+          setError("");
+        }
+      } catch (err) {
+        console.log("User cancelled or error occurred:", err);
+      }
+    }
+  };
 
   // Stäng dropdown-menyn om användaren klickar utanför
   useEffect(() => {
@@ -61,12 +82,10 @@ function CreatePostModal({ currentUser, onClose }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Ta bort en specifik uppladdad mediafil från listan
   const removeMediaFile = (indexToRemove) => {
     setMedia(media.filter((_, index) => index !== indexToRemove));
   };
 
-  // Text som visar vald kategori i knappen
   const getDisplayCategoryText = () => {
     if (subCategory && subCategory !== category) {
       return `Category: ${category} → ${subCategory}`;
@@ -74,11 +93,6 @@ function CreatePostModal({ currentUser, onClose }) {
     return `Category: ${category}`;
   };
 
-  // -----------------------------------------------------------------
-  // 5. RECEPT-HANTERING (Sparar, avbryter eller rensar)
-  // -----------------------------------------------------------------
-
-  // Körs när RecipeForm validerats och man klickar "Save Recipe"
   const handleSaveRecipe = () => {
     const recipeData = {
       title: recipeTitle,
@@ -95,16 +109,14 @@ function CreatePostModal({ currentUser, onClose }) {
       instructions: instructions.filter(step => step.trim() !== "")
     };
 
-    setSavedRecipeData(recipeData); // Låser fast receptet för inlägget
-    setShowRecipeView(false);       // Går tillbaka till inläggsvyn
+    setSavedRecipeData(recipeData);
+    setShowRecipeView(false);
   };
 
-  // Gå tillbaka till inläggsvyn utan att spara ändringar
   const handleBackWithoutSaving = () => {
     setShowRecipeView(false);
   };
 
-  // Rensa bort allt i receptformuläret samt det sparade receptet
   const handleClearAndClose = () => {
     setRecipeTitle("");
     setPrepTimeMinutes("");
@@ -116,9 +128,6 @@ function CreatePostModal({ currentUser, onClose }) {
     setShowRecipeView(false);
   };
 
-  // -----------------------------------------------------------------
-  // 6. API-ANROP: Skapa inlägg till backend
-  // -----------------------------------------------------------------
   const createPost = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -132,26 +141,22 @@ function CreatePostModal({ currentUser, onClose }) {
       formData.append('spotifyUrl', spotifyUrl || "");
       formData.append('hashtags', JSON.stringify(hashtags));
 
-      // Skicka med det färdigsparade receptet enbart om det godkänts
       if (savedRecipeData) {
         formData.append('recipe', JSON.stringify(savedRecipeData));
       }
 
-      // Lägg till mediafiler om de finns
       if (media.length > 0) {
         media.forEach((file) => {
           formData.append('media', file);
         });
       }
 
-      // Skicka till servern
       const response = await api.post(`/posts/create`, formData);
 
       if (response.status === 201) {
         window.dispatchEvent(new Event("postCreated"));
         onClose();
 
-        // Navigera till startsidan om vi är någon annanstans
         if (location.pathname !== "/") {
           navigate("/");
         }
@@ -164,14 +169,10 @@ function CreatePostModal({ currentUser, onClose }) {
     }
   };
 
-  // -----------------------------------------------------------------
-  // 7. RENDER (JSX)
-  // -----------------------------------------------------------------
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 font-sans">
       <div className="w-full max-w-md bg-white rounded-lg p-5 shadow-2xl border border-gray-100 text-left">
 
-        {/* Modal Rubrik */}
         <h3 className="text-sm font-bold text-gray-900 mb-3">
           {showRecipeView ? "Recipe Details" : "Create Post"}
         </h3>
@@ -179,7 +180,6 @@ function CreatePostModal({ currentUser, onClose }) {
         <form onSubmit={createPost} className="space-y-3">
 
           {showRecipeView ? (
-            /* --- VYN FÖR RECEPTFORMULÄR --- */
             <RecipeForm
               recipeTitle={recipeTitle} setRecipeTitle={setRecipeTitle}
               prepTimeMinutes={prepTimeMinutes} setPrepTimeMinutes={setPrepTimeMinutes}
@@ -192,9 +192,7 @@ function CreatePostModal({ currentUser, onClose }) {
               onClear={handleClearAndClose}
             />
           ) : (
-            /* --- VYN FÖR VANLIGT INLÄGG --- */
             <>
-              {/* Textinnehåll */}
               <div className="relative">
                 <textarea
                   name="content"
@@ -205,7 +203,6 @@ function CreatePostModal({ currentUser, onClose }) {
                 ></textarea>
               </div>
 
-              {/* Förhandsvisning av media */}
               {media.length > 0 && (
                 <div className="flex gap-2 overflow-x-auto pb-2 pt-1">
                   {media.map((file, index) => {
@@ -232,7 +229,6 @@ function CreatePostModal({ currentUser, onClose }) {
                 </div>
               )}
 
-              {/* Hashtag-fält */}
               <div className="space-y-1">
                 <div className="text-xs [&_.rti\--container]:border-zinc-200! [&_.rti\--container]:bg-gray-50/30 [&_.rti\--container]:rounded-lg [&_.rti\--container]:p-2.5 [&_.rti\--container]:transition-colors [&_.rti\--container]:focus-within:border-zinc-400! [&_.rti\--tag]:bg-zinc-200/60 [&_.rti\--tag]:text-zinc-800 [&_.rti\--tag]:text-[11px] [&_.rti\--tag]:font-medium [&_.rti\--tag]:py-0.5 [&_.rti\--tag]:px-2 [&_.rti\--tag]:rounded-md [&_.rti\--input]:bg-transparent [&_.rti\--input]:text-xs [&_.rti\--input]:text-gray-800 [&_.rti\--input]:placeholder-gray-400 [&_.rti\--input]:p-0 [&_.rti\--input]:m-0">
                   <TagsInput
@@ -253,7 +249,6 @@ function CreatePostModal({ currentUser, onClose }) {
                 <p className="text-[10px] text-zinc-400 px-1">Press Space to add hashtag</p>
               </div>
 
-              {/* Spotify-länk input */}
               {showSpotifyInput && (
                 <div className="relative flex items-center gap-2">
                   <div className="relative flex-1">
@@ -279,19 +274,25 @@ function CreatePostModal({ currentUser, onClose }) {
                 </div>
               )}
 
-              {/* Felmeddelande */}
               {error && (
                 <div className="bg-red-50 text-red-600 text-[11px] p-2 rounded-lg font-medium border border-red-100">
                   {error}
                 </div>
               )}
 
-              {/* Verktygsfält (Media, Spotify, Recept & Kategori) */}
               <div className="space-y-2 pt-2">
                 <div className="flex items-center gap-2 w-full">
 
-                  {/* Media-knapp */}
-                  <label htmlFor="media" className="flex-1 h-10 flex items-center justify-center gap-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs font-semibold px-3 rounded-lg cursor-pointer transition-colors">
+                  <label
+                    htmlFor={Capacitor.isNativePlatform() ? undefined : "media"}
+                    onClick={(e) => {
+                      if (Capacitor.isNativePlatform()) {
+                        e.preventDefault();
+                        handleNativeMediaPick();
+                      }
+                    }}
+                    className="flex-1 h-10 flex items-center justify-center gap-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs font-semibold px-3 rounded-lg cursor-pointer transition-colors"
+                  >
                     <FiImage size={15} className="text-zinc-800 shrink-0" />
                     <span>Media</span>
                     <input
@@ -311,7 +312,6 @@ function CreatePostModal({ currentUser, onClose }) {
                     />
                   </label>
 
-                  {/* Spotify-knapp */}
                   <button
                     type="button"
                     onClick={() => setShowSpotifyInput((prev) => !prev)}
@@ -324,7 +324,6 @@ function CreatePostModal({ currentUser, onClose }) {
                     <span>Spotify</span>
                   </button>
 
-                  {/* Recept-knapp */}
                   <button
                     type="button"
                     onClick={() => setShowRecipeView(true)}
@@ -341,7 +340,6 @@ function CreatePostModal({ currentUser, onClose }) {
                   </button>
                 </div>
 
-                {/* Kategori-dropdown */}
                 <div className="relative w-full" ref={dropdownRef}>
                   <button
                     type="button"
@@ -363,7 +361,6 @@ function CreatePostModal({ currentUser, onClose }) {
                         General
                       </button>
 
-                      {/* Food */}
                       <div>
                         <div
                           onClick={() => setExpandedCategory(expandedCategory === "Food" ? null : "Food")}
@@ -396,7 +393,6 @@ function CreatePostModal({ currentUser, onClose }) {
                         Supplements
                       </button>
 
-                      {/* Training */}
                       <div>
                         <div
                           onClick={() => setExpandedCategory(expandedCategory === "Training" ? null : "Training")}
@@ -421,7 +417,6 @@ function CreatePostModal({ currentUser, onClose }) {
                         )}
                       </div>
 
-                      {/* Music */}
                       <div>
                         <div
                           onClick={() => setExpandedCategory(expandedCategory === "Music" ? null : "Music")}
@@ -475,7 +470,6 @@ function CreatePostModal({ currentUser, onClose }) {
                 </div>
               </div>
 
-              {/* Action-knappar (Cancel & Post) */}
               <div className="flex items-center justify-end gap-2 pt-3 border-t border-gray-100 mt-3">
                 <button
                   type="button"

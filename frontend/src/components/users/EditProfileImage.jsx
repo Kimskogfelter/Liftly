@@ -2,6 +2,8 @@ import React from "react";
 import { useState } from "react";
 import api from "../../api/axios";
 import { SlPicture } from "react-icons/sl";
+import { Capacitor } from '@capacitor/core';
+import { Camera } from '@capacitor/camera';
 
 function EditProfileImage({ onClose, currentUser, setCurrentUser, getUserInfo }) {
 
@@ -9,55 +11,58 @@ function EditProfileImage({ onClose, currentUser, setCurrentUser, getUserInfo })
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState("");
 
+    // Funktion för att hantera bildval (stöder både webb och Capacitor native kamera/galleri)
+    const handleImageSelection = async () => {
+        if (Capacitor.isNativePlatform()) {
+            try {
+                const image = await Camera.getPhoto({
+                    quality: 90,
+                    allowEditing: false,
+                    resultType: 'uri', // Använd sträng i stället för CameraResultType.Uri
+                    source: 'PROMPT'     // Använd sträng i stället för CameraSource.Prompt
+                });
+
+                if (image.webPath) {
+                    const response = await fetch(image.webPath);
+                    const blob = await response.blob();
+                    const file = new File([blob], "profile-camera.jpg", { type: blob.type });
+                    setProfileImage(file);
+                    setError("");
+                }
+            } catch (err) {
+                console.log("User cancelled or error occurred:", err);
+            }
+        }
+    };
+
     // function to edit profile image
     const editProfileImage = async (e) => {
         e.preventDefault();
 
-        // check that a image is choosen before sending req to backend
         if (!profileImage) {
             setError("Please select an image first.");
             return;
         }
-        setIsSubmitting(true); // show "Uploading..." on button while Axios is working
+        setIsSubmitting(true);
 
         try {
-
-            // send updated data to backend
             const response = await api.post(`/users/profile-image`, { profileImage }, {
                 headers: {
                     "Content-Type": "multipart/form-data"
                 }
             });
 
-            // console.log("Profile image update request sent successfully:", response.data);
-
-
-            // after successful post req to backend of profile image
             if (response.status === 200) {
-
-                // extract the new profile image url from response from backend
                 const updatedProfileImage = response.data.cloudinaryImagePath;
-
-                // create a new user object to update currentUser state with updated profile image
                 const updatedUser = { ...currentUser, profileImage: updatedProfileImage, updatedAt: new Date().toISOString() };
 
-                // update state for currentUser in React AND localstorage
                 setCurrentUser(updatedUser);
                 localStorage.setItem("currentUser", JSON.stringify(updatedUser));
-
-                // close the EditProfileImage component after successful update
                 onClose();
 
-                // run getUserInfo function from profile page to make a new get request to backend to update profile image directly
                 if (getUserInfo) getUserInfo();
-               
             }
-
-
-
         } catch (err) {
-
-            // handle errors and display error message to user
             const errorResponse = err.response?.data;
             setError(errorResponse?.message || "Your post could not be updated. Please try again.");
         } finally {
@@ -67,10 +72,7 @@ function EditProfileImage({ onClose, currentUser, setCurrentUser, getUserInfo })
 
     return (
         <>
-            {/* Outer card wrapper - modal */}
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 font-sans">
-
-                {/* edit container */}
                 <div className="w-full max-w-md bg-white rounded-lg p-5 shadow-xl border border-gray-100 animate-in fade-in zoom-in-95 duration-150">
 
                     <h3 className="text-sm font-bold text-gray-900 mb-3 text-left">Edit Profile Image</h3>
@@ -79,13 +81,12 @@ function EditProfileImage({ onClose, currentUser, setCurrentUser, getUserInfo })
 
                         <div className="flex justify-center py-4">
                             <div className="relative w-28 h-28">
-                                {/* IF profile image is choosen, display choosen image in preview */}
                                 {profileImage ? (
                                     <img
                                         src={
                                             profileImage instanceof File
-                                                ? URL.createObjectURL(profileImage) // When a new image is selected, show the preview of the selected file
-                                                : profileImage                       // When the profileImage is a URL (from currentUser), display the existing image
+                                                ? URL.createObjectURL(profileImage)
+                                                : profileImage
                                         }
                                         alt="Preview"
                                         className="w-full h-full rounded-full object-cover border border-gray-200 shadow-sm"
@@ -96,32 +97,37 @@ function EditProfileImage({ onClose, currentUser, setCurrentUser, getUserInfo })
                                     </div>
                                 )}
 
-                                {/* image icon to trigger file input below*/}
                                 <label
-                                    htmlFor="media"
+                                    htmlFor={Capacitor.isNativePlatform() ? undefined : "media"}
+                                    onClick={(e) => {
+                                        if (Capacitor.isNativePlatform()) {
+                                            e.preventDefault();
+                                            handleImageSelection();
+                                        }
+                                    }}
                                     className="absolute bottom-0 right-0 p-2.5 bg-white hover:bg-gray-50 border border-gray-200 rounded-full shadow-md transition-colors flex items-center justify-center cursor-pointer text-gray-600 hover:text-black"
                                     title={profileImage ? "Change Photo" : "Choose Photo"}
                                 >
                                     <SlPicture size={16} />
                                 </label>
+
+                                <input
+                                    className="hidden"
+                                    type="file"
+                                    name="media"
+                                    id="media"
+                                    accept="image/*"
+                                    onChange={(e) => {
+                                        if (e.target.files[0]) {
+                                            setProfileImage(e.target.files[0]);
+                                            setError("");
+                                        }
+                                    }}
+                                />
                             </div>
 
-                            <input
-                                className="hidden"
-                                type="file"
-                                name="media"
-                                id="media"
-                                accept="image/*"
-                                onChange={(e) => {
-                                    if (e.target.files[0]) {
-                                        setProfileImage(e.target.files[0]);
-                                        setError("");
-                                    }
-                                }}
-                            />
                         </div>
 
-                        {/* Error message */}
                         {error && (
                             <div className="bg-red-50 text-red-600 text-[11px] p-2 rounded-lg font-medium border border-red-100 text-left">
                                 {error}
@@ -137,14 +143,13 @@ function EditProfileImage({ onClose, currentUser, setCurrentUser, getUserInfo })
                             >
                                 Cancel
                             </button>
-                           {/* Button that shows "Uploading..." when submitting */}
-                        <button
-                            type="submit"
-                            disabled={isSubmitting}
-                            className="bg-[#3A3939] hover:bg-zinc-800 text-white font-semibold py-1.5 px-3 rounded-md transition-colors cursor-pointer text-xs shadow-sm disabled:opacity-50 flex items-center gap-2"
-                        >
-                            {isSubmitting ? "Uploading..." : "Update Profile Image"}
-                        </button>
+                            <button
+                                type="submit"
+                                disabled={isSubmitting}
+                                className="bg-[#3A3939] hover:bg-zinc-800 text-white font-semibold py-1.5 px-3 rounded-md transition-colors cursor-pointer text-xs shadow-sm disabled:opacity-50 flex items-center gap-2"
+                            >
+                                {isSubmitting ? "Uploading..." : "Update Profile Image"}
+                            </button>
                         </div>
                     </form>
                 </div>
