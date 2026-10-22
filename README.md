@@ -59,6 +59,8 @@ Användare kan skapa konton, dela och redigera inlägg (inklusive träningskalen
 * **Verktyg:** Nodemon, Dotenv, CORS, uuid, Postman (API testing), Validator
 * **Filhantering:** Multer, Cloudinary
 * **Hosting & Domän:** Vercel (Frontend), Render (Backend), Porkbun (DNS & Domänhantering)
+* **Mobilapp (Native):** Capacitor (Android-stöd)
+* **Mobila Funktioner:** `@capacitor/camera` (för bildhantering direkt via enhetens kamera), `@capacitor/push-notifications` (för notiser)
 
 ## Arkitektur
 Applikationen är byggd enligt MERN-stackens arkitektur där frontend, backend och databas är separerade men kommunicerar via ett REST-API.

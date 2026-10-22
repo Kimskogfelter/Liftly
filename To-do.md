@@ -5,7 +5,7 @@
 
 ## Nya Funktioner
 - skönhetsfilter till bild/video, måste väll finnas enkla tillägg för detta?? eller måste man koda allt själv??
-- fixa så man får notiser i och utanför appen när något händer, tex en kommentar eller gilla markering
+- fixa så man får notiser i och utanför appen när något händer, tex en kommentar eller gilla markering, BÅDE webb och mobil
 
 - på mobil så aktiveras inte tangentbordet direkt när man kommer till söksidan... useRef och timeouts funkar inte!
 
@@ -14,6 +14,8 @@
 - fixa så appen kan lanseras hos app store och andriod för att lätt laddas ner
 
 - uppdatera README.md med screenshots från de olika delarna på appen
+
+- fixa så man kan lägga till flera spotify låtar i samma inlägg?!
 
 - TESTA Andriod studio, se till att live backend funkar mot android??!! 
 
