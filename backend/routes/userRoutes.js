@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { registerUser, loginUser, logoutUser, getUser, getUsers, updateAccount, followUser, unfollowUser, getFollowing, getFollowers, reportUser, editProfile, changeProfileImage, deleteUser, getSavedPosts, authUser, changePassword, forgotPassword, resetPassword, refreshToken} from '../controllers/userController.js';
+import { registerUser, loginUser, logoutUser, getUser, getUsers, updateAccount, followUser, unfollowUser, getFollowing, getFollowers, reportUser, editProfile, changeProfileImage, deleteUser, getSavedPosts, authUser, changePassword, forgotPassword, resetPassword, refreshToken, savePushToken} from '../controllers/userController.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';
 import { upload } from '../middleware/cloudinaryUpload.js'
 
@@ -41,6 +41,9 @@ userRouter.delete('/:userId', authMiddleware, deleteUser)
 userRouter.patch('/change-password', authMiddleware, changePassword);
 userRouter.post('/forgot-password', forgotPassword)
 userRouter.patch('/reset-password/:token', resetPassword)
+
+// ---------------------------- push notifications --------------------------- 
+userRouter.post('/save-push-token', authMiddleware, savePushToken);
 
 
 

@@ -1109,6 +1109,49 @@ export const refreshToken = async (req, res, next) => {
     }
 };
 
+// ---------------------------- SAVE PUSH TOKEN --------------------------- 
+// POST req: api/users/save-push-token
+// PROTECTED
+export const savePushToken = async (req, res, next) => {
+  try {
+    const { token, platform } = req.body;
+    const userId = req.user.id; // Kommer från din authMiddleware
+
+    if (!token) {
+      return next(new HttpError('Token is required', 400));
+    }
+
+    // 1. Kontrollera att användaren existerar först av allt
+    const user = await User.findById(userId);
+    if (!user) {
+      return next(new HttpError('User not found', 404));
+    }
+
+    // 2. Ta bort en eventuell gammal kopia av samma token så vi slipper dubbletter
+    await User.findByIdAndUpdate(userId, {
+      $pull: { pushTokens: { token: token } }
+    });
+
+    // 3. Lägg till den uppdaterade token med plattform
+    await User.findByIdAndUpdate(
+      userId,
+      { 
+        $push: { 
+          pushTokens: { 
+            token, 
+            platform: platform || 'android' 
+          } 
+        } 
+      },
+      { new: true }
+    );
+
+    res.status(200).json({ message: 'Push token saved successfully!' });
+  } catch (error) {
+    return next(new HttpError(error.message || 'Server error while saving token', 500));
+  }
+};
+
 // ---------------------------- POSTS ---------------------------
 // ---------------------------- GET SAVED POSTS --------------------------- 
 // GET req: api/users/savedposts

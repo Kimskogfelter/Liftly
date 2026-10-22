@@ -18,6 +18,7 @@ import FoodLogPage from './pages/FoodLogPage';
 import AppLayout from './components/layout/AppLayout';
 import CalendarPage from './pages/CalendarPage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
+import { registerPushToken } from './functions/user/registerPushToken';
 import api from './api/axios';
 
 
@@ -43,6 +44,8 @@ function App() {
             const freshUser = { ...storedUser, ...response.data };
             setCurrentUser(freshUser);
             localStorage.setItem("currentUser", JSON.stringify(freshUser));
+            // Kör push-registrering när användaren har verifierats vid uppstart!
+            registerPushToken();
           }
         } catch (err) {
           // console.log("Verifiering misslyckades, loggar ut", err);

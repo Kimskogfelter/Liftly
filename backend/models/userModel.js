@@ -22,6 +22,11 @@ const userSchema = new mongoose.Schema({
         token: { type: String, required: true },
         createdAt: { type: Date, default: Date.now }
     }],
+    pushTokens: [{
+        token: { type: String, required: true },
+        platform: { type: String, enum: ['android', 'ios', 'web'], default: 'android' },
+        createdAt: { type: Date, default: Date.now }
+    }],
     gdprConsent: {
         accepted: { type: Boolean, required: true },
         date: { type: Date, default: Date.now }

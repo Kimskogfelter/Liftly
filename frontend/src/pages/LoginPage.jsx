@@ -2,6 +2,7 @@ import { useState } from 'react';
 import api from '../api/axios';
 import { useNavigate, Link } from 'react-router-dom';
 import logo from '../assets/images/liftly-logo.png';
+import { registerPushToken } from '../functions/user/registerPushToken';
 
 function LoginPage({ setCurrentUser }) {
 
@@ -25,6 +26,8 @@ function LoginPage({ setCurrentUser }) {
         localStorage.setItem("currentUser", JSON.stringify(response.data));
         // update current user state in App component
         setCurrentUser(response.data);
+        // Kör push-registrering direkt vid en lyckad inloggning!
+        registerPushToken();
         navigate('/home');
       }
 
