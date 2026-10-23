@@ -6,6 +6,7 @@ import { ReportPost } from '../models/reportPostModel.js';
 import mongoose from "mongoose";
 import { Resend } from 'resend';
 import { deleteFromCloudinary } from '../utils/cloudinaryUtils.js';
+import { sendPushNotification } from '../utils/sendPushNotification.js';
 // loading env var from .env
 import 'dotenv/config';
 // funktion för pagination/scroll
@@ -533,40 +534,52 @@ export const likePost = async (req, res, next) => {
             return next(new HttpError("Post not found", 404));
         }
 
-        // check if post is liked be the req user
+        // check if post is liked by the req user
         const alreadyLikedPost = post.likes.includes(req.user.id);
 
         // if LIKED 
         if (alreadyLikedPost) {
-
             return next(new HttpError("You already like this post.", 422));
-
         }
 
-        // if NOt liked, add to likes list
-        if (!alreadyLikedPost) {
+        // if NOT liked, add to likes list
+        const likedPost = await Post.findByIdAndUpdate(
+            postId, 
+            { $push: { likes: req.user.id } }, 
+            { new: true }
+        );
 
-            const likedPost = await Post.findByIdAndUpdate(postId, { $push: { likes: req.user.id } }, { new: true })
+        // --- SKICKA PUSH-NOTIS TILL INLÄGGETS ÄGARE ---
+        // Kolla att den som gillar inte är ägaren själv
+        if (post.createdBy.toString() !== req.user.id) {
+            // Hämta ägaren till inlägget och den som gillar (för att få tag i username)
+            const [postOwner, likingUser] = await Promise.all([
+                User.findById(post.createdBy),
+                User.findById(req.user.id)
+            ]);
 
-            return res.status(200).json({
-                message: "Post liked",
-                likesCount: likedPost.likes.length,
-                // post: likedPost
-            })
-
-
+            if (postOwner && postOwner.pushTokens && postOwner.pushTokens.length > 0) {
+                const likerName = likingUser?.username || "Someone";
+                
+                await sendPushNotification(
+                    postOwner.pushTokens,
+                    'Liftly',
+                    `${likerName} liked your post!`,
+                    { postId: postId.toString() }
+                );
+            }
         }
+
+        return res.status(200).json({
+            message: "Post liked",
+            likesCount: likedPost.likes.length,
+        });
 
     } catch (error) {
-        // Om något går fel när vi försöker sluta följa en användaren:
-        // 1. Vi tar det fel som fångas upp i 'catch' (det som kallas 'error')
-        // 2. Vi skapar ett nytt fel-objekt av typen HttpError med det här felmeddelandet
-        // 3. Vi skickar det nya fel-objektet vidare till Express med 'next()'
-        //    → Express vet då att något gick fel och kan skicka tillbaka ett HTTP-fel till klienten
-        return next(new HttpError(error.message || "Could not like post", 500))
+        return next(new HttpError(error.message || "Could not like post", 500));
     }
 
-}
+};
 
 // ---------------------------- UNLIKE POST --------------------------- 
 // DELETE req: api/posts/:postId/unlike 

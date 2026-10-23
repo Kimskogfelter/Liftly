@@ -1,7 +1,10 @@
 import { HttpError } from "../models/errorModel.js"
 import { Post } from "../models/postModel.js";
 import { Comment } from "../models/commentModel.js";
+import { User } from "../models/userModel.js";
 import mongoose from "mongoose";
+// send push notifications function 
+import { sendPushNotification } from '../utils/sendPushNotification.js';
 // bad words filter for create and reply to comment
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
@@ -68,6 +71,26 @@ export const createComment = async (req, res, next) => {
 
         // add comment to post
         await Post.findByIdAndUpdate(postId, { $push: { comments: newComment._id } })
+
+        // --- SKICKA PUSH-NOTIS TILL INLÄGGETS ÄGARE ---
+        // Kolla att den som kommenterar inte är ägaren till inlägget själv
+        if (post.createdBy.toString() !== req.user.id) {
+            const [postOwner, commentingUser] = await Promise.all([
+                User.findById(post.createdBy),
+                User.findById(req.user.id)
+            ]);
+
+            if (postOwner && postOwner.pushTokens && postOwner.pushTokens.length > 0) {
+                const commenterName = commentingUser?.username || "Someone";
+
+                await sendPushNotification(
+                    postOwner.pushTokens,
+                    'Liftly',
+                    `${commenterName} commented on your post!`,
+                    { postId: postId.toString() }
+                );
+            }
+        }
 
         return res.status(201).json({ message: 'Comment created: ', newComment });
 
@@ -225,10 +248,29 @@ export const replyComment = async (req, res, next) => {
         // Hämta det nyss skapade svaret (det sista i arrayen)
         const addedReply = comment.replies[comment.replies.length - 1];
 
+        // --- SKICKA PUSH-NOTIS TILL KOMMENTARENS ÄGARE ---
+        // Kolla att den som svarar inte är samma person som skrev kommentaren själv
+        if (comment.createdBy.toString() !== req.user.id) {
+            const [commentOwner, replyingUser] = await Promise.all([
+                User.findById(comment.createdBy),
+                User.findById(req.user.id)
+            ]);
+
+            if (commentOwner && commentOwner.pushTokens && commentOwner.pushTokens.length > 0) {
+                const replierName = replyingUser?.username || "Someone";
+
+                await sendPushNotification(
+                    commentOwner.pushTokens,
+                    'Liftly',
+                    `${replierName} replied to your comment!`,
+                    { postId: comment.post.toString() } // Skickar med inläggets ID så appen kan hoppa till rätt inlägg
+                );
+            }
+        }
+
         return res.status(201).json({
             message: "Reply added successfully",
             reply: addedReply,
-            // comment 
         });
 
     } catch (error) {

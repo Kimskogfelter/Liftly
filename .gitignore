@@ -8,6 +8,8 @@ frontend/node_modules/
 backend/.env
 frontend/.env
 
+backend/config/firebaseServiceAccount.json
+
 # Build files / dist
 dist/
 frontend/dist/

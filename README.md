@@ -53,7 +53,7 @@ Användare kan skapa konton, dela och redigera inlägg (inklusive träningskalen
 ## Teknik & programmeringsspråk
 
 * **Frontend:** React, HTML, CSS, Tailwind, React Router DOM, Axios, React Icons, React Timeago
-* **Backend:** Node.js, Express.js, Mongoose, Resend
+* **Backend:** Node.js, Express.js, Mongoose, Resend, firebase-admin (för att skicka push-notiser från servern)
 * **Databas:** MongoDB
 * **Säkerhet:** JWT, bcrypt
 * **Verktyg:** Nodemon, Dotenv, CORS, uuid, Postman (API testing), Validator

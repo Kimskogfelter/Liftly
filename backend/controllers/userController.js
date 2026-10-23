@@ -17,6 +17,8 @@ import { v4 as uuidv4 } from "uuid";
 import { cloudinaryService } from "../config/cloudinaryConfig.js";
 // funktion för pagination/scroll
 import { getPagination, formatPaginatedResponse } from "../utils/pagination.js";
+// funktion för att skicka push notis till mobil
+import { sendPushNotification } from '../utils/sendPushNotification.js';
 
 // loading env var from .env
 import 'dotenv/config';
@@ -441,17 +443,11 @@ export const followUser = async (req, res, next) => {
         const loggedInUserId = loggedInUser._id.toString();
 
         // kolla ifall det är den inloggade användarens profil
-        // ... om samma, meddela att man inte kan följa sig själv
         if (loggedInUserId === userId) {
-
             return next(new HttpError("You cant follow yourself.", 422))
-
         }
 
-        // kolla ifall användaren man vill följa redan finns i ens "following" lista i databasen
-        // 1. Konvertera sträng-ID från URL:en till ett Mongoose ObjectId. med hjälp av mongoose ...
-        // Detta krävs eftersom 'loggedInUser.following' i databasen innehåller objekt, inte rena strängar.
-        // .includes() fungerar nu korrekt eftersom båda sidorna av jämförelsen är av typen ObjectId.
+        // kolla ifall användaren man vill följa redan finns i ens "following" lista
         const alreadyFollowingUser = loggedInUser.following.includes(new mongoose.Types.ObjectId(userId));
 
         // om man redan FÖLJER användaren
@@ -459,25 +455,32 @@ export const followUser = async (req, res, next) => {
             return next(new HttpError("You are already following this user.", 422));
         }
 
-        // om man INTE FÖLJER användaren, 
-        // 1. lägg till användaren man vill följa i inloggade användarens "following" lista i databasen
-        // 2. lägg till den inloggade användaren som följare i användarens "followers" lista i databasen
-        if (!alreadyFollowingUser) {
+        // 1. Lägg till i inloggades "following"
+        await User.findByIdAndUpdate(loggedInUserId, { $push: { following: userId } }, { new: true });
+        
+        // 2. Lägg till den inloggade som följare i målanvändarens "followers"
+        const targetUser = await User.findByIdAndUpdate(
+            userId, 
+            { $push: { followers: loggedInUserId } }, 
+            { new: true }
+        );
 
-            // 1
-            await User.findByIdAndUpdate(loggedInUserId, { $push: { following: userId } }, { new: true })
-            // 2
-            await User.findByIdAndUpdate(userId, { $push: { followers: loggedInUserId } }, { new: true })
+        // --- SKICKA PUSH-NOTIS TILL ANVÄNDAREN SOM BLIR FÖLJD ---
+        if (targetUser && targetUser.pushTokens && targetUser.pushTokens.length > 0) {
+            const followerName = loggedInUser?.username || "Someone";
 
-            // meddela att det gick att börja följa användaren
-            return res.status(200).json({ message: "You started to follow: ", userId })
-
+            await sendPushNotification(
+                targetUser.pushTokens,
+                'Liftly',
+                `${followerName} started following you!`,
+                { profileId: loggedInUserId.toString() } // Skickar med ID så appen kan hoppa till följarens profil vid klick
+            );
         }
 
-
+        // meddela att det gick att börja följa användaren
+        return res.status(200).json({ message: "You started to follow: ", userId });
 
     } catch (error) {
-
         return next(new HttpError(error.message || "Could not follow user", 500));
     }
 
