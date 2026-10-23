@@ -6,6 +6,7 @@
 ## Nya Funktioner
 - skönhetsfilter till bild/video, måste väll finnas enkla tillägg för detta?? eller måste man koda allt själv??
 - fixa så man får notiser i och utanför appen när något händer, tex en kommentar eller gilla markering, BÅDE webb och mobil
+(kolla android studio, så push notiser fungerar!! behöver fixa modal för in app notiser. samt fixa apples egna kod och egen kod för webben)
 
 - på mobil så aktiveras inte tangentbordet direkt när man kommer till söksidan... useRef och timeouts funkar inte!
 
