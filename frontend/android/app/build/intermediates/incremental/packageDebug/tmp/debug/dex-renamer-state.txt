@@ -1,12 +1,12 @@
-#Wed Oct 21 13:32:39 CEST 2026
-base.0=C\:\\Users\\kimsk\\OneDrive\\Dokument\\Kod\\LIFTLY\\frontend\\android\\app\\build\\intermediates\\dex\\debug\\mergeExtDexDebug\\classes.dex
-base.1=C\:\\Users\\kimsk\\OneDrive\\Dokument\\Kod\\LIFTLY\\frontend\\android\\app\\build\\intermediates\\dex\\debug\\mergeLibDexDebug\\15\\classes.dex
-base.2=C\:\\Users\\kimsk\\OneDrive\\Dokument\\Kod\\LIFTLY\\frontend\\android\\app\\build\\intermediates\\dex\\debug\\mergeLibDexDebug\\2\\classes.dex
-base.3=C\:\\Users\\kimsk\\OneDrive\\Dokument\\Kod\\LIFTLY\\frontend\\android\\app\\build\\intermediates\\dex\\debug\\mergeLibDexDebug\\5\\classes.dex
-base.4=C\:\\Users\\kimsk\\OneDrive\\Dokument\\Kod\\LIFTLY\\frontend\\android\\app\\build\\intermediates\\dex\\debug\\mergeLibDexDebug\\8\\classes.dex
-base.5=C\:\\Users\\kimsk\\OneDrive\\Dokument\\Kod\\LIFTLY\\frontend\\android\\app\\build\\intermediates\\dex\\debug\\mergeProjectDexDebug\\0\\classes.dex
-base.6=C\:\\Users\\kimsk\\OneDrive\\Dokument\\Kod\\LIFTLY\\frontend\\android\\app\\build\\intermediates\\dex\\debug\\mergeProjectDexDebug\\8\\classes.dex
-base.7=C\:\\Users\\kimsk\\OneDrive\\Dokument\\Kod\\LIFTLY\\frontend\\android\\app\\build\\intermediates\\dex\\debug\\mergeExtDexDebug\\classes2.dex
+#Wed Nov 04 15:13:01 CET 2026
+base.0=C\:\\Kod\\LIFTLY\\frontend\\android\\app\\build\\intermediates\\dex\\debug\\mergeExtDexDebug\\classes.dex
+base.1=C\:\\Kod\\LIFTLY\\frontend\\android\\app\\build\\intermediates\\dex\\debug\\mergeLibDexDebug\\15\\classes.dex
+base.2=C\:\\Kod\\LIFTLY\\frontend\\android\\app\\build\\intermediates\\dex\\debug\\mergeLibDexDebug\\2\\classes.dex
+base.3=C\:\\Kod\\LIFTLY\\frontend\\android\\app\\build\\intermediates\\dex\\debug\\mergeLibDexDebug\\5\\classes.dex
+base.4=C\:\\Kod\\LIFTLY\\frontend\\android\\app\\build\\intermediates\\dex\\debug\\mergeLibDexDebug\\8\\classes.dex
+base.5=C\:\\Kod\\LIFTLY\\frontend\\android\\app\\build\\intermediates\\dex\\debug\\mergeProjectDexDebug\\0\\classes.dex
+base.6=C\:\\Kod\\LIFTLY\\frontend\\android\\app\\build\\intermediates\\dex\\debug\\mergeProjectDexDebug\\8\\classes.dex
+base.7=C\:\\Kod\\LIFTLY\\frontend\\android\\app\\build\\intermediates\\dex\\debug\\mergeExtDexDebug\\classes2.dex
 path.0=classes.dex
 path.1=15/classes.dex
 path.2=2/classes.dex

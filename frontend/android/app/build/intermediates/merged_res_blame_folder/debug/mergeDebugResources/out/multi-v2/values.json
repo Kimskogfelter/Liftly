@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.liftlyfit.app-mergeDebugResources-42:/values/values.xml",
+            "outputFile": "com.liftlyfit.app-mergeDebugResources-2:/values/values.xml",
             "map": [
                 {
                     "source": "C:\\Users\\kimsk\\.gradle\\caches\\8.14.3\\transforms\\2dedc20bd782c3bbee938583d5f01158\\transformed\\constraintlayout-2.2.0\\res\\values\\values.xml",
@@ -20,6 +20,40 @@
                         "endLines": "8,9,15,17,25,26,28,29,36,42,44,45,46,47,48,108,109,110,125,130,131,132,133,147,155,158,193,198,199,204,209,210,211,216,217,222,223,228,229,230,236,237,238,243,249,252,253,270,276,277,278,279,282,285,288,289,292,295,296,297,298,299,302,305,306,307,308,314,319,322,325,326,327,332,333,334,337,340,341,344,347,350,353,354,355,358,361,362,367,368,374,379,382,385,386,387,388,389,390,391,392,393,394,395,396,412,418,504,505,512,513,524,532,533,534,537,542,543,553,554,555,587,595,647,648,652,661,664,665,671,672,680,684,685,686,687,688,697,701,2281,2342,12216,12344,12350,12354,12503,12649,12752,13011,13027,13064,13087,13090,13093,13096,13124,13151,13168,13254,13885,13898,13914,13918,13948,13961,13965,13975,14210,14254,14276,14577,14604,14811,15207,15242,15249,15314,15317",
                         "endColumns": "11,55,11,60,11,51,49,52,47,50,54,59,64,58,61,51,60,61,45,11,51,49,50,11,11,44,58,11,56,11,11,53,56,11,57,11,55,11,56,50,11,51,54,11,11,49,51,55,11,60,59,69,11,11,11,67,11,11,61,62,67,66,11,11,66,64,64,11,11,11,11,65,66,11,68,65,11,11,66,11,11,11,11,55,64,11,11,64,11,66,11,11,11,11,64,61,61,63,61,58,59,60,60,58,59,11,11,50,48,47,57,11,11,46,59,11,11,53,11,53,55,45,46,50,58,51,11,58,53,11,54,11,11,45,54,44,43,11,11,40,44,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24",
                         "endOffsets": "429,485,727,837,1128,1180,1285,1338,1735,2045,2169,2229,2294,2353,2415,5763,5824,5886,6753,6947,6999,7049,7100,7738,8050,8206,10634,10831,10888,11083,11264,11318,11375,11567,11625,11821,11877,12071,12128,12179,12401,12453,12508,12698,12914,13085,13137,14059,14265,14326,14386,14456,14589,14720,14848,14916,15045,15171,15233,15296,15364,15431,15554,15679,15746,15811,15876,16165,16346,16467,16588,16654,16721,16931,17000,17066,17191,17317,17384,17510,17637,17762,17889,17945,18010,18136,18259,18324,18532,18599,18887,19067,19187,19307,19372,19434,19496,19560,19622,19681,19741,19802,19863,19922,19982,20642,20893,26317,26366,26792,26850,27371,27679,27726,27786,27892,28072,28126,28579,28633,28689,30660,31067,34513,34572,34774,35104,35269,35323,35561,35616,35941,36080,36126,36181,36226,36270,36618,36755,153802,157052,805044,810709,811084,811251,816481,822658,828082,836574,837325,838840,839710,839776,839855,839930,840764,841655,842474,846411,869011,869482,870273,870436,871797,872361,872514,872973,880317,882330,883006,893532,894328,902251,916859,918280,918633,921339,921440"
+                    }
+                },
+                {
+                    "source": "C:\\Kod\\LIFTLY\\frontend\\node_modules\\@capacitor\\android\\capacitor\\build\\intermediates\\packaged_res\\debug\\packageDebugResources\\values\\values.xml",
+                    "from": {
+                        "startLines": "2,3,4,5",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "100,175,251,331",
+                        "endColumns": "74,75,79,79",
+                        "endOffsets": "170,246,326,406"
+                    },
+                    "to": {
+                        "startLines": "736,737,738,2601",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "39216,39291,39367,184290",
+                        "endColumns": "74,75,79,79",
+                        "endOffsets": "39286,39362,39442,184365"
+                    }
+                },
+                {
+                    "source": "C:\\Kod\\LIFTLY\\frontend\\android\\app\\src\\main\\res\\values\\strings.xml",
+                    "from": {
+                        "startLines": "2,5,4,3",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "57,214,158,102",
+                        "endColumns": "43,59,54,54",
+                        "endOffsets": "96,269,208,152"
+                    },
+                    "to": {
+                        "startLines": "2453,2471,2602,2617",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "164478,166460,184370,186207",
+                        "endColumns": "43,59,54,54",
+                        "endOffsets": "164517,166515,184420,186257"
                     }
                 },
                 {
@@ -114,23 +148,6 @@
                     }
                 },
                 {
-                    "source": "C:\\Users\\kimsk\\OneDrive\\Dokument\\Kod\\LIFTLY\\frontend\\node_modules\\@capacitor\\android\\capacitor\\build\\intermediates\\packaged_res\\debug\\packageDebugResources\\values\\values.xml",
-                    "from": {
-                        "startLines": "2,3,4,5",
-                        "startColumns": "4,4,4,4",
-                        "startOffsets": "100,175,251,331",
-                        "endColumns": "74,75,79,79",
-                        "endOffsets": "170,246,326,406"
-                    },
-                    "to": {
-                        "startLines": "736,737,738,2601",
-                        "startColumns": "4,4,4,4",
-                        "startOffsets": "39216,39291,39367,184290",
-                        "endColumns": "74,75,79,79",
-                        "endOffsets": "39286,39362,39442,184365"
-                    }
-                },
-                {
                     "source": "C:\\Users\\kimsk\\.gradle\\caches\\8.14.3\\transforms\\30e30f664f01f89666d5b5c18f60ced8\\transformed\\viewpager2-1.0.0\\res\\values\\values.xml",
                     "from": {
                         "startLines": "2",
@@ -205,42 +222,6 @@
                     }
                 },
                 {
-                    "source": "C:\\Users\\kimsk\\OneDrive\\Dokument\\Kod\\LIFTLY\\frontend\\android\\app\\src\\main\\res\\values\\ic_launcher_background.xml",
-                    "from": {
-                        "startLines": "2",
-                        "startColumns": "4",
-                        "startOffsets": "55",
-                        "endColumns": "56",
-                        "endOffsets": "107"
-                    },
-                    "to": {
-                        "startLines": "784",
-                        "startColumns": "4",
-                        "startOffsets": "42551",
-                        "endColumns": "56",
-                        "endOffsets": "42603"
-                    }
-                },
-                {
-                    "source": "C:\\Users\\kimsk\\OneDrive\\Dokument\\Kod\\LIFTLY\\frontend\\android\\app\\src\\main\\res\\values\\styles.xml",
-                    "from": {
-                        "startLines": "4,11,18",
-                        "startColumns": "4,4,4",
-                        "startOffsets": "93,413,664",
-                        "endLines": "9,15,20",
-                        "endColumns": "12,12,12",
-                        "endOffsets": "407,657,810"
-                    },
-                    "to": {
-                        "startLines": "2644,2650,2655",
-                        "startColumns": "4,4,4",
-                        "startOffsets": "188123,188407,188656",
-                        "endLines": "2649,2654,2657",
-                        "endColumns": "12,12,12",
-                        "endOffsets": "188402,188651,188802"
-                    }
-                },
-                {
                     "source": "C:\\Users\\kimsk\\.gradle\\caches\\8.14.3\\transforms\\3f2ab0b27a59a3dfe1466c241ece8334\\transformed\\savedstate-1.2.1\\res\\values\\values.xml",
                     "from": {
                         "startLines": "2",
@@ -255,6 +236,23 @@
                         "startOffsets": "157203",
                         "endColumns": "53",
                         "endOffsets": "157252"
+                    }
+                },
+                {
+                    "source": "C:\\Kod\\LIFTLY\\frontend\\android\\app\\src\\main\\res\\values\\ic_launcher_background.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "57",
+                        "endColumns": "56",
+                        "endOffsets": "109"
+                    },
+                    "to": {
+                        "startLines": "784",
+                        "startColumns": "4",
+                        "startOffsets": "42551",
+                        "endColumns": "56",
+                        "endOffsets": "42603"
                     }
                 },
                 {
@@ -330,6 +328,25 @@
                     }
                 },
                 {
+                    "source": "C:\\Kod\\LIFTLY\\frontend\\android\\app\\src\\main\\res\\values\\styles.xml",
+                    "from": {
+                        "startLines": "4,11,18",
+                        "startColumns": "4,4,4",
+                        "startOffsets": "97,424,682",
+                        "endLines": "9,15,20",
+                        "endColumns": "12,12,12",
+                        "endOffsets": "416,672,830"
+                    },
+                    "to": {
+                        "startLines": "2644,2650,2655",
+                        "startColumns": "4,4,4",
+                        "startOffsets": "188123,188407,188656",
+                        "endLines": "2649,2654,2657",
+                        "endColumns": "12,12,12",
+                        "endOffsets": "188402,188651,188802"
+                    }
+                },
+                {
                     "source": "C:\\Users\\kimsk\\.gradle\\caches\\8.14.3\\transforms\\11094a199bb7945826b161d8a9c17beb\\transformed\\core-1.17.0\\res\\values\\values.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,102,103,107,108,109,110,116,126,161,182,190,223",
@@ -382,23 +399,6 @@
                         "startOffsets": "164395",
                         "endColumns": "82",
                         "endOffsets": "164473"
-                    }
-                },
-                {
-                    "source": "C:\\Users\\kimsk\\OneDrive\\Dokument\\Kod\\LIFTLY\\frontend\\android\\app\\src\\main\\res\\values\\strings.xml",
-                    "from": {
-                        "startLines": "2,5,4,3",
-                        "startColumns": "4,4,4,4",
-                        "startOffsets": "55,209,154,99",
-                        "endColumns": "43,59,54,54",
-                        "endOffsets": "94,264,204,149"
-                    },
-                    "to": {
-                        "startLines": "2453,2471,2602,2617",
-                        "startColumns": "4,4,4,4",
-                        "startOffsets": "164478,166460,184370,186207",
-                        "endColumns": "43,59,54,54",
-                        "endOffsets": "164517,166515,184420,186257"
                     }
                 },
                 {

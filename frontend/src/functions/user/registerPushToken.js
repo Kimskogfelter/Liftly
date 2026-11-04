@@ -29,7 +29,9 @@ export const registerPushToken = async () => {
     PushNotifications.addListener('registration', async (token) => {
       console.log('Push token received:', token.value);
 
-      const authToken = localStorage.getItem('token');
+      const storedUser = JSON.parse(localStorage.getItem('currentUser'));
+      const authToken = storedUser?.token;
+
       if (!authToken) {
         console.log('No user logged in, saving token later.');
         return;
@@ -39,12 +41,12 @@ export const registerPushToken = async () => {
         // Skicka token och plattform till din backend-route
         await api.post(
           '/users/save-push-token',
-          { 
-            token: token.value, 
+          {
+            token: token.value,
             platform: Capacitor.getPlatform() // t.ex. 'android' eller 'ios'
           },
-          { 
-            headers: { Authorization: `Bearer ${authToken}` } 
+          {
+            headers: { Authorization: `Bearer ${authToken}` }
           }
         );
         console.log('Push token successfully saved on the server!');
