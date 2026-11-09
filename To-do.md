@@ -20,6 +20,8 @@
 
 - TESTA Andriod studio, se till att live backend funkar mot android??!! 
 
+- FIXA SÅ BOTTAR EJ KAN SKAPA FLERA KONTON DIREKT EFTER VARANDRA?! registerUserLimiter middleware?? alt direkt i reg user controllern??
+
 
 
 
