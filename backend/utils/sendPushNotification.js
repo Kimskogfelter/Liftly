@@ -1,15 +1,25 @@
-import admin from 'firebase-admin';
-import serviceAccount from '../config/firebaseServiceAccount.json' assert { type: 'json' };
+import { initializeApp, cert } from 'firebase-admin/app';
+import { getMessaging } from 'firebase-admin/messaging';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-// Initiera Firebase Admin (görs bara en gång)
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
+// Fixa __dirname i ES Modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Läs in serviceAccount-filen säkert via fs
+const serviceAccountPath = path.join(__dirname, '../config/firebaseServiceAccount.json');
+const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
+
+// Initiera Firebase Admin med modulära cert()-funktionen
+initializeApp({
+  credential: cert(serviceAccount)
 });
 
 export const sendPushNotification = async (pushTokens, title, body, data = {}) => {
   if (!pushTokens || pushTokens.length === 0) return;
 
-  // Extrahera bara token-strängarna från användarens objekt
   const tokens = pushTokens.map(t => t.token);
 
   const message = {
@@ -17,12 +27,12 @@ export const sendPushNotification = async (pushTokens, title, body, data = {}) =
       title: title,
       body: body
     },
-    data: data, // Ex: { postId: "123" } för att kunna navigera vid klick
+    data: data,
     tokens: tokens
   };
 
   try {
-    const response = await admin.messaging().sendEachForMulticast(message);
+    const response = await getMessaging().sendEachForMulticast(message);
     console.log('Successfully sent push notification:', response.successCount);
   } catch (error) {
     console.error('Error sending push notification:', error);
