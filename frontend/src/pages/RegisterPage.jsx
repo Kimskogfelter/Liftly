@@ -37,10 +37,14 @@ function RegisterPage() {
       }
 
     } catch (err) {
-
-      // handle errors and display error message to user
-      const errorResponse = err.response.data;
-      setError(errorResponse.message || "Your registration attempt was unsuccessful. Please check your input and try again.");
+      // Hantera fel säkert med ?. så det aldrig kraschar
+      const errorMessage = 
+        err.response?.data?.message || 
+        err.response?.data || 
+        err.message || 
+        "Your registration attempt was unsuccessful. Please check your input and try again.";
+      
+      setError(errorMessage);
     }
   };
 
