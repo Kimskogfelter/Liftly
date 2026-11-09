@@ -20,6 +20,8 @@ import { contactRouter } from './routes/contactRoutes.js';
 
 // skapa express server
 const server = express();
+server.set('trust proxy', 1);
+
 
 // Läs från miljövariabler
 const port = process.env.PORT || 3000;
