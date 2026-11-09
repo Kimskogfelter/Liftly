@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { registerUser, loginUser, logoutUser, getUser, getUsers, updateAccount, followUser, unfollowUser, getFollowing, getFollowers, reportUser, editProfile, changeProfileImage, deleteUser, getSavedPosts, authUser, changePassword, forgotPassword, resetPassword, refreshToken, savePushToken} from '../controllers/userController.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';
+import { registerUserLimiter } from '../middleware/registerUserLimiter.js';
 import { upload } from '../middleware/cloudinaryUpload.js'
 
 // create router
@@ -8,7 +9,7 @@ export const userRouter = Router();
 
 
 // ---------------------------- user routes --------------------------- 
-userRouter.post('/register', registerUser)
+userRouter.post('/register', registerUserLimiter, registerUser)
 userRouter.post('/login', loginUser)
 userRouter.post('/refresh', refreshToken);
 userRouter.post('/logout', logoutUser);
