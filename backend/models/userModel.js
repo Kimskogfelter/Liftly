@@ -11,7 +11,7 @@ const userSchema = new mongoose.Schema({
         tiktok: { type: String, default: "" },
         youtube: { type: String, default: "" }
     },
-    profileImage: { type: String, default: "https://res.cloudinary.com/dn3kezspn/image/upload/q_auto/f_auto/v1775115252/Liftly_profile_avatar_image_le0vou.png" },
+    profileImage: { type: String, default: "https://res.cloudinary.com/dn3kezspn/image/upload/v1794221789/Liftly_profile_avatar_image_k0znsa.png" },
     followers: [{ type: Schema.Types.ObjectId, ref: "User" }],
     following: [{ type: Schema.Types.ObjectId, ref: "User" }],
     savedPosts: [{ type: Schema.Types.ObjectId, ref: "Post" }],
