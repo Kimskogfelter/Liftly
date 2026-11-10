@@ -8,9 +8,17 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Läs in serviceAccount-filen säkert via fs
-const serviceAccountPath = path.join(__dirname, '../config/firebaseServiceAccount.json');
-const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
+// Läs in serviceAccount antingen från miljövariabel (Render) eller lokal fil
+let serviceAccount;
+
+if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+    // Om miljövariabeln finns (live i produktion)
+    serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+} else {
+    // Om vi kör lokalt på datorn
+    const serviceAccountPath = path.join(__dirname, '../config/firebaseServiceAccount.json');
+    serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
+}
 
 // Initiera Firebase Admin med modulära cert()-funktionen
 initializeApp({
