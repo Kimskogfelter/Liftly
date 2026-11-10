@@ -23,7 +23,7 @@
 - Checklista för att stoppa skräp användare:
     [x] Rate limiter för registrering – Stoppar överdrivna försök från samma IP-adress.
 
-    [ ] Honeypot-fält (Steg 1) – Det enklaste och snabbaste skyddet mot standardbottar. (Rekommenderas att börja här!)
+    [x] Honeypot-fält (Steg 1) – Det enklaste och snabbaste skyddet mot standardbottar. (Rekommenderas att börja här!)
 
     [ ] E-postvalidering / Blockering av skräpdomäner (Steg 2) – För att stoppa tillfälliga/fejkade mailadresser.
 
