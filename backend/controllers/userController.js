@@ -34,8 +34,20 @@ export const registerUser = async (req, res, next) => {
 
     try {
 
-        // get input from frontend
-        const { username, email, password, confirmPassword, gdprConsent } = req.body;
+        // get input from frontend (innehåller nu även "website" för honeypot-fältet)
+        const { username, email, password, confirmPassword, gdprConsent, website } = req.body;
+
+        // --------- HONEYPOT BOT CHECK ----------
+        // Om det dolda fältet har fyllts i är det en bot!
+        if (website) {
+            console.warn(`[BOT BLOCKED] Skräp-registrering stoppad från IP: ${req.ip}`);
+            // Vi låtsas som att det gick bra så boten tror den lyckades, 
+            // men vi sparar ingenting i databasen.
+            return res.status(201).json({
+                message: "User registered successfully!"
+            });
+        }
+        // ---------------------------------------
 
         // validate required fields
         if (!username || !email || !password || !confirmPassword) {

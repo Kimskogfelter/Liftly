@@ -13,6 +13,7 @@ function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [acceptedGDPR, setAcceptedGDPR] = useState(false);
+  const [website, setWebsite] = useState(""); // state för honeypot-fältet (för att förhindra bot-registreringar)
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
@@ -29,7 +30,7 @@ function RegisterPage() {
     try {
 
       // send registration data to backend
-      const response = await api.post(`/users/register`, { username, email, password, confirmPassword, gdprConsent: { accepted: acceptedGDPR } });
+      const response = await api.post(`/users/register`, { username, email, password, confirmPassword, website, gdprConsent: { accepted: acceptedGDPR } });
       // console.log("Registration successful:", response.data);
       // redirect to login page after successful registration
       if (response.status === 201) {
@@ -127,6 +128,18 @@ function RegisterPage() {
               {showPassword ? <FaEye size={14} /> : <FaEyeSlash size={14} />}
             </button>
           </div>
+          {/* --- DOLT HONEYPOT-FÄLT --- */}
+        <div style={{ display: 'none' }} aria-hidden="true">
+          <input
+            type="text"
+            id="website"
+            name="website"
+            value={website}
+            onChange={(e) => setWebsite(e.target.value)}
+            tabIndex={-1}
+            autoComplete="off"
+          />
+        </div>
           {/* GDPR Checkbox */}
           <div className="flex items-start gap-2.5 my-3">
             <input
