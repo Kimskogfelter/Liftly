@@ -24,7 +24,7 @@ server.set('trust proxy', 1);
 
 
 // Läs från miljövariabler
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 5000;
 
 // middleware funktioner
 server.use(cookieParser());
