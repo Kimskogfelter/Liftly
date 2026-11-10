@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// Sätt live-URL direkt här för enkelhetens skull i din mobil-branch
-const API_BASE_URL = 'https://api.liftlyfit.com/api';
+// Använd miljövariabeln från .env, med live-servern som en säker fallback om inget annat anges
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.liftlyfit.com/api';
 
 const api = axios.create({
     baseURL: API_BASE_URL,
