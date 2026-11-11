@@ -10,8 +10,6 @@
 
 - på mobil så aktiveras inte tangentbordet direkt när man kommer till söksidan... useRef och timeouts funkar inte!
 
-- FIXA så email valideras först, innan man kan ändra till en annan??
-
 - fixa så appen kan lanseras hos app store och andriod för att lätt laddas ner
 
 - uppdatera README.md med screenshots från de olika delarna på appen
@@ -88,6 +86,8 @@ Skapa en dedikerad vy som visar alla inlägg taggade med en viss hashtag när ma
 - [x] fixa ett språk filter mot fula ord?! 
 - [x] fixa betalplan för server via Render så den alltid är uppe
 - [x] att alla delar som skapar, raderar, uppdaterar delar där de kan förekomma väntetid visar att saker laddas, tex deleting vid radering av inlägg, saving etc.. finns på create post men osäker på tex edit och delete post
+- [x] FIXA så email valideras först, innan man kan ändra till en annan?? FIXAT PGA BOTTAR SÅ EMAIL MÅSTE VERIFIERAS NÄR KONTO SKAPAS
+
 
 
 
