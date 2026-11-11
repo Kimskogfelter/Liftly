@@ -25,7 +25,7 @@
 
     [x] Honeypot-fält (Steg 1) – Det enklaste och snabbaste skyddet mot standardbottar. (Rekommenderas att börja här!)
 
-    [ ] E-postvalidering / Blockering av skräpdomäner (Steg 2) – För att stoppa tillfälliga/fejkade mailadresser.
+    [x] E-postvalidering / Blockering av skräpdomäner (Steg 2) – För att stoppa tillfälliga/fejkade mailadresser.
 
     [ ] Cloudflare Turnstile (Steg 3 - vid behov) – Det tunga, osynliga artilleriet om bottarna fortsätter.
 
