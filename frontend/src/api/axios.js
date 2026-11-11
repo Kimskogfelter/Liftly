@@ -43,6 +43,11 @@ api.interceptors.response.use(
     async (error) => {
         const originalRequest = error.config;
 
+        // 🛑 VIKTIGT: Om anropet gällde inloggning ska vi INTE göra refresh eller ladda om sidan vid 401
+        if (originalRequest.url && originalRequest.url.includes('/users/login')) {
+            return Promise.reject(error);
+        }
+
         // Om svaret är 401 och det inte gällde själva refresh-anropet
         if (error.response?.status === 401 && !originalRequest._retry) {
 

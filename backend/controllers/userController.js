@@ -123,16 +123,45 @@ export const registerUser = async (req, res, next) => {
         const saltPassword = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, saltPassword);
 
+        // --------- SKAPA VERIFIERINGS-TOKEN ----------
+        const verificationToken = crypto.randomBytes(32).toString("hex");
+        const verificationTokenExpires = Date.now() + 24 * 3600000; // Giltig i 24 timmar
 
         // --------- create new user to database ----------
         await User.create({
-            username: trimUsername, email: emailLowerCase, password: hashedPassword, gdprConsent: {
+            username: trimUsername, 
+            email: emailLowerCase, 
+            password: hashedPassword, 
+            isVerified: false, // Kontot kräver verifiering via epost
+            verificationToken: verificationToken,
+            verificationTokenExpires: verificationTokenExpires,
+            gdprConsent: {
                 accepted: gdprConsent.accepted,
                 date: new Date()
             }
-        })
+        });
+
+        // --------- SKICKA VERIFIERINGSMEJL VIA RESEND ----------
+        const verificationUrl = `${process.env.FRONTEND_URL}/verify-email/${verificationToken}`;
+
+        await resend.emails.send({
+            from: "Liftly <noreply@liftlyfit.com>",
+            to: emailLowerCase,
+            subject: "Verify your Liftly Account",
+            html: `
+                <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #e4e4e7; border-radius: 12px;">
+                  <h2 style="color: #09090b;">Welcome to Liftly, @${trimUsername}!</h2>
+                  <p style="color: #52525b; font-size: 14px;">Please verify your email address to complete your registration and activate your account by clicking the button below:</p>
+                  <a href="${verificationUrl}" style="display: inline-block; background-color: #000; color: #fff; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: bold; margin: 15px 0;">Verify Email</a>
+                  <p style="color: #a1a1aa; font-size: 12px; margin-top: 20px;">This link will expire in 24 hours. If you didn't create an account, you can safely ignore this email.</p>
+                  <hr style="border: none; border-top: 1px solid #e4e4e7; margin: 20px 0;" />
+                  <p style="color: #a1a1aa; font-size: 11px; text-align: center;">This is an automated message, please do not reply to this email.</p>
+                </div>
+            `,
+        });
+
         return res.status(201).json({
-            message: "User registered successfully!"
+            message: "User registered successfully! Please check your email to verify your account."
         });
 
 
@@ -143,6 +172,38 @@ export const registerUser = async (req, res, next) => {
 
 }
 
+// ---------------------------- VERIFY EMAIL --------------------------- 
+// needs to be done in order to log in with newly registered account
+// GET/POST req: api/users/verify-email/:token
+export const verifyEmail = async (req, res, next) => {
+    const { token } = req.params;
+
+    try {
+        // Hitta användaren med token OCH kontrollera att den inte har gått ut ($gt = greater than)
+        const user = await User.findOne({
+            verificationToken: token,
+            verificationTokenExpires: { $gt: Date.now() },
+        });
+
+        if (!user) {
+            return next(new HttpError("Invalid or expired verification token.", 400));
+        }
+
+        // Sätt användaren till verifierad och rensa token-fälten
+        user.isVerified = true;
+        user.verificationToken = null;
+        user.verificationTokenExpires = null;
+
+        await user.save();
+
+        return res.status(200).json({
+            message: "Email verified successfully! You can now log in."
+        });
+
+    } catch (error) {
+        return next(new HttpError(error.message || "Could not verify email", 500));
+    }
+};
 
 // ---------------------------- LOG IN USER --------------------------- 
 // POST req: api/users/login
@@ -168,6 +229,11 @@ export const loginUser = async (req, res, next) => {
         const correctPassword = await bcrypt.compare(password, user.password);
         if (!correctPassword) {
             return next(new HttpError("Incorrect password", 422));
+        }
+
+          // 4.5 --- KONTROLLERA ATT E-POSTEN ÄR VERIFIERAD ---
+        if (!user.isVerified) {
+            return next(new HttpError("Please verify your email address before logging in.", 401));
         }
 
         // 5. Skapa Access Token (15m) och Refresh Token (30d)

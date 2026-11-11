@@ -16,6 +16,9 @@ const userSchema = new mongoose.Schema({
     following: [{ type: Schema.Types.ObjectId, ref: "User" }],
     savedPosts: [{ type: Schema.Types.ObjectId, ref: "Post" }],
     posts: [{ type: Schema.Types.ObjectId, ref: "Post" }],
+    isVerified: { type: Boolean, default: false },
+    verificationToken: { type: String, default: null },
+    verificationTokenExpires: { type: Date, default: null },
     resetPasswordToken: { type: String, default: null },
     resetPasswordExpires: { type: Date, default: null },
     refreshTokens: [{

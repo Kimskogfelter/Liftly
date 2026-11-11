@@ -18,6 +18,7 @@ import FoodLogPage from './pages/FoodLogPage';
 import AppLayout from './components/layout/AppLayout';
 import CalendarPage from './pages/CalendarPage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
+import VerifyEmailPage from './pages/VerifyEmailPage';
 import { registerPushToken } from './functions/user/registerPushToken';
 import api from './api/axios';
 
@@ -65,6 +66,7 @@ function App() {
           {/* Public Routes */}
           <Route path="/" element={<Navigate to="/home" />} />
           <Route path="/login" element={<LoginPage setCurrentUser={setCurrentUser} />} />
+          <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
