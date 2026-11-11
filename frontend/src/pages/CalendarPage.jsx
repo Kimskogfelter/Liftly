@@ -24,9 +24,9 @@ const CalendarPage = () => {
     const [loading, setLoading] = useState(false);
     const [shareModalData, setShareModalData] = useState(null);
 
-    // Formulär-state för att boka pass
+    // Formulär-state
     const [selectedWorkoutId, setSelectedWorkoutId] = useState('');
-    const [notes, setNotes] = useState('');
+    const [notes, setNotes] = useState(''); // Används nu för både dagsnotering/status
 
     useEffect(() => {
         fetchCalendarData();
@@ -56,20 +56,20 @@ const CalendarPage = () => {
         setCurrentDateObj(new Date(year, currentDateObj.getMonth() + 1, 1));
     };
 
-
     const handleShareMonth = () => {
         const monthName = `${monthNames[currentDateObj.getMonth()]} ${year}`;
 
-        // Bygg ihop array med alla dagar för den aktiva månaden
         const daysData = Array.from({ length: daysInMonth }).map((_, index) => {
             const dayNum = index + 1;
             const formattedDay = String(dayNum).padStart(2, '0');
             const dateString = `${year}-${month}-${formattedDay}`;
             const dayLogs = Array.isArray(logs) ? logs.filter((l) => l.date === dateString) : [];
 
-            const hasWorkout = dayLogs.length > 0;
-            const isCompleted = hasWorkout && dayLogs.every(l => l.completed);
-            const title = dayLogs.length > 0 ? dayLogs[0].title : "";
+            // Filtrera endast pass
+            const workoutLogs = dayLogs.filter((l) => l.workout);
+            const hasWorkout = workoutLogs.length > 0;
+            const isCompleted = hasWorkout && workoutLogs.every(l => l.completed);
+            const title = workoutLogs.length > 0 ? workoutLogs[0].title : (dayLogs.length > 0 ? dayLogs[0].title : "");
 
             return {
                 date: dateString,
@@ -80,13 +80,31 @@ const CalendarPage = () => {
             };
         });
 
-        // Sätt data till modalen istället för att posta direkt
         setShareModalData({
             month: monthName,
             days: daysData
         });
     };
 
+    // Sparar endast dagsnotering/status (utan träningspass)
+    const handleSaveDayNote = async () => {
+        if (!notes) return;
+
+        try {
+            await api.post('/calendar', {
+                date: selectedDate,
+                title: notes, // Sätter titeln till texten man skrev (t.ex. "Sjuk")
+                workout: null, // Inget träningspass kopplat
+                notes: notes   // Sparar i det vanliga fältet
+            });
+            setNotes('');
+            fetchCalendarData();
+        } catch (err) {
+            console.error("Error saving day note:", err);
+        }
+    };
+
+    // Sparar ett riktigt träningspass
     const handleAssignWorkout = async (e) => {
         e.preventDefault();
         if (!selectedWorkoutId) return;
@@ -99,10 +117,9 @@ const CalendarPage = () => {
                 date: selectedDate,
                 title: chosenWorkout.title,
                 workout: chosenWorkout._id,
-                notes
+                notes: "" // Inga extra anteckningar behövs här längre
             });
             setSelectedWorkoutId('');
-            setNotes('');
             fetchCalendarData();
         } catch (err) {
             console.error("Error assigning workout:", err);
@@ -129,7 +146,6 @@ const CalendarPage = () => {
         }
     };
 
-    // Beräkna dagar i månaden för rutnätet
     const daysInMonth = new Date(year, currentDateObj.getMonth() + 1, 0).getDate();
     const firstDayIndex = new Date(year, currentDateObj.getMonth(), 1).getDay();
     const adjustedFirstDay = firstDayIndex === 0 ? 6 : firstDayIndex - 1;
@@ -175,7 +191,7 @@ const CalendarPage = () => {
                 FiShare2={FiShare2}
             />
 
-            {/* Aktivt datum & Formulär för att boka pass */}
+            {/* Fristående dagsnotering & Formulär för att boka pass */}
             <AssignWorkoutForm
                 selectedDate={selectedDate}
                 selectedWorkoutId={selectedWorkoutId}
@@ -184,9 +200,10 @@ const CalendarPage = () => {
                 setNotes={setNotes}
                 workouts={workouts}
                 handleAssignWorkout={handleAssignWorkout}
+                handleSaveDayNote={handleSaveDayNote}
             />
 
-            {/* Lista över pass för valt datum */}
+            {/* Lista över pass/noteringar för valt datum */}
             <ScheduledWorkoutsList
                 loading={loading}
                 logsForSelectedDate={logsForSelectedDate}
@@ -194,6 +211,7 @@ const CalendarPage = () => {
                 handleToggleComplete={handleToggleComplete}
                 handleDeleteLog={handleDeleteLog}
             />
+
             {/* Share Calendar Modal */}
             {shareModalData && (
                 <ShareCalendarModal

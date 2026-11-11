@@ -30,7 +30,6 @@ function ShareCalendarModal({ calendarData, onClose, onShared }) {
         }
     };
 
-    // Beräkna första veckodagen för månaden baserat på första dagens datum
     const firstDateObj = calendarData?.days?.[0] ? new Date(calendarData.days[0].date) : new Date();
     const firstDayIndex = firstDateObj.getDay();
     const adjustedFirstDay = firstDayIndex === 0 ? 6 : firstDayIndex - 1;
@@ -62,7 +61,7 @@ function ShareCalendarModal({ calendarData, onClose, onShared }) {
                             <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
                         </div>
 
-                        {/* Hela månadens rutnät med utfyllnadsrutor */}
+                        {/* Hela månadens rutnät */}
                         <div className="grid grid-cols-7 gap-1 text-center">
                             {Array.from({ length: adjustedFirstDay }).map((_, index) => (
                                 <div key={`empty-${index}`} className="aspect-square bg-transparent border border-transparent"></div>
@@ -75,6 +74,8 @@ function ShareCalendarModal({ calendarData, onClose, onShared }) {
                                     boxStyles = day.completed
                                         ? "bg-black border-black text-white font-bold shadow-xs"
                                         : "bg-zinc-200 border-zinc-300 text-zinc-800 shadow-xs";
+                                } else if (day.title) {
+                                    boxStyles = "bg-zinc-100 border-zinc-200 text-zinc-700";
                                 } else {
                                     boxStyles = "bg-white/50 border-zinc-100 text-zinc-400";
                                 }
@@ -82,7 +83,7 @@ function ShareCalendarModal({ calendarData, onClose, onShared }) {
                                 return (
                                     <div
                                         key={idx}
-                                        className={`aspect-square p-0.5 rounded border flex flex-col justify-between text-[8px] ${boxStyles}`}
+                                        className={`aspect-square p-1 rounded border flex flex-col justify-between text-[8px] overflow-hidden ${boxStyles}`}
                                     >
                                         <div className="flex justify-between items-center w-full">
                                             <span className={`font-bold ${day.completed ? "text-white" : "text-zinc-900"}`}>
@@ -90,13 +91,22 @@ function ShareCalendarModal({ calendarData, onClose, onShared }) {
                                             </span>
                                             {day.completed && <span className="text-[7px] text-zinc-300">✓</span>}
                                         </div>
-                                        {day.title ? (
-                                            <span className={`truncate text-[6px] leading-tight ${day.completed ? "text-zinc-300" : "text-zinc-600"}`} title={day.title}>
-                                                {day.title}
-                                            </span>
-                                        ) : (
-                                            <span></span>
-                                        )}
+
+                                        {/* HÄR ÄR ÄNDRINGEN: flex-1 flex flex-col justify-center centrerar titeln i rutan */}
+                                        <div className="flex-1 overflow-hidden flex flex-col justify-center">
+                                            {day.title ? (
+                                                <span
+                                                    className={`truncate text-[6px] leading-tight px-0.5 ${
+                                                        day.completed ? "text-zinc-300" : "text-zinc-600"
+                                                    }`}
+                                                    title={day.title}
+                                                >
+                                                    {day.title}
+                                                </span>
+                                            ) : (
+                                                <span></span>
+                                            )}
+                                        </div>
                                     </div>
                                 );
                             })}

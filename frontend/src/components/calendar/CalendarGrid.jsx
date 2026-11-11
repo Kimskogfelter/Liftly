@@ -62,8 +62,11 @@ const CalendarGrid = ({
                         const dateString = `${year}-${month}-${formattedDay}`;
                         const dayLogs = Array.isArray(logs) ? logs.filter((l) => l.date === dateString) : [];
 
-                        const hasWorkout = dayLogs.length > 0;
-                        const isCompleted = hasWorkout && dayLogs.every(l => l.completed);
+                        // Endast träningspass räknas för om dagen är klar (ignorerar notes)
+                        const workoutLogs = dayLogs.filter((l) => l.workout);
+                        const hasWorkout = workoutLogs.length > 0;
+                        const isCompleted = hasWorkout && workoutLogs.every(l => l.completed);
+                        
                         const isSelected = selectedDate === dateString;
 
                         let boxStyles = "bg-white border-zinc-200 text-zinc-700 hover:border-zinc-300";

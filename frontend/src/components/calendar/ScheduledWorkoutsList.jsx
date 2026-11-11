@@ -18,48 +18,81 @@ const ScheduledWorkoutsList = ({
                     <p className="text-zinc-500 text-xs font-medium">No workouts scheduled for this date.</p>
                 </div>
             ) : (
-                logsForSelectedDate.map((log) => (
-                    <div key={log._id} className="border border-gray-100 p-4 rounded-lg flex flex-row justify-between items-center gap-3 bg-white shadow-sm">
-                        <div className="min-w-0 flex-1">
-                            <p
-                                onClick={() => {
-                                    const workoutId = log.workout?._id || log.workout;
-                                    if (workoutId) {
-                                        navigate(`/workouts/${workoutId}`);
-                                    }
-                                }}
-                                className={`font-semibold text-xs truncate cursor-pointer hover:underline hover:text-blue-600 transition ${
-                                    log.completed ? "line-through text-zinc-400" : "text-zinc-900"
-                                }`}
-                                title={log.title}
-                            >
-                                {log.title}
-                            </p>
-                            {log.notes && <p className="text-[11px] text-zinc-500 mt-0.5 truncate">{log.notes}</p>}
-                        </div>
+                logsForSelectedDate.map((log) => {
+                    const hasWorkout = Boolean(log.workout);
+                    const workoutId = log.workout?._id || log.workout;
 
-                        <div className="flex items-center gap-2 shrink-0">
-                            <button
-                                onClick={() => handleToggleComplete(log._id, log.completed)}
-                                className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer ${
-                                    log.completed
-                                        ? "bg-green-100 text-green-800 hover:bg-green-200"
-                                        : "bg-zinc-100 text-zinc-800 hover:bg-zinc-200"
-                                }`}
-                            >
-                                <FiCheck size={14} className={log.completed ? "text-green-700" : "text-zinc-600"} />
-                                <span>{log.completed ? "Completed" : "Mark as Done"}</span>
-                            </button>
+                    return (
+                        <div 
+                            key={log._id} 
+                            className={`border p-4 rounded-lg flex flex-row justify-between items-center gap-3 shadow-sm transition ${
+                                hasWorkout 
+                                    ? "bg-white border-gray-100" 
+                                    : "bg-zinc-50/75 border-zinc-200/80"
+                            }`}
+                        >
+                            <div className="min-w-0 flex-1 flex items-center gap-3">
+                                {/* Etikett för antingen Workout eller Note */}
+                                <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded shrink-0 ${
+                                    hasWorkout 
+                                        ? "bg-zinc-100 text-zinc-700" 
+                                        : "bg-zinc-200/70 text-zinc-600"
+                                }`}>
+                                    {hasWorkout ? "Workout" : "Note"}
+                                </span>
+                                
+                                <div className="min-w-0 flex-1">
+                                    {hasWorkout ? (
+                                        <p
+                                            onClick={() => {
+                                                if (workoutId) {
+                                                    navigate(`/workouts/${workoutId}`);
+                                                }
+                                            }}
+                                            className={`font-semibold text-xs truncate cursor-pointer hover:underline hover:text-blue-600 transition ${
+                                                log.completed ? "line-through text-zinc-400" : "text-zinc-900"
+                                            }`}
+                                            title={log.title}
+                                        >
+                                            {log.title}
+                                        </p>
+                                    ) : (
+                                        <p className="font-medium text-xs text-zinc-800 truncate" title={log.title}>
+                                            {log.title}
+                                        </p>
+                                    )}
 
-                            <button
-                                onClick={() => handleDeleteLog(log._id)}
-                                className="text-zinc-400 hover:text-red-600 text-xs font-medium transition cursor-pointer px-2 py-1.5"
-                            >
-                                Delete
-                            </button>
+                                    {log.notes && log.notes !== log.title && (
+                                        <p className="text-[11px] text-zinc-500 mt-0.5 truncate">{log.notes}</p>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-2 shrink-0">
+                                {hasWorkout && (
+                                    <button
+                                        onClick={() => handleToggleComplete(log._id, log.completed)}
+                                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer ${
+                                            log.completed
+                                                ? "bg-green-100 text-green-800 hover:bg-green-200"
+                                                : "bg-zinc-100 text-zinc-800 hover:bg-zinc-200"
+                                        }`}
+                                    >
+                                        <FiCheck size={14} className={log.completed ? "text-green-700" : "text-zinc-600"} />
+                                        <span>{log.completed ? "Completed" : "Mark as Done"}</span>
+                                    </button>
+                                )}
+
+                                <button
+                                    onClick={() => handleDeleteLog(log._id)}
+                                    className="text-zinc-400 hover:text-red-600 text-xs font-medium transition cursor-pointer px-2 py-1.5"
+                                >
+                                    Delete
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                ))
+                    );
+                })
             )}
         </div>
     );
