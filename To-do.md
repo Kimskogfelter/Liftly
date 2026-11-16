@@ -27,6 +27,8 @@
 
     [ ] Cloudflare Turnstile (Steg 3 - vid behov) – Det tunga, osynliga artilleriet om bottarna fortsätter.
 
+- fixa så man ser total vikt man lyft under ett träningspass när passet är slutfört (som en popup?!)
+
 
 
 
