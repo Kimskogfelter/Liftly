@@ -48,7 +48,7 @@ function ShareCalendarModal({ calendarData, onClose, onShared }) {
                     <textarea
                         value={content}
                         onChange={(e) => setContent(e.target.value)}
-                        placeholder="Your own thoughts during this journey..."
+                        placeholder="Add a caption"
                         autoFocus
                         className="w-full h-20 text-xs text-gray-800 border border-zinc-200 rounded-lg p-3 resize-none focus:outline-none focus:border-zinc-400 bg-gray-50/30"
                     ></textarea>
@@ -92,7 +92,6 @@ function ShareCalendarModal({ calendarData, onClose, onShared }) {
                                             {day.completed && <span className="text-[7px] text-zinc-300">✓</span>}
                                         </div>
 
-                                        {/* HÄR ÄR ÄNDRINGEN: flex-1 flex flex-col justify-center centrerar titeln i rutan */}
                                         <div className="flex-1 overflow-hidden flex flex-col justify-center">
                                             {day.title ? (
                                                 <span
