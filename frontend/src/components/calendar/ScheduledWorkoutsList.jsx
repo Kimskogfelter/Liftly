@@ -60,10 +60,6 @@ const ScheduledWorkoutsList = ({
                                         <LuFileText size={13} className="text-zinc-400 shrink-0" title="Note" />
                                     </div>
                                 )}
-
-                                {log.notes && log.notes !== log.title && (
-                                    <p className="text-[11px] text-zinc-500 mt-0.5 truncate">{log.notes}</p>
-                                )}
                             </div>
 
                             <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
