@@ -14,3 +14,5 @@ backend/config/firebaseServiceAccount.json
 dist/
 frontend/dist/
 frontend/android/
+
+liftly.apk
