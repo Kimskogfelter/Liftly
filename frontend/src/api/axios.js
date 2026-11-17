@@ -1,7 +1,16 @@
 import axios from 'axios';
+import { Capacitor } from '@capacitor/core';
 
-// Använd miljövariabeln från .env, med live-servern som en säker fallback om inget annat anges
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.liftlyfit.com/api';
+// Bestäm API-url beroende på var appen körs
+let API_BASE_URL;
+
+if (Capacitor.isNativePlatform()) {
+    // Om appen körs som en installerad app i Android/iOS-emulatorn
+    API_BASE_URL = 'http://10.0.2.2:5000/api';
+} else {
+    // Annars (webbläsare lokalt eller i produktion på Vercel) används .env eller live-servern
+    API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.liftlyfit.com/api';
+}
 
 const api = axios.create({
     baseURL: API_BASE_URL,

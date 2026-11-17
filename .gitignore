@@ -13,3 +13,4 @@ backend/config/firebaseServiceAccount.json
 # Build files / dist
 dist/
 frontend/dist/
+frontend/android/
