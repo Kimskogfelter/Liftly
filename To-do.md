@@ -17,6 +17,7 @@
 - fixa så man kan lägga till flera spotify låtar i samma inlägg?!
 
 - [ ] Implementera Socket.io för live-uppdatering av likes och kommentarer direkt i inläggsflödet (via `room:postId`)
+- [ ] Implementera funktion för att radera egna kommentarer (gärna via long-press / meny à la TikTok)
 
 - BUG: kolla varför man inte kan redigera antalet ingredienser i ett skapat recept
 
