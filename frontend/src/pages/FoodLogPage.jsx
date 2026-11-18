@@ -6,7 +6,7 @@ import { FiPlus } from "react-icons/fi";
 const FoodLogPage = () => {
     const todayStr = new Date().toISOString().split('T')[0];
     const [selectedDate, setSelectedDate] = useState(todayStr);
-    
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [foodLog, setFoodLog] = useState({ entries: [] });
     const [loading, setLoading] = useState(false);
 
@@ -35,8 +35,9 @@ const FoodLogPage = () => {
 
     const handleAddEntry = async (e) => {
         e.preventDefault();
-        if (!calories) return;
+        if (!calories || isSubmitting) return;
 
+        setIsSubmitting(true);
         try {
             const res = await api.post(`/foodlogs/${selectedDate}/foodLog`, {
                 mealName: mealName || "Meal",
@@ -54,6 +55,8 @@ const FoodLogPage = () => {
             setFat('');
         } catch (err) {
             console.error("Error adding food entry:", err);
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -92,9 +95,9 @@ const FoodLogPage = () => {
             <div className="bg-white border border-gray-100 rounded-lg p-5 shadow-sm mb-6">
                 <div className="flex justify-between items-center mb-4">
                     <span className="text-xs font-semibold text-zinc-700">Select Date</span>
-                    <input 
-                        type="date" 
-                        value={selectedDate} 
+                    <input
+                        type="date"
+                        value={selectedDate}
                         onChange={(e) => setSelectedDate(e.target.value)}
                         className="border border-zinc-200 px-3 py-1.5 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-black"
                     />
@@ -124,48 +127,52 @@ const FoodLogPage = () => {
             <form onSubmit={handleAddEntry} className="bg-white border border-gray-100 rounded-lg p-5 shadow-sm mb-6">
                 <h2 className="font-semibold text-zinc-900 mb-3 text-xs">Add Meal / Entry</h2>
                 <div className="space-y-3 mb-4">
-                    <input 
-                        type="text" 
-                        placeholder="Meal name (e.g. Breakfast, Lunch)" 
+                    <input
+                        type="text"
+                        placeholder="Meal name (e.g. Breakfast, Lunch)"
                         value={mealName}
                         onChange={(e) => setMealName(e.target.value)}
                         className="w-full border border-zinc-200 p-2.5 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-black"
                     />
                     <div className="grid grid-cols-2 gap-3">
-                        <input 
-                            type="number" 
-                            placeholder="Calories (kcal)*" 
+                        <input
+                            type="number"
+                            placeholder="Calories (kcal)*"
                             value={calories}
                             onChange={(e) => setCalories(e.target.value)}
                             className="border border-zinc-200 p-2.5 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-black"
                             required
                         />
-                        <input 
-                            type="number" 
-                            placeholder="Protein (g)" 
+                        <input
+                            type="number"
+                            placeholder="Protein (g)"
                             value={protein}
                             onChange={(e) => setProtein(e.target.value)}
                             className="border border-zinc-200 p-2.5 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-black"
                         />
-                        <input 
-                            type="number" 
-                            placeholder="Carbs (g)" 
+                        <input
+                            type="number"
+                            placeholder="Carbs (g)"
                             value={carbs}
                             onChange={(e) => setCarbs(e.target.value)}
                             className="border border-zinc-200 p-2.5 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-black"
                         />
-                        <input 
-                            type="number" 
-                            placeholder="Fat (g)" 
+                        <input
+                            type="number"
+                            placeholder="Fat (g)"
                             value={fat}
                             onChange={(e) => setFat(e.target.value)}
                             className="border border-zinc-200 p-2.5 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-black"
                         />
                     </div>
                 </div>
-                <button type="submit" className="w-full bg-black text-white py-3 rounded-xl font-semibold hover:bg-zinc-800 transition text-xs shadow-sm cursor-pointer flex items-center justify-center gap-2">
+                <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full bg-black text-white py-3 rounded-xl font-semibold hover:bg-zinc-800 transition text-xs shadow-sm cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
                     <FiPlus size={16} />
-                    <span>Add to Log</span>
+                    <span>{isSubmitting ? "Adding..." : "Add to Log"}</span>
                 </button>
             </form>
 
@@ -187,7 +194,7 @@ const FoodLogPage = () => {
                                     <span className="font-medium text-zinc-800">{entry.calories} kcal</span> | P: {entry.protein}g | C: {entry.carbs}g | F: {entry.fat}g
                                 </p>
                             </div>
-                            <button 
+                            <button
                                 onClick={() => handleDeleteEntry(entry._id)}
                                 className="text-zinc-400 hover:text-red-600 text-xs font-medium transition cursor-pointer"
                             >

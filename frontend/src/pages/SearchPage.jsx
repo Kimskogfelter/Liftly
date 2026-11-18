@@ -16,12 +16,14 @@ function SearchPage({ currentUser, setCurrentUser }) {
   const [page, setPage] = useState(1);
   const [hasMorePosts, setHasMorePosts] = useState(true);
   const [loadingMorePosts, setLoadingMorePosts] = useState(false);
+  const [isSearching, setIsSearching] = useState(false); // State för första sökningen
 
   const observer = useRef();
 
   const getSearchResults = async (currentPage, isInitialLoad = false) => {
     if (isInitialLoad) {
       setError("");
+      setIsSearching(true); // Starta laddning för ny sökning
     } else {
       setLoadingMorePosts(true);
     }
@@ -50,6 +52,7 @@ function SearchPage({ currentUser, setCurrentUser }) {
       const errorResponse = err.response?.data;
       setError(errorResponse?.message || "Search failed. Please try again.");
     } finally {
+      setIsSearching(false); // Stäng av sök-laddning
       setLoadingMorePosts(false);
     }
   };
@@ -97,10 +100,8 @@ function SearchPage({ currentUser, setCurrentUser }) {
   };
 
   return (
-    // 1. Borttaget px-2 md:px-6 härifrån så sidan är "fulldredd"
     <section className="flex-1 max-w-4xl mx-auto pt-24 sm:pt-28 xl:pt-8 font-sans text-gray-800 w-full">
       
-      {/* 2. Flyttat in paddingen hit istället så sökfält och flikar behåller sin luft */}
       <div className="px-4 md:px-6 max-w-xl mx-auto w-full mb-6">
         <SearchBar currentUser={currentUser} />
 
@@ -138,58 +139,67 @@ function SearchPage({ currentUser, setCurrentUser }) {
         </div>
       )}
 
-      {/* 3. Inläggen / flödet ligger nu helt utan padding i sidled och går kant-i-kant */}
+      {/* Sök-laddning eller resultat */}
       {searchQuery && (
         <div className="mt-6">
-          {activeTab === "posts" && (
-            <div>
-              {posts.length > 0 ? (
-                <PostFeed
-                  posts={posts}
-                  currentUser={currentUser}
-                  setCurrentUser={setCurrentUser}
-                  handleEditPost={handleEditPost}
-                  handleDeletePost={handleDeletePost}
-                  layout="grid-3x3"
-                  lastPostElementRef={lastPostElementRef}
-                  loadingMorePosts={loadingMorePosts}
-                  hasMorePosts={hasMorePosts}
-                />
-              ) : (
-                <p className="text-gray-400 text-xs text-center mt-10 px-4">No posts found matching your search.</p>
-              )}
+          {isSearching ? (
+            <div className="flex flex-col items-center justify-center mt-16">
+              <div className="w-6 h-6 border-2 border-gray-300 border-t-gray-800 rounded-full animate-spin mb-2"></div>
+              <p className="text-gray-400 text-xs">Searching...</p>
             </div>
-          )}
-
-          {activeTab === "users" && (
-            <div className="w-full max-w-xl mx-auto pb-24 sm:pb-12 px-4">
-              {users.length > 0 ? (
-                <div className="flex flex-col gap-2 w-full">
-                  {users.map((u) => (
-                    <Link
-                      to={`/users/${u._id}`}
-                      key={u._id}
-                      className="flex items-center gap-3 bg-white hover:bg-gray-50/80 rounded-xl px-3.5 py-2.5 transition-all w-full border border-gray-200/80 shadow-sm hover:shadow hover:border-gray-300"
-                    >
-                      <div className="w-9 h-9 rounded-full bg-gray-100 border border-gray-200/60 overflow-hidden shrink-0">
-                        {u.profileImage ? (
-                          <img src={u.profileImage} alt={u.username} className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="w-full h-full bg-gray-200 flex items-center justify-center text-[11px] text-gray-600 font-bold">
-                            {u.username?.charAt(0).toUpperCase()}
-                          </div>
-                        )}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs font-bold text-gray-800 truncate">@{u.username}</p>
-                      </div>
-                    </Link>
-                  ))}
+          ) : (
+            <>
+              {activeTab === "posts" && (
+                <div>
+                  {posts.length > 0 ? (
+                    <PostFeed
+                      posts={posts}
+                      currentUser={currentUser}
+                      setCurrentUser={setCurrentUser}
+                      handleEditPost={handleEditPost}
+                      handleDeletePost={handleDeletePost}
+                      layout="grid-3x3"
+                      lastPostElementRef={lastPostElementRef}
+                      loadingMorePosts={loadingMorePosts}
+                      hasMorePosts={hasMorePosts}
+                    />
+                  ) : (
+                    <p className="text-gray-400 text-xs text-center mt-10 px-4">No posts found matching your search.</p>
+                  )}
                 </div>
-              ) : (
-                <p className="text-gray-400 text-xs text-center mt-10">No users found matching your search.</p>
               )}
-            </div>
+
+              {activeTab === "users" && (
+                <div className="w-full max-w-xl mx-auto pb-24 sm:pb-12 px-4">
+                  {users.length > 0 ? (
+                    <div className="flex flex-col gap-2 w-full">
+                      {users.map((u) => (
+                        <Link
+                          to={`/users/${u._id}`}
+                          key={u._id}
+                          className="flex items-center gap-3 bg-white hover:bg-gray-50/80 rounded-xl px-3.5 py-2.5 transition-all w-full border border-gray-200/80 shadow-sm hover:shadow hover:border-gray-300"
+                        >
+                          <div className="w-9 h-9 rounded-full bg-gray-100 border border-gray-200/60 overflow-hidden shrink-0">
+                            {u.profileImage ? (
+                              <img src={u.profileImage} alt={u.username} className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full bg-gray-200 flex items-center justify-center text-[11px] text-gray-600 font-bold">
+                                {u.username?.charAt(0).toUpperCase()}
+                              </div>
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs font-bold text-gray-800 truncate">@{u.username}</p>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-400 text-xs text-center mt-10">No users found matching your search.</p>
+                  )}
+                </div>
+              )}
+            </>
           )}
         </div>
       )}

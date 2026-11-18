@@ -23,6 +23,7 @@ const CalendarPage = () => {
     const [workouts, setWorkouts] = useState([]);
     const [loading, setLoading] = useState(false);
     const [shareModalData, setShareModalData] = useState(null);
+    const [isSubmitting, setIsSubmitting] = useState(false); // State för laddning vid sparande/bokning
 
     // Formulär-state
     const [selectedWorkoutId, setSelectedWorkoutId] = useState('');
@@ -88,8 +89,9 @@ const CalendarPage = () => {
 
     // Sparar endast dagsnotering/status (utan träningspass)
     const handleSaveDayNote = async () => {
-        if (!notes) return;
+        if (!notes || isSubmitting) return;
 
+        setIsSubmitting(true);
         try {
             await api.post('/calendar', {
                 date: selectedDate,
@@ -101,17 +103,20 @@ const CalendarPage = () => {
             fetchCalendarData();
         } catch (err) {
             console.error("Error saving day note:", err);
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
     // Sparar ett riktigt träningspass
     const handleAssignWorkout = async (e) => {
         e.preventDefault();
-        if (!selectedWorkoutId) return;
+        if (!selectedWorkoutId || isSubmitting) return;
 
         const chosenWorkout = workouts.find((w) => w._id === selectedWorkoutId);
         if (!chosenWorkout) return;
 
+        setIsSubmitting(true);
         try {
             await api.post('/calendar', {
                 date: selectedDate,
@@ -123,6 +128,8 @@ const CalendarPage = () => {
             fetchCalendarData();
         } catch (err) {
             console.error("Error assigning workout:", err);
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -201,6 +208,7 @@ const CalendarPage = () => {
                 workouts={workouts}
                 handleAssignWorkout={handleAssignWorkout}
                 handleSaveDayNote={handleSaveDayNote}
+                isSubmitting={isSubmitting}
             />
 
             {/* Lista över pass/noteringar för valt datum */}

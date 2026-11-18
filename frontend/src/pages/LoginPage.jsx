@@ -10,11 +10,15 @@ function LoginPage({ setCurrentUser }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false); // State för laddning under inloggning
   const navigate = useNavigate();
 
   // function to handle user login
   const loginUser = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
+    setError("");
+
     try {
 
       // send login data to backend
@@ -36,6 +40,8 @@ function LoginPage({ setCurrentUser }) {
       // handle errors and display error message to user
       const errorResponse = err.response?.data;
       setError(errorResponse?.message || "Your login attempt was unsuccessful. Please check your credentials and try again.");
+    } finally {
+      setIsLoading(false); // Stäng av laddningsläget oavsett om det lyckas eller misslyckas
     }
   };
 
@@ -81,9 +87,10 @@ function LoginPage({ setCurrentUser }) {
           {/* Log in button */}
           <button
             type="submit"
-            className="mt-1 w-full rounded bg-[#4A4545] py-2 text-xs font-medium text-white transition-colors hover:bg-[#575151] focus:outline-none focus:ring-1 focus:ring-gray-400"
+            disabled={isLoading}
+            className="mt-1 w-full rounded bg-[#4A4545] py-2 text-xs font-medium text-white transition-colors hover:bg-[#575151] focus:outline-none focus:ring-1 focus:ring-gray-400 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Log in
+            {isLoading ? "Logging in..." : "Log in"}
           </button>
         </form>
 

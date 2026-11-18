@@ -15,6 +15,7 @@ function RegisterPage() {
   const [acceptedGDPR, setAcceptedGDPR] = useState(false);
   const [website, setWebsite] = useState(""); // state för honeypot-fältet (för att förhindra bot-registreringar)
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false); // State för laddning under registrering
   const navigate = useNavigate();
 
   // function to handle user registration
@@ -26,6 +27,9 @@ function RegisterPage() {
       setError("You must accept the GDPR terms to register.");
       return;
     }
+
+    setIsLoading(true);
+    setError("");
 
     try {
 
@@ -46,6 +50,8 @@ function RegisterPage() {
         "Your registration attempt was unsuccessful. Please check your input and try again.";
       
       setError(errorMessage);
+    } finally {
+      setIsLoading(false); // Stäng av laddningsläget oavsett om det lyckas eller misslyckas
     }
   };
 
@@ -164,9 +170,10 @@ function RegisterPage() {
           {/* Sign up button */}
         <button
           type="submit"
-          className="mt-1 w-full rounded bg-[#4A4545] py-2 text-xs font-medium text-white transition-colors hover:bg-[#575151] focus:outline-none focus:ring-1 focus:ring-gray-400 cursor-pointer"
+          disabled={isLoading}
+          className="mt-1 w-full rounded bg-[#4A4545] py-2 text-xs font-medium text-white transition-colors hover:bg-[#575151] focus:outline-none focus:ring-1 focus:ring-gray-400 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Sign up
+          {isLoading ? "Signing up..." : "Sign up"}
         </button>
         </form>
 

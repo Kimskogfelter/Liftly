@@ -9,7 +9,8 @@ const AssignWorkoutForm = ({
     handleAssignWorkout,
     notes,
     setNotes,
-    handleSaveDayNote
+    handleSaveDayNote,
+    isSubmitting
 }) => {
     return (
         <div className="bg-white border border-gray-100 rounded-lg p-5 shadow-sm mb-6">
@@ -28,15 +29,16 @@ const AssignWorkoutForm = ({
                     placeholder="E.g. Sick, rest day... (optional)"
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    className="w-full border border-zinc-200 p-2.5 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-black"
+                    disabled={isSubmitting}
+                    className="w-full border border-zinc-200 p-2.5 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-black disabled:opacity-50"
                 />
                 <button
                     type="button"
                     onClick={handleSaveDayNote}
-                    disabled={!notes}
-                    className="w-full bg-zinc-900 text-white py-2.5 rounded-xl font-semibold hover:bg-zinc-800 disabled:bg-zinc-300 transition text-xs cursor-pointer shadow-xs flex items-center justify-center"
+                    disabled={!notes || isSubmitting}
+                    className="w-full bg-zinc-900 text-white py-2.5 rounded-xl font-semibold hover:bg-zinc-800 disabled:bg-zinc-300 transition text-xs cursor-pointer shadow-xs flex items-center justify-center disabled:cursor-not-allowed"
                 >
-                    Save Note
+                    {isSubmitting ? "Saving..." : "Save Note"}
                 </button>
             </div>
 
@@ -47,7 +49,8 @@ const AssignWorkoutForm = ({
                 <select
                     value={selectedWorkoutId}
                     onChange={(e) => setSelectedWorkoutId(e.target.value)}
-                    className="w-full border border-zinc-200 p-2.5 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-black bg-white"
+                    disabled={isSubmitting}
+                    className="w-full border border-zinc-200 p-2.5 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-black bg-white disabled:opacity-50"
                 >
                     <option value="">Select from your workouts...</option>
                     {workouts.map((w) => (
@@ -59,11 +62,11 @@ const AssignWorkoutForm = ({
 
                 <button
                     type="submit"
-                    disabled={!selectedWorkoutId}
-                    className="w-full bg-black text-white py-3 rounded-xl font-semibold hover:bg-zinc-800 disabled:bg-zinc-300 transition text-xs shadow-sm cursor-pointer flex items-center justify-center gap-2"
+                    disabled={!selectedWorkoutId || isSubmitting}
+                    className="w-full bg-black text-white py-3 rounded-xl font-semibold hover:bg-zinc-800 disabled:bg-zinc-300 transition text-xs shadow-sm cursor-pointer flex items-center justify-center gap-2 disabled:cursor-not-allowed"
                 >
                     <FiPlus size={16} />
-                    <span>Add Workout to Calendar</span>
+                    <span>{isSubmitting ? "Adding..." : "Add Workout to Calendar"}</span>
                 </button>
             </form>
         </div>
