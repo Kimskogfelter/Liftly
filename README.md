@@ -30,6 +30,8 @@ Användare kan skapa konton, dela och redigera inlägg (inklusive träningskalen
 20. Ska kunna sortera sparade inlägg efter kategorier
 21. Ska kunna följa andra användare
 22. Ska kunna återställa glömt lösenord
+23. Ska kunna se och hantera sina notiser i en notis-modal (med filter för Allt, Likes, Kommentarer och Följningar)
+24. Ska få realtidsnotiser via Socket.io när andra användare gillar, kommenterar eller följer
 
 
 #### Besökare
@@ -37,23 +39,35 @@ Användare kan skapa konton, dela och redigera inlägg (inklusive träningskalen
 
 ### Backend
 #### Databas
-1. Spara användare med: användarnamn, email, lösenord, profilbild, profil bio, följare, användare man följer, sparade inlägg, skapade inlägg
-2. Spara inlägg med: text, bild, datum, likes, kommentarer, skapad av user_id, post_id, calendarShare (månadsöversikt)
-3. Spara kommentarer: text, likes, skapad av user_id, datum, kopplat till inlägg
-4. Sparade inlägg: user_id + post_id relation
-5. Relationer: user -> post (1 till många)
-6. Relationer: post -> comment (1 till många)
-7. Relationer: user -> likes (många-till-många)
+1. Spara användare (`userModel.js`): användarnamn, email, lösenord, profilbild, profil bio, följare, användare man följer, sparade inlägg
+2. Spara inlägg (`postModel.js`): text, bild, datum, likes, kommentarer, skapad av user_id, post_id, calendarShare (månadsöversikt)
+3. Spara kommentarer (`commentModel.js`): text, likes, skapad av user_id, datum, kopplat till inlägg, svar (replies)
+4. Spara notiser (`notificationModel.js`): mottagare, avsändare, typ (like, comment, reply, follow), relaterat inlägg, läst-status
+5. Spara träningspass (`workoutModel.js`): övningar, set, reps, vikt och koppling till användare
+6. Spara kalendrar (`calendarModel.js`): träningsdagar, händelser och planering per månad
+7. Spara matloggar (`foodLogModel.js`): kostintag, måltider och näringsvärden
+8. Spara felrapporter/loggar (`errorModel.js`): systemfel och felsökningshistorik
+9. Spara inläggsrapporter (`reportPostModel.js`): flaggade inlägg och moderering
+10. Spara användarrapporter (`reportUserModel.js`): rapporterade konton och anledningar
+11. Sparade inlägg: user_id + post_id relation
+12. Relationer: 
+    - user -> post (1 till många)
+    - post -> comment (1 till många)
+    - comment -> reply (1 till många)
+    - user -> notification (1 till många)
+    - user -> likes (många-till-många)
 
 #### Funktioner 
 1. Validering: se till att text, bild/video, profilinfo följer rätt format/filstorlek
 2. Säkerhet: sessionshantering, token-baserad autentisering, skydd mot oönskad åtkomst
 3. Filhantering: hur bilder/videos lagras via Cloudinary
+4. Notishantering: Skapa, hämta och markera notiser som lästa i realtid.
 
 ## Teknik & programmeringsspråk
 
 * **Frontend:** React, HTML, CSS, Tailwind, React Router DOM, Axios, React Icons, React Timeago
 * **Backend:** Node.js, Express.js, Mongoose, Resend, firebase-admin (för att skicka push-notiser från servern)
+* **Realtid & Notiser:** socket.io (backend), socket.io-client (frontend)
 * **Databas:** MongoDB
 * **Säkerhet:** JWT, bcrypt
 * **Verktyg:** Nodemon, Dotenv, CORS, uuid, Postman (API testing), Validator
@@ -197,4 +211,3 @@ Planerade funktioner för framtida versioner av appen:
 * Realtidschatt med Socket.IO
 * Förbättrad sessionshantering och enhetshantering
 * Adminpanel för att blockera och hantera användare
-* Notiser och push-feedback vid interaktioner (likes, kommentarer etc.)
