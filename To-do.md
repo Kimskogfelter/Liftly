@@ -16,6 +16,10 @@
 
 - fixa så man kan lägga till flera spotify låtar i samma inlägg?!
 
+- [ ] Implementera Socket.io för live-uppdatering av likes och kommentarer direkt i inläggsflödet (via `room:postId`)
+
+- BUG: kolla varför man inte kan redigera antalet ingredienser i ett skapat recept
+
 - TESTA Andriod studio, se till att live backend funkar mot android??!! 
 
 - Checklista för att stoppa skräp användare:
