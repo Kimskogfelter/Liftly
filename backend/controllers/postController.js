@@ -6,7 +6,10 @@ import { ReportPost } from '../models/reportPostModel.js';
 import mongoose from "mongoose";
 import { Resend } from 'resend';
 import { deleteFromCloudinary } from '../utils/cloudinaryUtils.js';
+// send push notification
 import { sendPushNotification } from '../utils/sendPushNotification.js';
+// notification model
+import { Notification } from "../models/notificationModel.js";
 // loading env var from .env
 import 'dotenv/config';
 // funktion för pagination/scroll
@@ -524,7 +527,7 @@ export const likePost = async (req, res, next) => {
 
         // check id
         if (!mongoose.Types.ObjectId.isValid(postId)) {
-            return res.status(404).json({ message: 'Post Id is not valid' });
+            return next(new HttpError("Post Id is not valid", 404));
         }
 
         // fetch post from db
@@ -544,23 +547,42 @@ export const likePost = async (req, res, next) => {
 
         // if NOT liked, add to likes list
         const likedPost = await Post.findByIdAndUpdate(
-            postId, 
-            { $push: { likes: req.user.id } }, 
+            postId,
+            { $push: { likes: req.user.id } },
             { new: true }
         );
 
-        // --- SKICKA PUSH-NOTIS TILL INLÄGGETS ÄGARE ---
-        // Kolla att den som gillar inte är ägaren själv
+        // --- NOTIS-LOGIK (Körs endast om den som gillar inte är ägaren själv) ---
         if (post.createdBy.toString() !== req.user.id) {
-            // Hämta ägaren till inlägget och den som gillar (för att få tag i username)
+            // 1. Skapa in-app-notis i databasen
+            const newNotification = await Notification.create({
+                recipient: post.createdBy,
+                sender: req.user.id,
+                type: 'like',
+                message: 'liked your post.',
+                post: postId
+            });
+
+            // Populera sender så att username och profileImage följer med i realtid
+            const populatedNotification = await Notification.findById(newNotification._id)
+                .populate("sender", "username profileImage");
+
+            // 2. Skicka med den populerade notisen via Socket.io om användaren är online i appen!
+            const io = req.app.get('io');
+            if (io) {
+                io.to(post.createdBy.toString()).emit('newNotification', populatedNotification);
+            }
+
+            // 3. Hämta ägare och den som gillar för push-notis
             const [postOwner, likingUser] = await Promise.all([
                 User.findById(post.createdBy),
                 User.findById(req.user.id)
             ]);
 
+            // push-notis (om användaren är utanför appen)
             if (postOwner && postOwner.pushTokens && postOwner.pushTokens.length > 0) {
                 const likerName = likingUser?.username || "Someone";
-                
+
                 await sendPushNotification(
                     postOwner.pushTokens,
                     'Liftly',

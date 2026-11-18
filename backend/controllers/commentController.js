@@ -5,6 +5,8 @@ import { User } from "../models/userModel.js";
 import mongoose from "mongoose";
 // send push notifications function 
 import { sendPushNotification } from '../utils/sendPushNotification.js';
+// notification model
+import { Notification } from "../models/notificationModel.js";
 // bad words filter for create and reply to comment
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
@@ -18,20 +20,9 @@ const filter = typeof badWordsModule === 'function' ? new badWordsModule() : new
 export const createComment = async (req, res, next) => {
 
     try {
-
         // --------- content ----------
-
-        // get content input from frontend
         const { content } = req.body;
 
-        // validate required field
-        if (!content) {
-
-            return next(new HttpError("Fill in content", 422))
-        }
-
-
-        // kolla att en kommentar finns
         if (!content || content.trim().length === 0) {
             return next(new HttpError("Comment cannot be empty", 422));
         }
@@ -42,47 +33,54 @@ export const createComment = async (req, res, next) => {
         }
 
         // --------- post ----------
-
-        // get postId from url
         const { postId } = req.params;
 
-        // check id
         if (!mongoose.Types.ObjectId.isValid(postId)) {
             return res.status(404).json({ message: 'Post Id is not valid' });
         }
 
-        // check if post exists
         const post = await Post.findById(postId);
-
         if (!post) {
-
             return next(new HttpError("Post not found", 404));
-
         }
 
         // --------- create new comment to database ----------
-        // store only req.user.id, not username, in cause the user changes username later on
-        // to avoid duplicating mutable data like username
-        const newComment = await Comment.create({ createdBy: req.user.id, content: content, post: postId })
-
-        // Populate createdBy field with username and profile image instead of only objectID
-        // The comment needs to be created first before you can use populate, therefore it's on its own row
+        const newComment = await Comment.create({ createdBy: req.user.id, content: content, post: postId });
         await newComment.populate("createdBy", "username profileImage");
 
         // add comment to post
-        await Post.findByIdAndUpdate(postId, { $push: { comments: newComment._id } })
+        await Post.findByIdAndUpdate(postId, { $push: { comments: newComment._id } });
 
-        // --- SKICKA PUSH-NOTIS TILL INLÄGGETS ÄGARE ---
-        // Kolla att den som kommenterar inte är ägaren till inlägget själv
+        // --- NOTIS-LOGIK (Körs endast om den som kommenterar inte är ägaren själv) ---
         if (post.createdBy.toString() !== req.user.id) {
             const [postOwner, commentingUser] = await Promise.all([
                 User.findById(post.createdBy),
                 User.findById(req.user.id)
             ]);
 
-            if (postOwner && postOwner.pushTokens && postOwner.pushTokens.length > 0) {
-                const commenterName = commentingUser?.username || "Someone";
+            const commenterName = commentingUser?.username || "Someone";
 
+            // 1. Skapa in-app-notis i databasen
+            const newNotification = await Notification.create({
+                recipient: post.createdBy,
+                sender: req.user.id,
+                type: 'comment',
+                message: 'commented on your post.',
+                post: postId
+            });
+
+            // Populera sender så att username och profileImage följer med i realtid
+            const populatedNotification = await Notification.findById(newNotification._id)
+                .populate("sender", "username profileImage");
+
+            // 2. Skicka med den populerade notisen via Socket.io
+            const io = req.app.get('io');
+            if (io) {
+                io.to(post.createdBy.toString()).emit('newNotification', populatedNotification);
+            }
+
+            // 3. Skicka push-notis (om användaren är utanför appen)
+            if (postOwner && postOwner.pushTokens && postOwner.pushTokens.length > 0) {
                 await sendPushNotification(
                     postOwner.pushTokens,
                     'Liftly',
@@ -94,12 +92,9 @@ export const createComment = async (req, res, next) => {
 
         return res.status(201).json({ message: 'Comment created: ', newComment });
 
-
     } catch (error) {
-
-        return next(new HttpError(error.message || "Could not create comment", 500))
+        return next(new HttpError(error.message || "Could not create comment", 500));
     }
-
 }
 
 
@@ -248,22 +243,41 @@ export const replyComment = async (req, res, next) => {
         // Hämta det nyss skapade svaret (det sista i arrayen)
         const addedReply = comment.replies[comment.replies.length - 1];
 
-        // --- SKICKA PUSH-NOTIS TILL KOMMENTARENS ÄGARE ---
-        // Kolla att den som svarar inte är samma person som skrev kommentaren själv
+        // --- SKICKA NOTIS TILL KOMMENTARENS ÄGARE ---
         if (comment.createdBy.toString() !== req.user.id) {
             const [commentOwner, replyingUser] = await Promise.all([
                 User.findById(comment.createdBy),
                 User.findById(req.user.id)
             ]);
 
-            if (commentOwner && commentOwner.pushTokens && commentOwner.pushTokens.length > 0) {
-                const replierName = replyingUser?.username || "Someone";
+            const replierName = replyingUser?.username || "Someone";
 
+            // 1. Skapa in-app-notis i databasen
+            const newNotification = await Notification.create({
+                recipient: comment.createdBy,
+                sender: req.user.id,
+                type: 'comment',
+                message: 'replied to your comment.',
+                post: comment.post
+            });
+
+            // Populera sender så att username och profileImage följer med i realtid
+            const populatedNotification = await Notification.findById(newNotification._id)
+                .populate("sender", "username profileImage");
+
+            // 2. Skicka i realtid via Socket.io
+            const io = req.app.get('io');
+            if (io) {
+                io.to(comment.createdBy.toString()).emit('newNotification', populatedNotification);
+            }
+
+            // 3. Skicka push-notis (om användaren är utanför appen)
+            if (commentOwner && commentOwner.pushTokens && commentOwner.pushTokens.length > 0) {
                 await sendPushNotification(
                     commentOwner.pushTokens,
                     'Liftly',
                     `${replierName} replied to your comment!`,
-                    { postId: comment.post.toString() } // Skickar med inläggets ID så appen kan hoppa till rätt inlägg
+                    { postId: comment.post.toString() }
                 );
             }
         }

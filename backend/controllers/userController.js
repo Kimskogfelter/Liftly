@@ -19,6 +19,8 @@ import { cloudinaryService } from "../config/cloudinaryConfig.js";
 import { getPagination, formatPaginatedResponse } from "../utils/pagination.js";
 // funktion för att skicka push notis till mobil
 import { sendPushNotification } from '../utils/sendPushNotification.js';
+// notification model
+import { Notification } from "../models/notificationModel.js";
 
 // loading env var from .env
 import 'dotenv/config';
@@ -129,9 +131,9 @@ export const registerUser = async (req, res, next) => {
 
         // --------- create new user to database ----------
         await User.create({
-            username: trimUsername, 
-            email: emailLowerCase, 
-            password: hashedPassword, 
+            username: trimUsername,
+            email: emailLowerCase,
+            password: hashedPassword,
             isVerified: false, // Kontot kräver verifiering via epost
             verificationToken: verificationToken,
             verificationTokenExpires: verificationTokenExpires,
@@ -231,7 +233,7 @@ export const loginUser = async (req, res, next) => {
             return next(new HttpError("Incorrect password", 422));
         }
 
-          // 4.5 --- KONTROLLERA ATT E-POSTEN ÄR VERIFIERAD ---
+        // 4.5 --- KONTROLLERA ATT E-POSTEN ÄR VERIFIERAD ---
         if (!user.isVerified) {
             return next(new HttpError("Please verify your email address before logging in.", 401));
         }
@@ -431,9 +433,9 @@ export const updateAccount = async (req, res, next) => {
                 return next(new HttpError("Invalid username characters", 400));
             }
 
-            const existingUsername = await User.findOne({ 
-                username: { $regex: new RegExp(`^${trimUsername}$`, "i") }, 
-                _id: { $ne: req.user.id } 
+            const existingUsername = await User.findOne({
+                username: { $regex: new RegExp(`^${trimUsername}$`, "i") },
+                _id: { $ne: req.user.id }
             });
             if (existingUsername) {
                 return next(new HttpError("This username is already taken.", 400));
@@ -449,9 +451,9 @@ export const updateAccount = async (req, res, next) => {
                 return next(new HttpError("Invalid email format", 400));
             }
 
-            const existingEmail = await User.findOne({ 
-                email: { $regex: new RegExp(`^${emailLowerCase}$`, "i") }, 
-                _id: { $ne: req.user.id } 
+            const existingEmail = await User.findOne({
+                email: { $regex: new RegExp(`^${emailLowerCase}$`, "i") },
+                _id: { $ne: req.user.id }
             });
             if (existingEmail) {
                 return next(new HttpError("This email is already taken.", 400));
@@ -535,24 +537,46 @@ export const followUser = async (req, res, next) => {
 
         // 1. Lägg till i inloggades "following"
         await User.findByIdAndUpdate(loggedInUserId, { $push: { following: userId } }, { new: true });
-        
+
         // 2. Lägg till den inloggade som följare i målanvändarens "followers"
         const targetUser = await User.findByIdAndUpdate(
-            userId, 
-            { $push: { followers: loggedInUserId } }, 
+            userId,
+            { $push: { followers: loggedInUserId } },
             { new: true }
         );
 
-        // --- SKICKA PUSH-NOTIS TILL ANVÄNDAREN SOM BLIR FÖLJD ---
-        if (targetUser && targetUser.pushTokens && targetUser.pushTokens.length > 0) {
-            const followerName = loggedInUser?.username || "Someone";
 
-            await sendPushNotification(
-                targetUser.pushTokens,
-                'Liftly',
-                `${followerName} started following you!`,
-                { profileId: loggedInUserId.toString() } // Skickar med ID så appen kan hoppa till följarens profil vid klick
-            );
+        // --- NOTIS-LOGIK (In-app, Socket.io och Push) ---
+        if (userId !== req.user.id) {
+            // 1. Skapa in-app-notis i databasen
+            const newNotification = await Notification.create({
+                recipient: userId,
+                sender: req.user.id,
+                type: 'follow',
+                message: 'started following you.'
+            });
+
+            // Populera sender så att username och profileImage följer med i realtid
+            const populatedNotification = await Notification.findById(newNotification._id)
+                .populate("sender", "username profileImage");
+
+            // 2. Skicka med den populerade notisen via Socket.io om användaren är online i appen!
+            const io = req.app.get('io');
+            if (io) {
+                io.to(userId.toString()).emit('newNotification', populatedNotification);
+            }
+
+            // 3. Skicka push-notis (om användaren är utanför appen)
+            if (targetUser && targetUser.pushTokens && targetUser.pushTokens.length > 0) {
+                const followerName = loggedInUser?.username || "Someone";
+
+                await sendPushNotification(
+                    targetUser.pushTokens,
+                    'Liftly',
+                    `${followerName} started following you!`,
+                    { profileId: loggedInUserId.toString() }
+                );
+            }
         }
 
         // meddela att det gick att börja följa användaren
@@ -888,7 +912,7 @@ export const deleteUser = async (req, res, next) => {
         if (userCommentIds.length > 0) {
             await Post.updateMany(
                 { comments: { $in: userCommentIds } },
-                { $pull: { comments: {$in: userCommentIds } } }
+                { $pull: { comments: { $in: userCommentIds } } }
             );
             await Comment.deleteMany({ createdBy: userId });
         }
@@ -1194,43 +1218,43 @@ export const refreshToken = async (req, res, next) => {
 // POST req: api/users/save-push-token
 // PROTECTED
 export const savePushToken = async (req, res, next) => {
-  try {
-    const { token, platform } = req.body;
-    const userId = req.user.id; // Kommer från din authMiddleware
+    try {
+        const { token, platform } = req.body;
+        const userId = req.user.id; // Kommer från din authMiddleware
 
-    if (!token) {
-      return next(new HttpError('Token is required', 400));
+        if (!token) {
+            return next(new HttpError('Token is required', 400));
+        }
+
+        // 1. Kontrollera att användaren existerar först av allt
+        const user = await User.findById(userId);
+        if (!user) {
+            return next(new HttpError('User not found', 404));
+        }
+
+        // 2. Ta bort en eventuell gammal kopia av samma token så vi slipper dubbletter
+        await User.findByIdAndUpdate(userId, {
+            $pull: { pushTokens: { token: token } }
+        });
+
+        // 3. Lägg till den uppdaterade token med plattform
+        await User.findByIdAndUpdate(
+            userId,
+            {
+                $push: {
+                    pushTokens: {
+                        token,
+                        platform: platform || 'android'
+                    }
+                }
+            },
+            { new: true }
+        );
+
+        res.status(200).json({ message: 'Push token saved successfully!' });
+    } catch (error) {
+        return next(new HttpError(error.message || 'Server error while saving token', 500));
     }
-
-    // 1. Kontrollera att användaren existerar först av allt
-    const user = await User.findById(userId);
-    if (!user) {
-      return next(new HttpError('User not found', 404));
-    }
-
-    // 2. Ta bort en eventuell gammal kopia av samma token så vi slipper dubbletter
-    await User.findByIdAndUpdate(userId, {
-      $pull: { pushTokens: { token: token } }
-    });
-
-    // 3. Lägg till den uppdaterade token med plattform
-    await User.findByIdAndUpdate(
-      userId,
-      { 
-        $push: { 
-          pushTokens: { 
-            token, 
-            platform: platform || 'android' 
-          } 
-        } 
-      },
-      { new: true }
-    );
-
-    res.status(200).json({ message: 'Push token saved successfully!' });
-  } catch (error) {
-    return next(new HttpError(error.message || 'Server error while saving token', 500));
-  }
 };
 
 // ---------------------------- POSTS ---------------------------
