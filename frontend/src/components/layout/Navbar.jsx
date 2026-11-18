@@ -323,7 +323,7 @@ function Navbar({ currentUser, setCurrentUser, onOpenCreatePost, onOpenNotificat
                   <FiBell size={16} className="shrink-0" />
                   <span className="text-xs font-medium tracking-wide">Notifications</span>
                   {unreadCount > 0 && (
-                    <span className="absolute -top-1.5 left-3.5 bg-red-500 text-white text-[9px] font-bold px-1 min-w-[15px] h-3.5 flex items-center justify-center rounded-full ring-2 ring-[#0D0D0E]">
+                    <span className="absolute -top-1.5 left-3.5 bg-red-500 text-white text-[9px] font-bold px-1 min-w-3.75 h-3.5 flex items-center justify-center rounded-full ring-2 ring-[#0D0D0E]">
                       {unreadCount}
                     </span>
                   )}
