@@ -16,10 +16,7 @@ function ForgotPasswordPage() {
     setMessage("");
 
     try {
-      const res = await api.post(
-        `${import.meta.env.VITE_API_URL}/users/forgot-password`,
-        { email }
-      );
+      const res = await api.post(`/users/forgot-password`, { email });
       setMessage(res.data.message);
       setEmail("");
     } catch (err) {
