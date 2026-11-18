@@ -1,13 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { CiSearch } from "react-icons/ci";
-import { FiHome, FiBookmark, FiPlusSquare, FiLogOut, FiChevronDown } from "react-icons/fi";
+import { FiHome, FiBookmark, FiPlusSquare, FiLogOut, FiChevronDown, FiBell } from "react-icons/fi";
 import { IoBarbellOutline } from "react-icons/io5";
 import logo from '../../assets/images/liftly-logo.png';
 import ProfileImage from "../users/ProfileImage";
 import { logout } from "../../functions/user/logout";
 
-function Navbar({ currentUser, setCurrentUser, onOpenCreatePost }) {
+function Navbar({ currentUser, setCurrentUser, onOpenCreatePost, onOpenNotifications, unreadCount }) {
   const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [expandedCategory, setExpandedCategory] = useState(null);
@@ -51,20 +51,20 @@ function Navbar({ currentUser, setCurrentUser, onOpenCreatePost }) {
       navigate(`/category/${category}`);
     }
   };
-// Återanvändbar meny där ALLA rader har hover, pekhand och ren text utan streck
+  // Återanvändbar meny där ALLA rader har hover, pekhand och ren text utan streck
   const renderCategoryMenu = (isDesktop = false) => {
     const setExp = isDesktop ? setExpandedDesktopCategory : setExpandedCategory;
     const expVal = isDesktop ? expandedDesktopCategory : expandedCategory;
 
     // Gemensam stil för vanliga knappar (All, General, Supplements, Activewear etc.)
     const standardButtonStyle = "w-full text-left px-3.5 py-1.5 hover:bg-zinc-800 transition-colors text-zinc-300 hover:text-white cursor-pointer";
-    
+
     // Gemensam stil för huvudkategorier med underkategorier (Food, Training, Music)
     const accordionStyle = "w-full text-left px-3.5 py-1.5 hover:bg-zinc-800 transition-colors flex items-center justify-between cursor-pointer text-zinc-300 hover:text-white";
 
     return (
       <div className="absolute left-0 top-full mt-1 w-52 bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl py-1 z-50 text-xs text-zinc-300 max-h-72 overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-zinc-700 [&::-webkit-scrollbar-thumb]:rounded-full">
-        
+
         <button
           type="button"
           onClick={() => handleSelect("All", null, isDesktop)}
@@ -83,7 +83,7 @@ function Navbar({ currentUser, setCurrentUser, onOpenCreatePost }) {
 
         {/* FOOD */}
         <div>
-          <div 
+          <div
             onClick={() => setExp(expVal === "Food" ? null : "Food")}
             className={accordionStyle}
           >
@@ -118,7 +118,7 @@ function Navbar({ currentUser, setCurrentUser, onOpenCreatePost }) {
 
         {/* TRAINING */}
         <div>
-          <div 
+          <div
             onClick={() => setExp(expVal === "Training" ? null : "Training")}
             className={accordionStyle}
           >
@@ -145,7 +145,7 @@ function Navbar({ currentUser, setCurrentUser, onOpenCreatePost }) {
 
         {/* MUSIC */}
         <div>
-          <div 
+          <div
             onClick={() => setExp(expVal === "Music" ? null : "Music")}
             className={accordionStyle}
           >
@@ -255,6 +255,14 @@ function Navbar({ currentUser, setCurrentUser, onOpenCreatePost }) {
           <Link to="/training" className="text-zinc-400 hover:text-white p-2 transition-colors">
             <IoBarbellOutline size={22} />
           </Link>
+          <button onClick={onOpenNotifications} className="text-zinc-400 hover:text-white p-2 transition-colors cursor-pointer relative">
+            <FiBell size={22} />
+            {unreadCount > 0 && (
+              <span className="absolute top-1 right-1 bg-red-500 text-white text-[9px] font-bold px-1 min-w-4 h-4 flex items-center justify-center rounded-full ring-2 ring-[#0D0D0E]">
+                {unreadCount}
+              </span>
+            )}
+          </button>
           <button onClick={onOpenCreatePost} className="text-zinc-400 hover:text-white p-2 transition-colors cursor-pointer">
             <FiPlusSquare size={22} />
           </button>
@@ -269,7 +277,7 @@ function Navbar({ currentUser, setCurrentUser, onOpenCreatePost }) {
       {/* =========================================================================
           2. DESKTOP VIEW (Sidebar on the left side)
           ========================================================================= */}
-      <nav className="hidden xl:flex flex-col justify-between items-center w-32 h-screen bg-[#0D0D0E] p-4 border-r border-zinc-800 fixed top-0 left-0 z-50 font-sans">
+      <nav className="hidden xl:flex flex-col justify-between items-center w-34 h-screen bg-[#0D0D0E] p-4 border-r border-zinc-800 fixed top-0 left-0 z-50 font-sans">
         <div className="flex flex-col items-start w-full gap-5">
           <div className="shrink-0 pl-1.5">
             <Link to="/home">
@@ -304,6 +312,23 @@ function Navbar({ currentUser, setCurrentUser, onOpenCreatePost }) {
                 <IoBarbellOutline size={16} className="shrink-0" />
                 <span className="text-xs font-medium tracking-wide">Training</span>
               </Link>
+            </li>
+
+            <li className="w-full">
+              <button
+                onClick={onOpenNotifications}
+                className="flex items-center justify-between w-full py-2 px-2 text-zinc-400 hover:text-white md:hover:bg-zinc-900/50 rounded-lg transition-all cursor-pointer relative"
+              >
+                <div className="flex items-center gap-2.5 relative">
+                  <FiBell size={16} className="shrink-0" />
+                  <span className="text-xs font-medium tracking-wide">Notifications</span>
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1.5 left-3.5 bg-red-500 text-white text-[9px] font-bold px-1 min-w-[15px] h-3.5 flex items-center justify-center rounded-full ring-2 ring-[#0D0D0E]">
+                      {unreadCount}
+                    </span>
+                  )}
+                </div>
+              </button>
             </li>
 
             <li className="w-full">
