@@ -19,8 +19,6 @@
 - [ ] Implementera Socket.io för live-uppdatering av likes och kommentarer direkt i inläggsflödet (via `room:postId`)
 - [ ] Implementera funktion för att radera egna kommentarer (gärna via long-press / meny à la TikTok)
 
-- BUG: kolla varför man inte kan redigera antalet ingredienser i ett skapat recept
-
 - TESTA Andriod studio, se till att live backend funkar mot android??!! 
 
 - Checklista för att stoppa skräp användare:
@@ -31,9 +29,6 @@
     [x] E-postvalidering / Blockering av skräpdomäner (Steg 2) – För att stoppa tillfälliga/fejkade mailadresser.
 
     [ ] Cloudflare Turnstile (Steg 3 - vid behov) – Det tunga, osynliga artilleriet om bottarna fortsätter.
-
-- fixa så man ser total vikt man lyft under ett träningspass när passet är slutfört (som en popup?!)
-
 
 
 
@@ -94,6 +89,8 @@ Skapa en dedikerad vy som visar alla inlägg taggade med en viss hashtag när ma
 - [x] fixa betalplan för server via Render så den alltid är uppe
 - [x] att alla delar som skapar, raderar, uppdaterar delar där de kan förekomma väntetid visar att saker laddas, tex deleting vid radering av inlägg, saving etc.. finns på create post men osäker på tex edit och delete post
 - [x] FIXA så email valideras först, innan man kan ändra till en annan?? FIXAT PGA BOTTAR SÅ EMAIL MÅSTE VERIFIERAS NÄR KONTO SKAPAS
+- [x] fixa så man ser total vikt man lyft under ett träningspass när passet är slutfört (som en popup) samt kunna dela passet
+
 
 
 
