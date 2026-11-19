@@ -4,12 +4,18 @@ import { Capacitor } from "@capacitor/core";
 export function getApiBaseUrl() {
     const isNative = Capacitor.isNativePlatform();
     const isDev = import.meta.env.DEV;
-    const envUrl = import.meta.env.VITE_API_URL;
-    const chosen = isNative
-        ? (envUrl || "http://10.0.2.2:5000/api")
-        : (isDev ? "http://localhost:5000/api" : (envUrl || "https://api.liftlyfit.com/api"));
 
-    return chosen;
+    if (isNative) {
+        // Använd VITE_NATIVE_API_URL om du bygger en APK mot live,
+        // annars 10.0.2.2 för lokal backend i Android-emulatorn.
+        return import.meta.env.VITE_NATIVE_API_URL || "http://10.0.2.2:5000/api";
+    }
+
+    if (isDev) {
+        return "http://localhost:5000/api";
+    }
+
+    return import.meta.env.VITE_API_URL || "https://api.liftlyfit.com/api";
 }
 
 export function getServerBaseUrl() {
