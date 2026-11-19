@@ -12,6 +12,16 @@ const calendarShareSchema = new mongoose.Schema({
     }]
 }, { _id: false });
 
+// Sub-schema för att dela ett slutfört träningspass
+const workoutShareSchema = new mongoose.Schema({
+    title: { type: String, required: true },
+    date: { type: String, default: "" },
+    totalVolume: { type: Number, default: 0 },
+    exercisesCount: { type: Number, default: 0 },
+    completedSetsCount: { type: Number, default: 0 },
+    totalSetsCount: { type: Number, default: 0 }
+}, { _id: false });
+
 // Sub-schema för enskilda ingredienser
 const ingredientSchema = new mongoose.Schema({
     name: { type: String, required: true }
@@ -60,9 +70,14 @@ const postSchema = new mongoose.Schema({
     },
     // skapas från delning i kalendern
     calendarShare: {
-    type: calendarShareSchema,
-    default: null
-}
+        type: calendarShareSchema,
+        default: null
+    },
+    // skapas från delning av slutfört träningspass
+    workoutShare: {
+        type: workoutShareSchema,
+        default: null
+    }
 }, { timestamps: true });
 
 // post model

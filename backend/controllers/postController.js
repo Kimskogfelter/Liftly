@@ -37,8 +37,8 @@ export const createPost = async (req, res, next) => {
             return next(new HttpError("User not found", 404));
         }
 
-        // get inputs from frontend (including optional recipe, calenderShare from calendar)
-        const { content, hashtags, category, subCategory, spotifyUrl, recipe, calendarShare } = req.body;
+        // get inputs from frontend (including optional recipe, calendarShare from calendar, workoutShare from completed session)
+        const { content, hashtags, category, subCategory, spotifyUrl, recipe, calendarShare, workoutShare } = req.body;
 
         // Kontrollera om inlägget innehåller fula ord
         if (content && filter.isProfane(content)) {
@@ -80,6 +80,13 @@ export const createPost = async (req, res, next) => {
         if (calendarShare) {
             parsedCalendarShare = JSON.parse(calendarShare);
         }
+
+        // 2.6 Remake WORKOUTSHARE from JSON-string to object (if provided)
+        let parsedWorkoutShare = null;
+        if (workoutShare) {
+            parsedWorkoutShare = JSON.parse(workoutShare);
+        }
+
         // 3. Build post object with fields that ALWAYS should be there
         const postObject = {
             createdBy: user._id,
@@ -88,7 +95,8 @@ export const createPost = async (req, res, next) => {
             subCategory: subCategory || "",
             spotifyUrl: spotifyUrl || "",
             recipe: parsedRecipe, // Lägg till receptet här (blir null om det saknas)
-            calendarShare: parsedCalendarShare
+            calendarShare: parsedCalendarShare,
+            workoutShare: parsedWorkoutShare
         };
 
         // 4. Add CONTENT only if user have written text
