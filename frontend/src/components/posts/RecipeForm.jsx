@@ -84,91 +84,80 @@ function RecipeForm({
   };
 
   return (
-    <div className="space-y-4 max-h-[80vh] overflow-y-auto pr-1">
-      {/* Rubrik & Tillbaka */}
-      <div className="flex items-center justify-between border-b border-gray-100 pb-2">
-        <h4 className="text-xs font-bold text-gray-900">Add Recipe</h4>
-        <button 
-          type="button" 
-          onClick={onCancel} 
-          className="text-xs text-zinc-500 hover:text-black cursor-pointer font-medium"
-        >
-          ← Back to post
-        </button>
-      </div>
-
+    <div className="space-y-4 max-h-[80vh] overflow-y-auto pr-1 text-left">
       {/* Felmeddelande */}
       {errorMsg && (
-        <div className="bg-red-50 border border-red-200 text-red-600 text-[11px] p-2 rounded-lg font-medium">
+        <div className="bg-red-50 border border-red-100 text-red-600 text-[11px] p-2.5 rounded-lg font-medium">
           {errorMsg}
         </div>
       )}
 
       {/* Recepttitel */}
-      <div className="space-y-1">
-        <label className="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Recipe Title *</label>
+      <div>
+        <label className="block text-[11px] font-bold text-gray-700 mb-1">Recipe Title *</label>
         <input
           type="text"
           placeholder="e.g., Chicken Sandwich"
           value={recipeTitle}
           onChange={(e) => setRecipeTitle(e.target.value)}
-          className="w-full bg-white border border-zinc-200 rounded-lg px-3.5 py-2.5 text-xs text-zinc-800 focus:outline-none focus:border-zinc-400 shadow-2xs"
+          className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-800 focus:outline-none focus:border-black transition-colors"
         />
       </div>
 
       {/* Tid & Makros */}
       <div className="grid grid-cols-3 gap-2">
         <div>
-          <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1">Time (min) *</label>
+          <label className="block text-[11px] font-bold text-gray-700 mb-1">Time (min) *</label>
           <input
             type="number"
             placeholder="10"
             value={prepTimeMinutes}
             onChange={(e) => setPrepTimeMinutes(e.target.value)}
-            className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2 text-xs text-zinc-800 focus:outline-none focus:border-zinc-400"
+            className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-800 focus:outline-none focus:border-black transition-colors"
           />
         </div>
         <div>
-          <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1">Calories *</label>
+          <label className="block text-[11px] font-bold text-gray-700 mb-1">Calories *</label>
           <input
             type="number"
             placeholder="350"
             value={calories}
             onChange={(e) => setCalories(e.target.value)}
-            className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2 text-xs text-zinc-800 focus:outline-none focus:border-zinc-400"
+            className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-800 focus:outline-none focus:border-black transition-colors"
           />
         </div>
         <div>
-          <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1">Protein (g) *</label>
+          <label className="block text-[11px] font-bold text-gray-700 mb-1">Protein (g) *</label>
           <input
             type="number"
             placeholder="30"
             value={protein}
             onChange={(e) => setProtein(e.target.value)}
-            className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2 text-xs text-zinc-800 focus:outline-none focus:border-zinc-400"
+            className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-800 focus:outline-none focus:border-black transition-colors"
           />
         </div>
       </div>
 
       {/* --- INGREDIENSER --- */}
       <div className="space-y-2 pt-1">
-        <label className="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Ingredients *</label>
+        <label className="block text-[11px] font-bold text-gray-700">Ingredients *</label>
 
         {ingredients.map((ing, index) => {
           const val = typeof ing === 'object' && ing !== null ? (ing.name || "") : ing;
           return (
-            <div key={index} className="bg-zinc-50/70 border border-zinc-200/80 rounded-xl p-3 flex items-center justify-between gap-2">
+            <div key={index} className="bg-zinc-50 border border-zinc-200/70 rounded-lg p-2.5 flex items-center justify-between gap-2">
               <input
                 type="text"
                 placeholder="e.g. 300g chicken breast"
                 value={val}
                 onChange={(e) => handleIngredientChange(index, e.target.value)}
-                className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2 text-xs text-zinc-800 focus:outline-none focus:border-zinc-400 shadow-2xs"
+                className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-800 focus:outline-none focus:border-black transition-colors"
               />
               <button
                 type="button"
                 onClick={() => removeIngredient(index)}
                 className="p-2 text-zinc-400 hover:text-red-500 transition-colors cursor-pointer shrink-0"
+                title="Remove ingredient"
               >
                 <FaRegTrashAlt size={14} />
               </button>
@@ -176,7 +165,7 @@ function RecipeForm({
           );
         })}
 
-        {/* Add Ingredient Knapp (Matchar träningsdelarnas stil) */}
+        {/* Add Ingredient Knapp */}
         <button
           type="button"
           onClick={addIngredient}
@@ -188,10 +177,10 @@ function RecipeForm({
 
       {/* --- INSTRUKTIONER --- */}
       <div className="space-y-2 pt-2">
-        <label className="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Instructions / Steps *</label>
+        <label className="block text-[11px] font-bold text-gray-700">Instructions / Steps *</label>
 
         {instructions.map((step, index) => (
-          <div key={index} className="bg-zinc-50/70 border border-zinc-200/80 rounded-xl p-3 flex items-center justify-between gap-2">
+          <div key={index} className="bg-zinc-50 border border-zinc-200/70 rounded-lg p-2.5 flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 w-full">
               <span className="text-xs font-bold text-zinc-400 shrink-0">{index + 1}.</span>
               <input
@@ -199,20 +188,21 @@ function RecipeForm({
                 placeholder={`Describe step ${index + 1}`}
                 value={step || ""}
                 onChange={(e) => handleInstructionChange(index, e.target.value)}
-                className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2 text-xs text-zinc-800 focus:outline-none focus:border-zinc-400 shadow-2xs"
+                className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-800 focus:outline-none focus:border-black transition-colors"
               />
             </div>
             <button
               type="button"
               onClick={() => removeInstruction(index)}
               className="p-2 text-zinc-400 hover:text-red-500 transition-colors cursor-pointer shrink-0"
+              title="Remove step"
             >
               <FaRegTrashAlt size={14} />
             </button>
           </div>
         ))}
 
-        {/* Add Step Knapp (Matchar träningsdelarnas stil) */}
+        {/* Add Step Knapp */}
         <button
           type="button"
           onClick={addInstruction}
@@ -223,29 +213,22 @@ function RecipeForm({
       </div>
 
       {/* --- KNAPPAR LÄNGST NER --- */}
-      <div className="pt-6 pb-2 mt-4 border-t border-gray-100 flex items-center justify-between">
+      <div className="pt-4 pb-2 mt-4 border-t border-gray-100 space-y-2.5">
         <button
           type="button"
-          onClick={onClear}
-          className="text-xs text-red-600 hover:text-red-700 font-medium cursor-pointer"
+          onClick={handleSaveClick}
+          className="w-full py-2.5 px-4 bg-black hover:bg-zinc-800 text-white font-semibold rounded-xl transition-all cursor-pointer text-xs"
         >
-          Clear all
+          Save Recipe
         </button>
 
-        <div className="flex items-center gap-2">
+        <div className="flex justify-center">
           <button
             type="button"
-            onClick={onCancel}
-            className="bg-zinc-100 hover:bg-zinc-200 text-zinc-700 font-semibold py-1.5 px-3 rounded-lg text-xs transition-colors cursor-pointer"
+            onClick={onClear}
+            className="text-xs text-red-600 hover:text-red-700 font-medium cursor-pointer py-1"
           >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={handleSaveClick}
-            className="bg-[#3A3939] hover:bg-zinc-800 text-white font-semibold py-1.5 px-4 rounded-lg text-xs transition-colors cursor-pointer shadow-sm"
-          >
-            Save Recipe
+            Clear all
           </button>
         </div>
       </div>
