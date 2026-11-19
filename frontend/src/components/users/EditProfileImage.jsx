@@ -2,6 +2,7 @@ import React from "react";
 import { useState } from "react";
 import api from "../../api/axios";
 import { SlPicture } from "react-icons/sl";
+import { IoClose } from "react-icons/io5";
 import { Capacitor } from '@capacitor/core';
 import { Camera } from '@capacitor/camera';
 
@@ -72,10 +73,21 @@ function EditProfileImage({ onClose, currentUser, setCurrentUser, getUserInfo })
 
     return (
         <>
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 font-sans">
-                <div className="w-full max-w-md bg-white rounded-lg p-5 shadow-xl border border-gray-100 animate-in fade-in zoom-in-95 duration-150">
+            <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center bg-black/40 backdrop-blur-sm p-0 sm:p-4 font-sans overflow-y-auto">
+                <div className="w-full min-h-screen sm:min-h-0 sm:max-w-md bg-white rounded-none sm:rounded-lg p-5 pt-6 sm:p-5 shadow-none sm:shadow-xl border-0 sm:border border-gray-100 animate-in fade-in zoom-in-95 duration-150">
 
-                    <h3 className="text-sm font-bold text-gray-900 mb-3 text-left">Edit Profile Image</h3>
+                    <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-sm font-bold text-gray-900 text-left">Edit Profile Image</h3>
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            disabled={isSubmitting}
+                            className="text-gray-400 hover:text-black p-1 rounded-full hover:bg-gray-100 transition-colors cursor-pointer disabled:opacity-50"
+                            title="Close"
+                        >
+                            <IoClose size={20} />
+                        </button>
+                    </div>
 
                     <form onSubmit={editProfileImage} className="space-y-6">
 
@@ -134,19 +146,11 @@ function EditProfileImage({ onClose, currentUser, setCurrentUser, getUserInfo })
                             </div>
                         )}
 
-                        <div className="flex gap-2 justify-end pt-3 border-t border-gray-100">
-                            <button
-                                type="button"
-                                onClick={onClose}
-                                disabled={isSubmitting}
-                                className="bg-gray-100 hover:bg-gray-200 text-gray-600 font-semibold py-1.5 px-3 rounded-md transition-colors cursor-pointer text-xs"
-                            >
-                                Cancel
-                            </button>
+                        <div className="pt-3 border-t border-gray-100">
                             <button
                                 type="submit"
                                 disabled={isSubmitting}
-                                className="bg-[#3A3939] hover:bg-zinc-800 text-white font-semibold py-1.5 px-3 rounded-md transition-colors cursor-pointer text-xs shadow-sm disabled:opacity-50 flex items-center gap-2"
+                                className="w-full py-2.5 px-4 bg-black hover:bg-zinc-800 text-white font-semibold rounded-xl transition-all text-xs cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
                             >
                                 {isSubmitting ? "Uploading..." : "Update Profile Image"}
                             </button>

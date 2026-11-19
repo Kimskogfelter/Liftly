@@ -40,39 +40,51 @@ const ReportUserModal = ({ isOpen, onClose, userId, username }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4 animate-in fade-in duration-200">
-            <div className="bg-white rounded-lg w-full max-w-md p-6 shadow-xl relative animate-in zoom-in-95 duration-150">
-                <button 
-                    onClick={onClose}
-                    className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
-                >
-                    <IoClose size={22} />
-                </button>
-
-                <h3 className="text-base font-bold text-gray-900 tracking-tight mb-1 text-left">
-                    Report User @{username}
-                </h3>
-                <p className="text-xs text-gray-500 mb-4 text-left">
-                    Thank you for helping keep the platform safe. Why are you reporting this profile?
-                </p>
+        <div
+            className="fixed inset-0 z-50 flex items-start sm:items-center justify-center bg-black/40 backdrop-blur-md p-0 sm:p-4 overflow-y-auto animate-in fade-in duration-200 font-sans"
+            onClick={onClose}
+        >
+            <div
+                className="w-full min-h-screen sm:min-h-0 sm:max-w-md bg-white rounded-none sm:rounded-lg p-5 pt-6 sm:p-6 text-gray-800 relative shadow-none sm:shadow-xl animate-in zoom-in-95 duration-150"
+                onClick={(e) => e.stopPropagation()}
+            >
+                <div className="flex items-start justify-between gap-3 mb-4">
+                    <div className="text-left">
+                        <h3 className="text-base font-bold text-gray-900 tracking-tight">
+                            Report User @{username}
+                        </h3>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                            Thank you for helping keep the platform safe. Why are you reporting this profile?
+                        </p>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        disabled={loading}
+                        className="text-gray-400 hover:text-black p-1 rounded-full hover:bg-gray-100 transition-colors cursor-pointer disabled:opacity-50 shrink-0"
+                        title="Close"
+                    >
+                        <IoClose size={20} />
+                    </button>
+                </div>
 
                 {success ? (
-                    <div className="bg-green-50 text-green-700 p-3 rounded-lg text-xs font-medium text-center">
+                    <div className="bg-green-50 text-green-700 p-3 rounded-lg text-xs font-medium text-center border border-green-100">
                         Thank you! Your report has been submitted.
                     </div>
                 ) : (
                     <form onSubmit={handleSubmit} className="space-y-4">
                         {error && (
-                            <div className="bg-red-50 text-red-600 p-3 rounded-lg text-xs font-medium">
+                            <div className="bg-red-50 text-red-600 p-3 rounded-lg text-xs font-medium border border-red-100 text-left">
                                 {error}
                             </div>
                         )}
 
-                        <div className="space-y-2 my-2 text-left">
+                        <div className="space-y-1.5 my-2 text-left">
                             {reasons.map((item) => (
-                                <label 
-                                    key={item} 
-                                    className="flex items-center gap-3 text-xs font-medium text-gray-800 cursor-pointer hover:bg-gray-50 p-2 rounded-xl transition-colors"
+                                <label
+                                    key={item}
+                                    className="flex items-center gap-3 text-xs font-medium text-gray-800 cursor-pointer hover:bg-gray-50 p-2.5 rounded-lg border border-transparent hover:border-zinc-200 transition-colors"
                                 >
                                     <input
                                         type="radio"
@@ -80,7 +92,7 @@ const ReportUserModal = ({ isOpen, onClose, userId, username }) => {
                                         value={item}
                                         checked={reason === item}
                                         onChange={(e) => setReason(e.target.value)}
-                                        className="w-4 h-4 text-red-600 border-gray-300 cursor-pointer"
+                                        className="w-4 h-4 text-black border-gray-300 cursor-pointer accent-black"
                                     />
                                     {item}
                                 </label>
@@ -89,29 +101,22 @@ const ReportUserModal = ({ isOpen, onClose, userId, username }) => {
 
                         {/* Extra textfält för detaljer */}
                         <div className="space-y-1 text-left">
-                            <label className="text-xs font-semibold text-gray-700">
+                            <label className="block text-[11px] font-semibold text-gray-600 mb-1">
                                 Additional details <span className="text-gray-400 font-normal">(optional)</span>
                             </label>
                             <textarea
                                 value={details}
                                 onChange={(e) => setDetails(e.target.value)}
                                 placeholder="Provide any extra context..."
-                                className="w-full text-xs p-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-gray-400 resize-none h-16 text-gray-800"
+                                className="w-full text-xs p-2.5 border border-zinc-200 rounded-lg bg-gray-50/30 focus:outline-none focus:border-zinc-400 resize-none h-20 text-gray-800"
                             />
                         </div>
 
-                        <div className="border-t border-gray-100 pt-4 flex items-center justify-end gap-2">
-                            <button
-                                type="button"
-                                onClick={onClose}
-                                className="px-4 py-2 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors cursor-pointer"
-                            >
-                                Cancel
-                            </button>
+                        <div className="border-t border-gray-100 pt-3">
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="px-4 py-2 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 rounded-xl transition-colors disabled:opacity-50 cursor-pointer shadow-xs"
+                                className="w-full py-2.5 px-4 bg-black hover:bg-zinc-800 text-white font-semibold rounded-xl transition-all text-xs cursor-pointer disabled:opacity-50"
                             >
                                 {loading ? 'Submitting...' : 'Submit Report'}
                             </button>

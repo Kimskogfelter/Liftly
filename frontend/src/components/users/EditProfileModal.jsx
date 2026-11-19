@@ -1,6 +1,7 @@
 import { useState, React } from "react";
 import api from "../../api/axios";
 import EditProfileImage from "./EditProfileImage";
+import { IoClose } from "react-icons/io5";
 
 function EditProfileModal({ onClose, currentUser, setCurrentUser, getUserInfo }) {
 
@@ -65,12 +66,23 @@ function EditProfileModal({ onClose, currentUser, setCurrentUser, getUserInfo })
 
     return (
         <>
-            {/* Yttre modal-wrapper */}
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 font-sans">
+            {/* Yttre modal-wrapper - Fullscreen on mobile, modal on desktop */}
+            <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center bg-black/40 backdrop-blur-sm p-0 sm:p-4 font-sans overflow-y-auto">
 
-                <div className="w-full max-w-md bg-white rounded-lg p-5 shadow-xl border border-gray-100 animate-in fade-in zoom-in-95 duration-150">
+                <div className="w-full min-h-screen sm:min-h-0 sm:max-w-md bg-white rounded-none sm:rounded-lg p-5 pt-6 sm:p-5 shadow-none sm:shadow-xl border-0 sm:border border-gray-100 animate-in fade-in zoom-in-95 duration-150">
 
-                    <h3 className="text-sm font-bold text-gray-900 mb-4 text-left">Edit Profile</h3>
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-sm font-bold text-gray-900 text-left">Edit Profile</h3>
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            disabled={isSubmitting}
+                            className="text-gray-400 hover:text-black p-1 rounded-full hover:bg-gray-100 transition-colors cursor-pointer disabled:opacity-50"
+                            title="Close"
+                        >
+                            <IoClose size={20} />
+                        </button>
+                    </div>
 
                     {/* 1. SEKTION FÖR PROFILBILD */}
                     <div className="flex flex-col items-center justify-center pb-4 mb-4 border-b border-gray-100">
@@ -104,7 +116,7 @@ function EditProfileModal({ onClose, currentUser, setCurrentUser, getUserInfo })
                                 value={profileBio}
                                 disabled={isSubmitting} // <--- AVAKTIVERA UNDER LADDNING
                                 onChange={(e) => setProfileBio(e.target.value)}
-                                className="w-full min-h-20 p-3 text-gray-800 placeholder-gray-400 border border-gray-200 rounded-lg resize-none focus:outline-none text-xs bg-gray-50/50 transition-all focus:border-zinc-400 disabled:opacity-50"
+                                className="w-full min-h-24 p-3 text-gray-800 placeholder-gray-400 border border-gray-200 rounded-lg resize-none focus:outline-none text-xs bg-gray-50/50 transition-all focus:border-zinc-400 disabled:opacity-50"
                             ></textarea>
                         </div>
 
@@ -168,20 +180,12 @@ function EditProfileModal({ onClose, currentUser, setCurrentUser, getUserInfo })
                             </div>
                         )}
 
-                        {/* Buttons */}
-                        <div className="flex gap-2 justify-end pt-3 border-t border-gray-100">
-                            <button
-                                type="button"
-                                onClick={onClose}
-                                disabled={isSubmitting}
-                                className="bg-gray-100 hover:bg-gray-200 text-gray-600 font-semibold py-1.5 px-3 rounded-md transition-colors cursor-pointer text-xs disabled:opacity-50"
-                            >
-                                Cancel
-                            </button>
+                        {/* Full-width submit button */}
+                        <div className="pt-3 border-t border-gray-100">
                             <button
                                 type="submit"
                                 disabled={isSubmitting}
-                                className="bg-[#3A3939] hover:bg-zinc-800 text-white font-semibold py-1.5 px-3 rounded-md transition-colors cursor-pointer text-xs shadow-sm disabled:opacity-50"
+                                className="w-full py-2.5 px-4 bg-black hover:bg-zinc-800 text-white font-semibold rounded-xl transition-all cursor-pointer text-xs disabled:opacity-50"
                             >
                                 {isSubmitting ? "Saving..." : "Save Changes"}
                             </button>

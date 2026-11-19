@@ -1,5 +1,6 @@
 import { useState } from "react";
 import api from "../../api/axios";
+import { IoClose } from "react-icons/io5";
 
 function DeletePostModal({ post, onClose, currentUser, handleDeletePost }) {
 
@@ -30,39 +31,51 @@ function DeletePostModal({ post, onClose, currentUser, handleDeletePost }) {
 
   return (
     <>
-      {/* Outer card wrapper - Modal */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 font-sans bg-black/40">
+      {/* Outer card wrapper - Compact confirmation modal */}
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 font-sans "
+        onClick={onClose}
+      >
         
         {/* Delete container */}
-        <div className="w-full max-w-sm bg-white rounded-lg p-5 shadow-xl border border-gray-100 animate-in fade-in zoom-in-95 duration-150 text-left">
+        <div
+          className="w-full max-w-sm bg-white rounded-lg p-5 shadow-xl border border-gray-100 animate-in fade-in zoom-in-95 duration-150 text-left"
+          onClick={(e) => e.stopPropagation()}
+        >
           
-          <h3 className="text-sm font-bold text-gray-900 mb-2">Delete Post</h3>
-          <p className="text-gray-600 text-xs mb-4">Are you sure you want to delete this post?</p>
-          
-          {/* Buttons footer */}
-          <div className="flex gap-2 justify-end pt-2 border-t border-gray-100">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-sm font-bold text-gray-900">Delete Post</h3>
             <button
+              type="button"
               onClick={onClose}
               disabled={isDeleting} // <--- AVAKTIVERA UNDER RADERING
-              className="bg-gray-100 hover:bg-gray-200 text-gray-600 font-semibold py-1.5 px-3 rounded-md transition-colors cursor-pointer text-xs disabled:opacity-50"
+              className="text-gray-400 hover:text-black p-1 rounded-full hover:bg-gray-100 transition-colors cursor-pointer disabled:opacity-50"
+              title="Close"
             >
-              Cancel
+              <IoClose size={20} />
             </button>
+          </div>
+
+          <p className="text-gray-600 text-xs mb-4">Are you sure you want to delete this post?</p>
+
+          {/* Error message */}
+          {error && (
+            <div className="bg-red-50 text-red-600 text-[11px] p-2 rounded-lg font-medium border border-red-100 mb-3">
+              {error}
+            </div>
+          )}
+
+          {/* Full-width delete button */}
+          <div className="pt-2 border-t border-gray-100">
             <button
+              type="button"
               onClick={deletePost}
               disabled={isDeleting} // <--- AVAKTIVERA UNDER RADERING
-              className="bg-red-500 hover:bg-red-600 text-white font-semibold py-1.5 px-3 rounded-md transition-colors cursor-pointer text-xs shadow-sm disabled:opacity-50"
+              className="w-full py-2.5 px-4 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-xl transition-all cursor-pointer text-xs disabled:opacity-50"
             >
               {isDeleting ? "Deleting..." : "Delete"} {/* <--- DYNAMISK TEXT */}
             </button>
           </div>
-
-          {/* Error message */}
-          {error && (
-            <div className="bg-red-50 text-red-600 text-[11px] p-2 rounded-lg font-medium border border-red-100 mt-3">
-              {error}
-            </div>
-          )}
         </div>
       </div>
     </>

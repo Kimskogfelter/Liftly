@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import api from "../../api/axios";
-import { IoCloseCircle } from "react-icons/io5";
+import { IoClose } from "react-icons/io5";
 
 function ShareCalendarModal({ calendarData, onClose, onShared }) {
     const [content, setContent] = useState("");
@@ -35,12 +35,24 @@ function ShareCalendarModal({ calendarData, onClose, onShared }) {
     const adjustedFirstDay = firstDayIndex === 0 ? 6 : firstDayIndex - 1;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 font-sans">
-            <div className="w-full max-w-md bg-white rounded-lg p-5 shadow-2xl border border-gray-100 text-left relative">
+        <div
+            className="fixed inset-0 z-50 flex items-start sm:items-center justify-center bg-black/40 backdrop-blur-sm p-0 sm:p-4 overflow-y-auto font-sans"
+            onClick={onClose}
+        >
+            <div
+                className="w-full min-h-screen sm:min-h-0 sm:max-w-md bg-white rounded-none sm:rounded-lg p-5 pt-6 sm:p-5 shadow-none sm:shadow-2xl border-0 sm:border border-gray-100 text-left relative"
+                onClick={(e) => e.stopPropagation()}
+            >
                 <div className="flex justify-between items-center mb-3">
                     <h3 className="text-sm font-bold text-gray-900">Share Training Calendar</h3>
-                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600 cursor-pointer">
-                        <IoCloseCircle size={20} />
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        disabled={isSubmitting}
+                        className="text-gray-400 hover:text-black p-1 rounded-full hover:bg-gray-100 transition-colors cursor-pointer disabled:opacity-50"
+                        title="Close"
+                    >
+                        <IoClose size={20} />
                     </button>
                 </div>
 
@@ -112,20 +124,17 @@ function ShareCalendarModal({ calendarData, onClose, onShared }) {
                         </div>
                     </div>
 
-                    {error && <p className="text-red-600 text-[11px] font-medium">{error}</p>}
+                    {error && (
+                        <div className="bg-red-50 text-red-600 text-[11px] p-2.5 rounded-lg font-medium border border-red-100">
+                            {error}
+                        </div>
+                    )}
 
-                    <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-100">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="bg-zinc-100 hover:bg-zinc-200 text-zinc-700 font-semibold py-1.5 px-3.5 rounded-lg text-xs cursor-pointer"
-                        >
-                            Cancel
-                        </button>
+                    <div className="pt-2 border-t border-gray-100">
                         <button
                             type="submit"
                             disabled={isSubmitting}
-                            className="bg-black hover:bg-zinc-800 text-white font-semibold py-1.5 px-4 rounded-lg text-xs cursor-pointer disabled:opacity-50"
+                            className="w-full py-2.5 px-4 bg-black hover:bg-zinc-800 text-white font-semibold rounded-xl transition-all cursor-pointer text-xs disabled:opacity-50"
                         >
                             {isSubmitting ? "Sharing..." : "Share to Feed"}
                         </button>

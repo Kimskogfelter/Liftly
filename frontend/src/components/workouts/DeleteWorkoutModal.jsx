@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import api from "../../api/axios";
+import { IoClose } from "react-icons/io5";
 
 function DeleteWorkoutModal({ workout, currentUser, onClose, handleDeleteWorkout }) {
 
@@ -20,20 +21,37 @@ function DeleteWorkoutModal({ workout, currentUser, onClose, handleDeleteWorkout
     };
 
     return (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4">
-            <div className="bg-white p-5 rounded-lg max-w-sm w-full">
-                <h3 className="font-bold text-sm">Delete Workout?</h3>
-                <p className="text-xs text-zinc-500 my-2">
+        <div
+            className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 font-sans"
+            onClick={onClose}
+        >
+            <div
+                className="bg-white p-5 rounded-lg max-w-sm w-full shadow-xl border border-gray-100 text-left animate-in fade-in zoom-in-95 duration-150"
+                onClick={(e) => e.stopPropagation()}
+            >
+                <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-bold text-sm text-gray-900">Delete Workout?</h3>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        disabled={isDeleting}
+                        className="text-gray-400 hover:text-black p-1 rounded-full hover:bg-gray-100 transition-colors cursor-pointer disabled:opacity-50"
+                        title="Close"
+                    >
+                        <IoClose size={20} />
+                    </button>
+                </div>
+
+                <p className="text-xs text-zinc-500 mb-4">
                     Are you sure you want to delete "{workout.title}"?
                 </p>
-                <div className="flex justify-end gap-2 mt-4">
-                    <button onClick={onClose} className="px-3 py-1.5 text-xs bg-zinc-100 rounded-lg cursor-pointer">
-                        Cancel
-                    </button>
+
+                <div className="pt-2 border-t border-gray-100">
                     <button
+                        type="button"
                         onClick={removeWorkout}
                         disabled={isDeleting}
-                        className="px-3 py-1.5 text-xs bg-red-600 text-white rounded-lg cursor-pointer"
+                        className="w-full py-2.5 px-4 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl transition-all text-xs cursor-pointer disabled:opacity-50"
                     >
                         {isDeleting ? "Deleting..." : "Delete"}
                     </button>

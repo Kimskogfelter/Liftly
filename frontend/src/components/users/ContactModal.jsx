@@ -16,7 +16,7 @@ function ContactModal({ onClose }) {
     const [error, setError] = useState("");
 
     const backdropClasses =
-        "fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4 animate-in fade-in duration-200";
+        "fixed inset-0 z-50 flex items-start sm:items-center justify-center bg-black/40 backdrop-blur-md p-0 sm:p-4 overflow-y-auto animate-in fade-in duration-200";
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -48,23 +48,18 @@ function ContactModal({ onClose }) {
     };
 
     return createPortal(
-        <div className={backdropClasses}>
+        <div className={backdropClasses} onClick={onClose}>
             <div
-                className="w-full max-w-md bg-white rounded-lg p-6 text-gray-800 relative animate-in zoom-in-95 duration-150 shadow-xl"
+                className="w-full min-h-screen sm:min-h-0 sm:max-w-md bg-white rounded-none sm:rounded-lg p-5 pt-6 sm:p-6 text-gray-800 relative animate-in zoom-in-95 duration-150 shadow-none sm:shadow-xl"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
                 <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-xl bg-zinc-100 flex items-center justify-center text-zinc-800">
-                            <FiMail size={16} />
-                        </div>
-                        <div>
-                            <h3 className="text-sm font-bold text-gray-900 tracking-tight text-left">Contact & Feedback</h3>
-                            <p className="text-[11px] text-gray-500 text-left">Share ideas, report bugs or partnerships</p>
-                        </div>
+                    <div className="text-left">
+                        <h3 className="text-base font-bold text-gray-900 tracking-tight">Contact & Feedback</h3>
                     </div>
                     <button
+                        type="button"
                         onClick={onClose}
                         className="p-1.5 rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
                     >
@@ -80,6 +75,7 @@ function ContactModal({ onClose }) {
                             Thank you for reaching out. I'll get back to you as soon as possible.
                         </p>
                         <button
+                            type="button"
                             onClick={() => {
                                 setSubmitted(false);
                                 setFormData({ name: "", email: "", category: "Feedback", message: "" });
@@ -92,7 +88,7 @@ function ContactModal({ onClose }) {
                 ) : (
                     <form onSubmit={handleSubmit} className="space-y-3 text-left">
                         {error && (
-                            <div className="bg-red-50 text-red-600 text-xs p-2.5 rounded-xl border border-red-100 font-medium">
+                            <div className="bg-red-50 text-red-600 text-xs p-2.5 rounded-lg border border-red-100 font-medium">
                                 {error}
                             </div>
                         )}
@@ -106,7 +102,7 @@ function ContactModal({ onClose }) {
                                 value={formData.name}
                                 onChange={handleChange}
                                 placeholder="E.g. John Doe"
-                                className="w-full text-xs px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-black transition-colors"
+                                className="w-full text-xs px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-black transition-colors"
                             />
                         </div>
 
@@ -119,7 +115,7 @@ function ContactModal({ onClose }) {
                                 value={formData.email}
                                 onChange={handleChange}
                                 placeholder="name@example.com"
-                                className="w-full text-xs px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-black transition-colors"
+                                className="w-full text-xs px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-black transition-colors"
                             />
                         </div>
 
@@ -129,7 +125,7 @@ function ContactModal({ onClose }) {
                                 name="category"
                                 value={formData.category}
                                 onChange={handleChange}
-                                className="w-full text-xs px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-black transition-colors bg-white cursor-pointer"
+                                className="w-full text-xs px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-black transition-colors bg-white cursor-pointer"
                             >
                                 <option value="Feedback">Feedback & Ideas</option>
                                 <option value="Bug">Report a Bug</option>
@@ -143,11 +139,11 @@ function ContactModal({ onClose }) {
                             <textarea
                                 name="message"
                                 required
-                                rows={3}
+                                rows={4}
                                 value={formData.message}
                                 onChange={handleChange}
                                 placeholder="Write your thoughts here..."
-                                className="w-full text-xs px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-black transition-colors resize-none"
+                                className="w-full text-xs px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-black transition-colors resize-none"
                             />
                         </div>
 
@@ -164,8 +160,8 @@ function ContactModal({ onClose }) {
                         <div className="pt-2 text-center border-t border-gray-100 mt-3">
                             <p className="text-[11px] text-gray-500">
                                 Or email us directly at{" "}
-                                <a 
-                                    href="mailto:support@liftlyfit.com" 
+                                <a
+                                    href="mailto:support@liftlyfit.com"
                                     className="font-medium text-black hover:underline"
                                 >
                                     support@liftlyfit.com

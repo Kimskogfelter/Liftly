@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import api from "../../api/axios";
 import { FiPlus, FiTrash2 } from "react-icons/fi";
 import { LuDumbbell } from "react-icons/lu";
+import { IoClose } from "react-icons/io5";
 
 function CreateWorkoutModal({ currentUser, onClose, onWorkoutCreated }) {
 
@@ -90,15 +91,26 @@ function CreateWorkoutModal({ currentUser, onClose, onWorkoutCreated }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-3 font-sans">
-      <div className="w-full max-w-md bg-white rounded-lg p-4 sm:p-5 shadow-xl border border-gray-100 text-left max-h-[90vh] flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center bg-black/40 backdrop-blur-sm p-0 sm:p-3 font-sans overflow-y-auto">
+      <div className="w-full min-h-screen sm:min-h-0 sm:max-w-md bg-white rounded-none sm:rounded-lg p-4 pt-6 sm:p-5 shadow-none sm:shadow-xl border-0 sm:border border-gray-100 text-left sm:max-h-[90vh] flex flex-col">
 
         {/* Header */}
-        <div className="flex items-center gap-2 mb-3">
-          <div className="p-1.5 bg-black text-white rounded-lg">
-            <LuDumbbell size={16} />
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-black text-white rounded-lg">
+              <LuDumbbell size={16} />
+            </div>
+            <h3 className="text-sm font-bold text-gray-900">Create Workout Routine</h3>
           </div>
-          <h3 className="text-sm font-bold text-gray-900">Create Workout Routine</h3>
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={isSubmitting}
+            className="text-gray-400 hover:text-black p-1 rounded-full hover:bg-gray-100 transition-colors cursor-pointer disabled:opacity-50"
+            title="Close"
+          >
+            <IoClose size={20} />
+          </button>
         </div>
 
         <form onSubmit={createWorkout} className="space-y-3.5 overflow-y-auto pr-1">
@@ -196,18 +208,11 @@ function CreateWorkoutModal({ currentUser, onClose, onWorkoutCreated }) {
             </div>
           )}
 
-          <div className="flex items-center justify-end gap-2 pt-3 border-t border-gray-100 mt-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="bg-gray-100 hover:bg-gray-200 text-gray-600 font-semibold py-2 px-3.5 rounded-lg transition-colors cursor-pointer text-xs"
-            >
-              Cancel
-            </button>
+          <div className="pt-3 border-t border-gray-100 mt-3">
             <button
               type="submit"
               disabled={isSubmitting}
-              className="bg-[#3A3939] hover:bg-zinc-800 text-white font-semibold py-2 px-4 rounded-lg transition-colors cursor-pointer text-xs shadow-sm disabled:opacity-50"
+              className="w-full py-2.5 px-4 bg-black hover:bg-zinc-800 text-white font-semibold rounded-xl transition-all cursor-pointer text-xs disabled:opacity-50"
             >
               {isSubmitting ? "Creating..." : "Save Routine"}
             </button>

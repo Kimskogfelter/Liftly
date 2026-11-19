@@ -5,8 +5,7 @@ import ContactModal from "./ContactModal";
 import DeleteAccountModal from "./DeleteAccountModal";
 import EditAccountModal from "./EditAccountModal";
 import ChangePasswordModal from "./ChangePasswordModal";
-import { FiUser, FiLock } from "react-icons/fi";
-import { FiTrash2, FiX, FiMail, FiShield } from "react-icons/fi";
+import { FiUser, FiLock, FiTrash2, FiX, FiMail, FiShield } from "react-icons/fi";
 
 function SettingsModal({ onClose, currentUser, setCurrentUser, getUserInfo }) {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -16,12 +15,12 @@ function SettingsModal({ onClose, currentUser, setCurrentUser, getUserInfo }) {
   const navigate = useNavigate();
 
   const backdropClasses =
-    "fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4 animate-in fade-in duration-200";
+    "fixed inset-0 z-50 flex items-start sm:items-center justify-center bg-black/40 backdrop-blur-md p-0 sm:p-4 overflow-y-auto animate-in fade-in duration-200";
 
   return createPortal(
-    <div className={backdropClasses}>
+    <div className={backdropClasses} onClick={onClose}>
       <div
-        className="w-full max-w-sm bg-white rounded-lg p-6 text-gray-800 relative animate-in zoom-in-95 duration-150"
+        className="w-full min-h-screen sm:min-h-0 sm:max-w-sm bg-white rounded-none sm:rounded-lg p-5 pt-6 sm:p-6 text-gray-800 relative animate-in zoom-in-95 duration-150 shadow-none sm:shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">
@@ -35,6 +34,7 @@ function SettingsModal({ onClose, currentUser, setCurrentUser, getUserInfo }) {
           </div>
 
           <button
+            type="button"
             onClick={onClose}
             className="p-1.5 rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
           >
@@ -49,15 +49,15 @@ function SettingsModal({ onClose, currentUser, setCurrentUser, getUserInfo }) {
           <button
             type="button"
             onClick={() => setShowEditAccountModal(true)}
-            className="w-full flex items-center justify-between p-3.5 bg-gray-50 hover:bg-gray-100 rounded-2xl transition-colors text-left cursor-pointer group"
+            className="w-full flex items-center justify-between p-3.5 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors text-left cursor-pointer group"
           >
             <div className="flex items-center gap-3">
               <div className="p-2 bg-white rounded-xl shadow-xs text-gray-700 group-hover:scale-105 transition-transform">
                 <FiUser size={16} />
               </div>
               <div>
-                <p className="text-xs font-bold text-gray-900">Account Details</p>
-                <p className="text-[10px] text-gray-500">
+                <p className="text-xs font-bold text-gray-800">Account Details</p>
+                <p className="text-[10px] text-gray-400">
                   Update your username and email address
                 </p>
               </div>
@@ -68,15 +68,15 @@ function SettingsModal({ onClose, currentUser, setCurrentUser, getUserInfo }) {
           <button
             type="button"
             onClick={() => setShowChangePasswordModal(true)}
-            className="w-full flex items-center justify-between p-3.5 bg-gray-50 hover:bg-gray-100 rounded-2xl transition-colors text-left cursor-pointer group"
+            className="w-full flex items-center justify-between p-3.5 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors text-left cursor-pointer group"
           >
             <div className="flex items-center gap-3">
               <div className="p-2 bg-white rounded-xl shadow-xs text-gray-700 group-hover:scale-105 transition-transform">
                 <FiLock size={16} />
               </div>
               <div>
-                <p className="text-xs font-bold text-gray-900">Change Password</p>
-                <p className="text-[10px] text-gray-500">
+                <p className="text-xs font-bold text-gray-800">Change Password</p>
+                <p className="text-[10px] text-gray-400">
                   Update your password securely
                 </p>
               </div>
@@ -87,15 +87,15 @@ function SettingsModal({ onClose, currentUser, setCurrentUser, getUserInfo }) {
           <button
             type="button"
             onClick={() => setShowContactModal(true)}
-            className="w-full flex items-center justify-between p-3.5 bg-gray-50 hover:bg-gray-100 rounded-2xl transition-colors text-left cursor-pointer group"
+            className="w-full flex items-center justify-between p-3.5 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors text-left cursor-pointer group"
           >
             <div className="flex items-center gap-3">
               <div className="p-2 bg-white rounded-xl shadow-xs text-gray-700 group-hover:scale-105 transition-transform">
                 <FiMail size={16} />
               </div>
               <div>
-                <p className="text-xs font-bold text-gray-900">Contact & Feedback</p>
-                <p className="text-[10px] text-gray-500">
+                <p className="text-xs font-bold text-gray-800">Contact & Feedback</p>
+                <p className="text-[10px] text-gray-400">
                   Report bugs, share ideas or collaborations
                 </p>
               </div>
@@ -109,15 +109,15 @@ function SettingsModal({ onClose, currentUser, setCurrentUser, getUserInfo }) {
               navigate("/privacy");
               onClose();
             }}
-            className="w-full flex items-center justify-between p-3.5 bg-gray-50 hover:bg-gray-100 rounded-2xl transition-colors text-left cursor-pointer group"
+            className="w-full flex items-center justify-between p-3.5 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors text-left cursor-pointer group"
           >
             <div className="flex items-center gap-3">
               <div className="p-2 bg-white rounded-xl shadow-xs text-gray-700 group-hover:scale-105 transition-transform">
                 <FiShield size={16} />
               </div>
               <div>
-                <p className="text-xs font-bold text-gray-900">Privacy Policy</p>
-                <p className="text-[10px] text-gray-500">
+                <p className="text-xs font-bold text-gray-800">Privacy Policy</p>
+                <p className="text-[10px] text-gray-400">
                   Read our data protection and GDPR terms
                 </p>
               </div>
@@ -128,15 +128,15 @@ function SettingsModal({ onClose, currentUser, setCurrentUser, getUserInfo }) {
           <button
             type="button"
             onClick={() => setShowDeleteModal(true)}
-            className="w-full flex items-center justify-between p-3.5 bg-red-50/60 hover:bg-red-50 rounded-2xl transition-colors text-left cursor-pointer group"
+            className="w-full flex items-center justify-between p-3.5 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors text-left cursor-pointer group"
           >
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-white rounded-xl shadow-xs text-red-500 group-hover:scale-105 transition-transform">
+              <div className="p-2 bg-white rounded-lg shadow-xs text-gray-700 group-hover:scale-105 transition-transform">
                 <FiTrash2 size={16} />
               </div>
               <div>
-                <p className="text-xs font-bold text-red-600">Delete Account</p>
-                <p className="text-[10px] text-red-400">
+                <p className="text-xs font-bold text-gray-800">Delete Account</p>
+                <p className="text-[10px] text-gray-400">
                   Permanently remove your account and data
                 </p>
               </div>
@@ -148,10 +148,12 @@ function SettingsModal({ onClose, currentUser, setCurrentUser, getUserInfo }) {
       {/* Modaler som renderas vid behov */}
 
       {showEditAccountModal && (
-        <EditAccountModal onClose={() => setShowEditAccountModal(false)} 
-        currentUser={currentUser}
-        setCurrentUser={setCurrentUser}
-        getUserInfo={getUserInfo} />
+        <EditAccountModal
+          onClose={() => setShowEditAccountModal(false)}
+          currentUser={currentUser}
+          setCurrentUser={setCurrentUser}
+          getUserInfo={getUserInfo}
+        />
       )}
 
       {showChangePasswordModal && (

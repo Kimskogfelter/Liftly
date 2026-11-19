@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { createPortal } from "react-dom";
-import { FiAlertTriangle } from "react-icons/fi";
+import { FiAlertTriangle, FiX } from "react-icons/fi";
 import api from "../../api/axios";
 import { useNavigate } from "react-router-dom";
 
@@ -11,7 +11,7 @@ function DeleteAccountModal({ onClose, currentUser, setCurrentUser }) {
   const navigate = useNavigate();
 
   const backdropClasses =
-    "fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4 animate-in fade-in duration-200";
+    "fixed inset-0 z-50 flex items-start sm:items-center justify-center bg-black/40 backdrop-blur-md p-0 sm:p-4 overflow-y-auto animate-in fade-in duration-200";
 
   const isFormValid = password.trim().length > 0;
 
@@ -41,9 +41,9 @@ function DeleteAccountModal({ onClose, currentUser, setCurrentUser }) {
   };
 
   return createPortal(
-    <div className={backdropClasses}>
+    <div className={backdropClasses} onClick={onClose}>
       <div
-        className="w-full max-w-sm bg-white rounded-lg p-6 text-gray-800 relative shadow-xl animate-in zoom-in-95 duration-150"
+        className="w-full min-h-screen sm:min-h-0 sm:max-w-sm bg-white rounded-none sm:rounded-lg p-5 pt-6 sm:p-6 text-gray-800 relative shadow-none sm:shadow-xl animate-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -56,10 +56,19 @@ function DeleteAccountModal({ onClose, currentUser, setCurrentUser }) {
               This action is permanent
             </p>
           </div>
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={isDeleting}
+            className="p-1.5 rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer disabled:opacity-50"
+            title="Close"
+          >
+            <FiX size={18} />
+          </button>
         </div>
 
         <form onSubmit={handleDeleteAccount} className="space-y-3 text-left">
-          <div className="flex items-start gap-3 bg-amber-50 border border-amber-100 p-3.5 rounded-xl text-amber-800">
+          <div className="flex items-start gap-3 bg-amber-50 border border-amber-100 p-3.5 rounded-lg text-amber-800">
             <FiAlertTriangle size={20} className="shrink-0 mt-0.5" />
             <p className="text-xs leading-relaxed">
               Are you sure you want to delete your account? This action cannot be undone and all your posts and data will be permanently removed.
@@ -67,7 +76,7 @@ function DeleteAccountModal({ onClose, currentUser, setCurrentUser }) {
           </div>
 
           <div>
-            <label className="block text-[11px] font-semibold text-gray-600 mb-1">
+            <label className="block text-[11px] font-bold text-gray-700 mb-1">
               Enter your password to confirm
             </label>
             <input
@@ -76,7 +85,7 @@ function DeleteAccountModal({ onClose, currentUser, setCurrentUser }) {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full text-xs text-gray-800 border border-zinc-200 rounded-lg p-2.5 bg-gray-50/30 focus:outline-none focus:border-zinc-400"
+              className="w-full text-xs text-gray-800 px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-black transition-colors"
             />
           </div>
 
@@ -87,19 +96,11 @@ function DeleteAccountModal({ onClose, currentUser, setCurrentUser }) {
             </div>
           )}
 
-          <div className="flex items-center justify-end gap-2 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={isDeleting}
-              className="bg-zinc-100 hover:bg-zinc-200 text-zinc-700 font-semibold py-1.5 px-3.5 rounded-lg text-xs transition-colors cursor-pointer"
-            >
-              Cancel
-            </button>
+          <div className="pt-2">
             <button
               type="submit"
               disabled={isDeleting || !isFormValid}
-              className="bg-red-600 hover:bg-red-700 text-white font-semibold py-1.5 px-4 rounded-lg text-xs transition-colors cursor-pointer shadow-xs disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-2.5 px-4 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl text-xs transition-all cursor-pointer shadow-xs disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isDeleting ? "Deleting..." : "Yes, delete account"}
             </button>

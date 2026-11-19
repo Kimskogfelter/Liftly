@@ -41,6 +41,7 @@ function PostActionsMenu({ post, handleDeletePost, handleEditPost, currentUser, 
                                 </p>
                             </div>
                             <button
+                                type="button"
                                 onClick={closeMenu}
                                 className="p-1.5 rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
                             >
@@ -56,10 +57,10 @@ function PostActionsMenu({ post, handleDeletePost, handleEditPost, currentUser, 
                                     <button
                                         type="button"
                                         onClick={() => setShowEditPostModal(true)}
-                                        className="w-full flex items-center justify-between p-3.5 bg-gray-50 hover:bg-gray-100 rounded-2xl transition-colors text-left cursor-pointer group"
+                                        className="w-full flex items-center justify-between p-3.5 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors text-left cursor-pointer group"
                                     >
                                         <div className="flex items-center gap-3">
-                                            <div className="p-2 bg-white rounded-xl shadow-xs text-gray-700 group-hover:scale-105 transition-transform">
+                                            <div className="p-2 bg-white rounded-lg shadow-xs text-gray-700 group-hover:scale-105 transition-transform">
                                                 <FiEdit2 size={16} />
                                             </div>
                                             <div>
@@ -73,15 +74,15 @@ function PostActionsMenu({ post, handleDeletePost, handleEditPost, currentUser, 
                                     <button
                                         type="button"
                                         onClick={() => setShowDeletePostModal(true)}
-                                        className="w-full flex items-center justify-between p-3.5 bg-red-50/60 hover:bg-red-50 rounded-2xl transition-colors text-left cursor-pointer group"
+                                        className="w-full flex items-center justify-between p-3.5 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors text-left cursor-pointer group"
                                     >
                                         <div className="flex items-center gap-3">
-                                            <div className="p-2 bg-white rounded-xl shadow-xs text-red-500 group-hover:scale-105 transition-transform">
+                                            <div className="p-2 bg-white rounded-lg shadow-xs text-gray-700 group-hover:scale-105 transition-transform">
                                                 <FiTrash2 size={16} />
                                             </div>
                                             <div>
-                                                <p className="text-xs font-bold text-red-600">Delete Post</p>
-                                                <p className="text-[10px] text-red-400">Permanently remove this post</p>
+                                                <p className="text-xs font-bold text-gray-800">Delete Post</p>
+                                                <p className="text-[10px] text-gray-400">Permanently remove this post</p>
                                             </div>
                                         </div>
                                     </button>
@@ -91,15 +92,15 @@ function PostActionsMenu({ post, handleDeletePost, handleEditPost, currentUser, 
                                 <button
                                     type="button"
                                     onClick={() => setShowReportPostModal(true)}
-                                    className="w-full flex items-center justify-between p-3.5 bg-red-50/60 hover:bg-red-50 rounded-2xl transition-colors text-left cursor-pointer group"
+                                    className="w-full flex items-center justify-between p-3.5 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors text-left cursor-pointer group"
                                 >
                                     <div className="flex items-center gap-3">
-                                        <div className="p-2 bg-white rounded-xl shadow-xs text-red-500 group-hover:scale-105 transition-transform">
+                                        <div className="p-2 bg-white rounded-lg shadow-xs text-gray-700 group-hover:scale-105 transition-transform">
                                             <FiFlag size={16} />
                                         </div>
                                         <div>
-                                            <p className="text-xs font-bold text-red-600">Report Post</p>
-                                            <p className="text-[10px] text-red-400">Flag inappropriate content</p>
+                                            <p className="text-xs font-bold text-gray-800">Report Post</p>
+                                            <p className="text-[10px] text-gray-400">Flag inappropriate content</p>
                                         </div>
                                     </div>
                                 </button>

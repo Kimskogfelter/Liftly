@@ -67,11 +67,26 @@ function EditAccountModal({ onClose, currentUser, setCurrentUser, getUserInfo })
     };
 
     return createPortal(
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4">
-            <div className="w-full max-w-sm bg-white rounded-lg p-6 text-gray-800 relative shadow-xl" onClick={(e) => e.stopPropagation()}>
+        <div
+            className="fixed inset-0 z-50 flex items-start sm:items-center justify-center bg-black/40 backdrop-blur-md p-0 sm:p-4 overflow-y-auto"
+            onClick={onClose}
+        >
+            <div
+                className="w-full min-h-screen sm:min-h-0 sm:max-w-sm bg-white rounded-none sm:rounded-lg p-5 pt-6 sm:p-6 text-gray-800 relative shadow-none sm:shadow-xl"
+                onClick={(e) => e.stopPropagation()}
+            >
 
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="text-base font-bold text-gray-900">Edit Account Details</h3>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        disabled={isSubmitting}
+                        className="p-1.5 rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer disabled:opacity-50"
+                        title="Close"
+                    >
+                        <FiX size={18} />
+                    </button>
                 </div>
 
                 {success ? (
@@ -79,38 +94,38 @@ function EditAccountModal({ onClose, currentUser, setCurrentUser, getUserInfo })
                         Account details updated successfully!
                     </div>
                 ) : (
-                    <form onSubmit={handleSubmit} className="space-y-3">
+                    <form onSubmit={handleSubmit} className="space-y-3 text-left">
                         <div>
-                            <label className="block text-[11px] font-semibold text-gray-600 mb-1">Username</label>
+                            <label className="block text-[11px] font-bold text-gray-700 mb-1">Username</label>
                             <input
                                 type="text"
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
-                                className="w-full text-xs text-gray-800 border border-zinc-200 rounded-lg p-2.5 bg-gray-50/30 focus:outline-none focus:border-zinc-400"
+                                className="w-full text-xs text-gray-800 px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-black transition-colors"
                                 required
                             />
                         </div>
 
                         <div>
-                            <label className="block text-[11px] font-semibold text-gray-600 mb-1">Email</label>
+                            <label className="block text-[11px] font-bold text-gray-700 mb-1">Email</label>
                             <input
                                 type="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                className="w-full text-xs text-gray-800 border border-zinc-200 rounded-lg p-2.5 bg-gray-50/30 focus:outline-none focus:border-zinc-400"
+                                className="w-full text-xs text-gray-800 px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-black transition-colors"
                                 required
                             />
                         </div>
 
                         {/* Bekräfta med nuvarande lösenord */}
                         <div>
-                            <label className="block text-[11px] font-semibold text-gray-600 mb-1">Current Password (required to save)</label>
+                            <label className="block text-[11px] font-bold text-gray-700 mb-1">Current Password (required to save)</label>
                             <input
                                 type="password"
                                 placeholder="Enter current password"
                                 value={currentPassword}
                                 onChange={(e) => setCurrentPassword(e.target.value)}
-                                className="w-full text-xs text-gray-800 border border-zinc-200 rounded-lg p-2.5 bg-gray-50/30 focus:outline-none focus:border-zinc-400"
+                                className="w-full text-xs text-gray-800 px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-black transition-colors"
                                 required
                             />
                         </div>
@@ -121,19 +136,11 @@ function EditAccountModal({ onClose, currentUser, setCurrentUser, getUserInfo })
                             </div>
                         )}
 
-                        <div className="flex items-center justify-end gap-2 pt-2">
-                            <button
-                                type="button"
-                                onClick={onClose}
-                                disabled={isSubmitting}
-                                className="bg-zinc-100 hover:bg-zinc-200 text-zinc-700 font-semibold py-1.5 px-3.5 rounded-lg text-xs transition-colors cursor-pointer"
-                            >
-                                Cancel
-                            </button>
+                        <div className="pt-2">
                             <button
                                 type="submit"
                                 disabled={isSubmitting || !isFormValid}
-                                className="bg-[#3A3939] hover:bg-zinc-800 text-white font-semibold py-1.5 px-4 rounded-lg text-xs transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="w-full py-2.5 px-4 bg-black hover:bg-zinc-800 text-white font-semibold rounded-xl transition-all text-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {isSubmitting ? "Saving..." : "Save changes"}
                             </button>
