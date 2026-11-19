@@ -1,10 +1,12 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { FiHeart, FiMessageCircle, FiMusic, FiCalendar } from "react-icons/fi";
+import { LuDumbbell } from "react-icons/lu";
 
 function PostGridItem({ post }) {
   const hasMedia = post.media && post.media.length > 0;
   const hasCalendar = post.calendarShare; // Kontrollerar om inlägget har en delad kalender
+  const hasWorkoutShare = post.workoutShare; // Kontrollerar om inlägget har ett delat träningspass
   const likesCount = post.likes?.length || 0;
   const commentsCount = post.comments?.reduce(
     (total, comment) => total + 1 + (comment.replies?.length || 0),
@@ -45,7 +47,7 @@ function PostGridItem({ post }) {
             </span>
           </div>
         </>
-      ) :hasCalendar ? (
+      ) : hasCalendar ? (
         /* Kalender-inlägg med balanserad storlek för både mobil och desktop */
         <div className="w-full h-full p-2.5 sm:p-3.5 flex flex-col items-center justify-between text-center relative z-0 bg-zinc-900 border border-zinc-800">
           <div className="flex-1 flex flex-col items-center justify-center gap-1.5 sm:gap-2">
@@ -60,7 +62,22 @@ function PostGridItem({ post }) {
             {displayCategory}
           </span>
         </div>
-      ): (
+      ) : hasWorkoutShare ? (
+        /* Delat träningspass med samma ikonruta som kalenderdelningen */
+        <div className="w-full h-full p-2.5 sm:p-3.5 flex flex-col items-center justify-between text-center relative z-0 bg-zinc-900 border border-zinc-800">
+          <div className="flex-1 flex flex-col items-center justify-center gap-1.5 sm:gap-2">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-zinc-800 flex items-center justify-center text-white shadow-inner border border-zinc-700/50">
+              <LuDumbbell size={15} className="sm:size-4.5" />
+            </div>
+            <span className="text-[11px] sm:text-xs font-semibold text-white tracking-wide truncate max-w-full">
+              {post.workoutShare.title || "Workout Session"}
+            </span>
+          </div>
+          <span className="text-[8px] sm:text-[9px] font-bold text-zinc-400 uppercase tracking-wider truncate max-w-full">
+            {displayCategory}
+          </span>
+        </div>
+      ) : (
         /* Textinlägg med line-clamp för att korta av snyggt */
         <div className="w-full h-full p-2.5 sm:p-4 flex flex-col items-center justify-between text-center relative z-0">
           <div className="flex-1 flex items-center justify-center">

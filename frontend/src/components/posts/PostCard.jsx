@@ -5,6 +5,7 @@ import { handleSavePost } from "../../functions/posts/handleSavePost";
 import { createSpotifyEmbedUrl } from "../../functions/spotify/spotify";
 import FullsizeImageModal from "./FullsizeImageModal";
 import PostCalendarShare from "./PostCalendarShare";
+import PostWorkoutShare from "./PostWorkoutShare";
 import PostHeader from "./PostHeader";
 import PostMedia from "./PostMedia";
 import PostRecipe from "./PostRecipe";
@@ -148,6 +149,9 @@ function PostCard({ post, currentUser, setCurrentUser, handleEditPost, handleDel
 
                         {/* KALENDER-KORT (DELAD MÅNAD) - LJUS STIL */}
                         <PostCalendarShare calendarShare={post.calendarShare} />
+
+                        {/* TRÄNINGSPASS-KORT (DELAT PASS) */}
+                        <PostWorkoutShare workoutShare={post.workoutShare} />
                     </div>
 
                     {/* SPOTIFY EMBED */}
