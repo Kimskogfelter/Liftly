@@ -1,17 +1,20 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { IoClose } from "react-icons/io5";
 import { LuDumbbell } from "react-icons/lu";
 import api from "../api/axios";
 import WorkoutCard from "../components/workouts/WorkoutCard";
+import ShareWorkoutModal from "../components/workouts/ShareWorkoutModal";
 
 function SingleWorkoutPage({ currentUser }) {
     const { workoutId } = useParams(); // get workout ID from URL parameters
+    const navigate = useNavigate();
     const [workout, setWorkout] = useState(null); // Workout is an object -> null as initial state
     const [liveExercises, setLiveExercises] = useState([]);
     const [error, setError] = useState("");
     const [isFinishing, setIsFinishing] = useState(false);
     const [showSummaryModal, setShowSummaryModal] = useState(false);
+    const [showShareModal, setShowShareModal] = useState(false);
     const token = currentUser?.token;
 
     // Function to fetch workout details from backend
@@ -46,14 +49,22 @@ function SingleWorkoutPage({ currentUser }) {
 
     const allSets = liveExercises.flatMap((exercise) => exercise.sets || []);
     const completedSetsCount = allSets.filter((set) => Boolean(set.completed)).length;
+    const todayStr = new Date().toISOString().split("T")[0];
+
+    const workoutSharePayload = {
+        title: workout?.title || "",
+        date: todayStr,
+        totalVolume: completedVolume,
+        exercisesCount: liveExercises.length,
+        completedSetsCount,
+        totalSetsCount: allSets.length,
+    };
 
     // Function to finish workout and update calendar
     const handleFinishWorkout = async () => {
         setError("");
         setIsFinishing(true);
         try {
-            const todayStr = new Date().toISOString().split("T")[0]; // "YYYY-MM-DD"
-
             // Call backend endpoint
             await api.post("/workouts/finish", {
                 workoutId,
@@ -172,15 +183,36 @@ function SingleWorkoutPage({ currentUser }) {
                             </div>
                         </div>
 
-                        <button
-                            type="button"
-                            onClick={() => setShowSummaryModal(false)}
-                            className="w-full py-2.5 px-4 bg-zinc-900 hover:bg-zinc-800 text-white font-semibold rounded-xl transition-colors cursor-pointer text-xs"
-                        >
-                            Done
-                        </button>
+                        <div className="flex items-center gap-2.5">
+                            <button
+                                type="button"
+                                onClick={() => setShowShareModal(true)}
+                                className="flex-1 py-2.5 px-4 bg-zinc-900 hover:bg-zinc-800 text-white font-semibold rounded-xl transition-colors cursor-pointer text-xs"
+                            >
+                                Share Session
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setShowSummaryModal(false)}
+                                className="py-2.5 px-4 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 font-semibold rounded-xl transition-colors cursor-pointer text-xs"
+                            >
+                                Done
+                            </button>
+                        </div>
                     </div>
                 </div>
+            )}
+
+            {showShareModal && (
+                <ShareWorkoutModal
+                    workoutData={workoutSharePayload}
+                    onClose={() => setShowShareModal(false)}
+                    onShared={() => {
+                        setShowShareModal(false);
+                        setShowSummaryModal(false);
+                        navigate("/");
+                    }}
+                />
             )}
         </section>
     );
