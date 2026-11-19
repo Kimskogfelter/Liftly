@@ -3,6 +3,10 @@ import React from 'react';
 const PostRecipe = ({ recipe, isDetailView }) => {
     if (!recipe) return null;
 
+    const hasPrepTime = recipe.prepTimeMinutes !== undefined && recipe.prepTimeMinutes !== null;
+    const hasCalories = recipe.nutrition?.calories !== undefined && recipe.nutrition?.calories !== null;
+    const hasProtein = recipe.nutrition?.protein !== undefined && recipe.nutrition?.protein !== null;
+
     return (
         <div className="mt-3 mb-2 bg-zinc-50 border border-zinc-200/80 rounded-xl p-3.5 text-xs space-y-3">
             <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-2 ${isDetailView ? "border-b border-zinc-200/60 pb-3" : ""}`}>
@@ -10,17 +14,17 @@ const PostRecipe = ({ recipe, isDetailView }) => {
                     <h4 className="font-bold text-zinc-900 text-sm">{recipe.title}</h4>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap text-zinc-600 font-medium text-[11px]">
-                    {recipe.prepTimeMinutes > 0 && (
+                    {hasPrepTime && (
                         <span className="bg-white border border-zinc-200 px-2 py-1 rounded-lg">
                             {recipe.prepTimeMinutes} min
                         </span>
                     )}
-                    {recipe.nutrition?.calories > 0 && (
+                    {hasCalories && (
                         <span className="bg-white border border-zinc-200 px-2 py-1 rounded-lg">
                             {recipe.nutrition.calories} kcal
                         </span>
                     )}
-                    {recipe.nutrition?.protein > 0 && (
+                    {hasProtein && (
                         <span className="bg-white border border-zinc-200 px-2 py-1 rounded-lg">
                             {recipe.nutrition.protein}g protein
                         </span>
@@ -36,7 +40,7 @@ const PostRecipe = ({ recipe, isDetailView }) => {
                             {recipe.ingredients?.map((ing, idx) => (
                                 <li key={idx} className="flex items-start gap-1.5">
                                     <span className="text-zinc-400">•</span>
-                                    <span>{ing.name}</span>
+                                    <span>{typeof ing === 'string' ? ing : ing.name}</span>
                                 </li>
                             ))}
                         </ul>
