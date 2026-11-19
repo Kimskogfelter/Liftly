@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import api from "../../api/axios";
 import { FiImage, FiChevronDown } from "react-icons/fi";
-import { IoCloseCircle } from "react-icons/io5";
+import { IoClose, IoCloseCircle } from "react-icons/io5";
 import { BsSpotify } from "react-icons/bs";
 import { TagsInput } from "react-tag-input-component";
 import RecipeForm from "./RecipeForm";
@@ -170,12 +170,23 @@ function CreatePostModal({ onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 font-sans">
-      <div className="w-full max-w-md bg-white rounded-lg p-5 shadow-2xl border border-gray-100 text-left">
+    <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center bg-black/40 backdrop-blur-sm p-0 sm:p-4 font-sans overflow-y-auto">
+      <div className="w-full min-h-screen sm:min-h-0 sm:max-w-md sm:max-h-[90vh] bg-white rounded-none sm:rounded-lg p-5 pt-6 sm:pt-5 shadow-none sm:shadow-2xl border-0 sm:border border-gray-100 text-left overflow-y-auto">
 
-        <h3 className="text-sm font-bold text-gray-900 mb-3">
-          {showRecipeView ? "Recipe Details" : "Create Post"}
-        </h3>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-bold text-gray-900">
+            {showRecipeView ? "Add Recipe" : "Create Post"}
+          </h3>
+          <button
+            type="button"
+            onClick={showRecipeView ? handleBackWithoutSaving : onClose}
+            disabled={isSubmitting}
+            className="text-gray-400 hover:text-black p-1 rounded-full hover:bg-gray-100 transition-colors cursor-pointer disabled:opacity-50"
+            title={showRecipeView ? "Back to post" : "Close"}
+          >
+            <IoClose size={20} />
+          </button>
+        </div>
 
         <form onSubmit={createPost} className="space-y-3">
 
@@ -199,7 +210,7 @@ function CreatePostModal({ onClose }) {
                   placeholder="What's on your mind?"
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
-                  className="w-full min-h-27.5 text-xs text-gray-800 placeholder-gray-400 border border-zinc-200 rounded-lg p-3 resize-none focus:outline-none focus:border-zinc-400 bg-gray-50/30 transition-colors"
+                  className="w-full min-h-44 sm:min-h-27.5 text-xs text-gray-800 placeholder-gray-400 border border-zinc-200 rounded-lg p-3 resize-none focus:outline-none focus:border-zinc-400 bg-gray-50/30 transition-colors"
                 ></textarea>
               </div>
 
@@ -470,19 +481,11 @@ function CreatePostModal({ onClose }) {
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-gray-100 mt-3">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  disabled={isSubmitting}
-                  className="bg-zinc-100 hover:bg-zinc-200 text-zinc-700 font-semibold py-1.5 px-3.5 rounded-lg transition-colors cursor-pointer text-xs disabled:opacity-50"
-                >
-                  Cancel
-                </button>
+              <div className="pt-3 border-t border-gray-100 mt-3">
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="bg-[#3A3939] hover:bg-zinc-800 text-white font-semibold py-1.5 px-4 rounded-lg transition-colors cursor-pointer text-xs shadow-sm disabled:opacity-50"
+                  className="w-full py-2.5 px-4 bg-black hover:bg-zinc-800 text-white font-semibold rounded-xl transition-all cursor-pointer text-xs disabled:opacity-50"
                 >
                   {isSubmitting ? "Posting..." : "Post"}
                 </button>
