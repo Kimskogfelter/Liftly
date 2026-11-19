@@ -293,6 +293,9 @@ function ProfilePage({ currentUser, setCurrentUser }) {
         currentUser={currentUser}
         setCurrentUser={setCurrentUser}
         userId={targetUser?._id}
+        username={targetUser?.username}
+        followersCount={targetUser?.followers?.length}
+        followingCount={targetUser?.following?.length}
         type={followModalType}
         isOpen={Boolean(followModalType)}
         onClose={() => setFollowModalType(null)}
