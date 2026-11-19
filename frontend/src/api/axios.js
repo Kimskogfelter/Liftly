@@ -1,19 +1,7 @@
 import axios from 'axios';
-import { Capacitor } from '@capacitor/core';
+import { getApiBaseUrl } from './socket';
 
-let API_BASE_URL;
-
-if (import.meta.env.DEV) {
-    // 1. När du utvecklar lokalt (både webbläsare och emulator)
-    if (Capacitor.isNativePlatform()) {
-        API_BASE_URL = 'http://10.0.2.2:5000/api'; // Android-emulatorn når datorn här
-    } else {
-        API_BASE_URL = 'http://localhost:5000/api'; // Vanliga webbläsaren lokalt
-    }
-} else {
-    // 2. När appen är byggd för "produktion" (skickas till testare via APK eller ligger på Vercel)
-    API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.liftlyfit.com/api';
-}
+const API_BASE_URL = getApiBaseUrl();
 
 const api = axios.create({
     baseURL: API_BASE_URL,
