@@ -23,8 +23,7 @@ function WorkoutPage({ currentUser }) {
 
     const getWorkouts = async () => {
         try {
-            const response = await api.get(
-                `${import.meta.env.VITE_API_URL}/workouts/user`);
+            const response = await api.get("/workouts/user");
             setWorkouts(response.data.workouts);
         } catch (err) {
             setError("Couldnt fetch workouts.");
