@@ -14,11 +14,7 @@ const calendarShareSchema = new mongoose.Schema({
 
 // Sub-schema för enskilda ingredienser
 const ingredientSchema = new mongoose.Schema({
-    name: { type: String, required: true },
-    amount: { type: Number, required: true },
-    unit: { type: String, default: "" }, // t.ex. "g", "st", "msk"
-    calories: { type: Number, default: 0 },
-    protein: { type: Number, default: 0 }
+    name: { type: String, required: true }
 }, { _id: false });
 
 // Sub-schema för näringsvärden (makros)
