@@ -1,34 +1,40 @@
 import api from "../../api/axios";
 
-export const handlePostLikeToggle = async (isLiked, setIsLiked, setLikesCount, post, currentUser) => {
+export const handlePostLikeToggle = async (
+    isLiked,
+    setIsLiked,
+    setLikesCount,
+    post,
+    currentUser,
+    isToggling = false,
+    setIsToggling = null
+) => {
+    if (!post?._id || isToggling) return;
+
+    const prevLiked = Boolean(isLiked);
+    setIsToggling?.(true);
+
+    // Optimistisk uppdatering
+    setIsLiked(!prevLiked);
+    setLikesCount((prev) => Math.max(0, prev + (prevLiked ? -1 : 1)));
 
     try {
-
-        if (isLiked) {
-
-            // unlike post
-            await api.delete(`/posts/${post._id}/unlike`);
-
-
-            // remove 1 from likes count
-            setLikesCount(prev => prev - 1);
-
+        if (prevLiked) {
+            const res = await api.delete(`/posts/${post._id}/unlike`);
+            if (typeof res.data?.likesCount === "number") {
+                setLikesCount(res.data.likesCount);
+            }
         } else {
-
-            // like post
-            await api.post(`/posts/${post._id}/like`, {});
-
-
-            // add 1 to likes count
-            setLikesCount(prev => prev + 1);
-
+            const res = await api.post(`/posts/${post._id}/like`, {});
+            if (typeof res.data?.likesCount === "number") {
+                setLikesCount(res.data.likesCount);
+            }
         }
-
-        setIsLiked(prev => !prev);
-
     } catch (err) {
-
-
+        // Återställ vid fel
+        setIsLiked(prevLiked);
+        setLikesCount((prev) => Math.max(0, prev + (prevLiked ? 1 : -1)));
+    } finally {
+        setIsToggling?.(false);
     }
-
 };

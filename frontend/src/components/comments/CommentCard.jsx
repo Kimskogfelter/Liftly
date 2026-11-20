@@ -1,27 +1,67 @@
-import { React, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import api from "../../api/axios";
+import { getSocket } from "../../api/socket";
 import ProfileImage from "../users/ProfileImage";
 import CommentReplyItem from "./CommentReplyItem";
 import { handleCommentLikeToggle } from "../../functions/comments/handleCommentLikeToggle";
 import { FiHeart } from "react-icons/fi";
 import TimeAgo from "react-timeago";
 
-function CommentCard({ comment, currentUser }) {
+function CommentCard({
+    comment,
+    currentUser,
+    focusedCommentId = "",
+    focusedReplyId = "",
+    highlightedId = "",
+}) {
+    const currentUserId = String(currentUser?.id || currentUser?._id || "");
 
-    const [isLiked, setIsLiked] = useState(comment.likes?.includes(currentUser?.id) || false);
+    const [isLiked, setIsLiked] = useState(
+        comment.likes?.map(String).includes(currentUserId) || false
+    );
     const [likesCount, setLikesCount] = useState(comment.likes?.length || 0);
 
     const [showReplyInput, setShowReplyInput] = useState(false);
     const [replyContent, setReplyContent] = useState("");
-    const [replyToUser, setReplyToUser] = useState(""); // Sparar vem vi svarar
+    const [replyToUser, setReplyToUser] = useState("");
     const [replies, setReplies] = useState(comment.replies || []);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    
-    // 1. NYTT STATE FÖR FELMEDDELANDE PÅ SVAR
     const [replyError, setReplyError] = useState("");
 
-    // 1. Klicka "Reply" på HUVUDKOMMENTAR
+    useEffect(() => {
+        setReplies(comment.replies || []);
+    }, [comment._id, comment.replies]);
+
+    useEffect(() => {
+        setLikesCount(comment.likes?.length || 0);
+        setIsLiked(
+            Boolean(currentUserId && comment.likes?.map(String).includes(currentUserId))
+        );
+    }, [comment._id, comment.likes, currentUserId]);
+
+    // Lyssna på nya replies i realtid för denna kommentar
+    useEffect(() => {
+        if (!comment?._id) return;
+        const socket = getSocket();
+        const commentId = String(comment._id);
+
+        const handleReplyAdded = (payload) => {
+            if (String(payload?.commentId) !== commentId || !payload?.reply) return;
+
+            setReplies((prev) =>
+                prev.some((r) => String(r._id) === String(payload.reply._id))
+                    ? prev
+                    : [...prev, payload.reply]
+            );
+        };
+
+        socket.on("comment:replied", handleReplyAdded);
+        return () => {
+            socket.off("comment:replied", handleReplyAdded);
+        };
+    }, [comment?._id]);
+
     const handleReplyToComment = () => {
         const username = comment.createdBy?.username || "";
         setReplyToUser(username);
@@ -29,7 +69,6 @@ function CommentCard({ comment, currentUser }) {
         setShowReplyInput(true);
     };
 
-    // 2. Klicka "Reply" på ett ETT SVAR (REPLY)
     const handleReplyToReply = (targetReply) => {
         const username = targetReply.createdBy?.username || "";
         setReplyToUser(username);
@@ -37,13 +76,11 @@ function CommentCard({ comment, currentUser }) {
         setShowReplyInput(true);
     };
 
-    // 2. UPPDATERAD FUNKTION FÖR ATT SKICKA SVAR MED FELHANTERING
     const handleSendReply = async (e) => {
         e.preventDefault();
         if (!replyContent.trim()) return;
 
         setIsSubmitting(true);
-        // Nollställ tidigare felmeddelanden
         setReplyError("");
 
         try {
@@ -51,24 +88,41 @@ function CommentCard({ comment, currentUser }) {
                 content: replyContent,
             });
 
-            setReplies((prev) => [...prev, response.data.reply]);
+            const createdReply = response.data.reply;
+            if (createdReply) {
+                setReplies((prev) =>
+                    prev.some((r) => String(r._id) === String(createdReply._id))
+                        ? prev
+                        : [...prev, createdReply]
+                );
+            }
+
             setReplyContent("");
             setReplyToUser("");
             setShowReplyInput(false);
         } catch (err) {
             const errorResponse = err.response?.data;
-            // Sätt felmeddelandet från servern eller ett generellt meddelande
             setReplyError(errorResponse?.message || "Could not add reply. Please try again.");
         } finally {
             setIsSubmitting(false);
         }
     };
 
-    return (
-        <section className="w-full max-w-lg mx-auto bg-white p-3 font-sans text-left border-b border-gray-50 flex flex-col gap-2">
+    // Highlighta bara huvudkommentaren om det INTE är en svarsnotis (focusedReplyId)
+    const isCommentHighlighted =
+        !focusedReplyId && String(comment._id) === String(highlightedId);
 
+    return (
+        <section
+            id={`comment-${comment._id}`}
+            className="scroll-mt-24 w-full max-w-lg mx-auto p-3 rounded-xl font-sans text-left border-b border-gray-50 flex flex-col gap-2 bg-white"
+        >
             {/* HUVUDKOMMENTAR */}
-            <div className="flex items-start gap-3">
+            <div
+                className={`flex items-start gap-3 p-2 -m-2 rounded-xl transition-colors duration-700 ease-out ${
+                    isCommentHighlighted ? "bg-gray-100" : "bg-transparent"
+                }`}
+            >
                 <div className="w-8 h-8 rounded-full overflow-hidden object-cover shrink-0">
                     <ProfileImage profileImage={comment.createdBy?.profileImage} />
                 </div>
@@ -85,7 +139,9 @@ function CommentCard({ comment, currentUser }) {
                     </div>
 
                     <div className="flex items-center gap-4 text-[10px] text-gray-400 mt-1 font-medium">
-                        <span><TimeAgo date={comment.createdAt} /></span>
+                        <span>
+                            <TimeAgo date={comment.createdAt} />
+                        </span>
                         <button
                             onClick={() => {
                                 if (showReplyInput) {
@@ -104,14 +160,25 @@ function CommentCard({ comment, currentUser }) {
 
                 {/* LIKE-KNAPP FÖR HUVUDKOMMENTAR */}
                 <div className="flex items-center gap-1 shrink-0 pt-0.5">
-                    {/* Siffran visas alltid i mörkgrått/rött */}
-                    <span className={`text-[10px] font-semibold ${isLiked ? "text-red-500" : "text-gray-500"}`}>
+                    <span
+                        className={`text-[10px] font-semibold ${
+                            isLiked ? "text-red-500" : "text-gray-500"
+                        }`}
+                    >
                         {likesCount}
                     </span>
 
                     <button
                         className="cursor-pointer transition-transform active:scale-90"
-                        onClick={() => handleCommentLikeToggle(isLiked, setIsLiked, setLikesCount, comment, currentUser)}
+                        onClick={() =>
+                            handleCommentLikeToggle(
+                                isLiked,
+                                setIsLiked,
+                                setLikesCount,
+                                comment,
+                                currentUser
+                            )
+                        }
                     >
                         <FiHeart
                             size={13}
@@ -125,10 +192,12 @@ function CommentCard({ comment, currentUser }) {
                 </div>
             </div>
 
-            {/* 3. UPPDATERAT FORMULÄR MED FELMEDDELANDE */}
+            {/* FORMULÄR FÖR SVAR */}
             {showReplyInput && (
-                // Vi lägger till 'relative' här för att felmeddelandet ska positioneras rätt
-                <form onSubmit={handleSendReply} className="pl-11 pr-2 flex gap-2 items-center my-1.5 animate-in fade-in duration-150 relative">
+                <form
+                    onSubmit={handleSendReply}
+                    className="pl-11 pr-2 flex gap-2 items-center my-1.5 animate-in fade-in duration-150 relative"
+                >
                     <input
                         type="text"
                         placeholder={`Replying to @${replyToUser}...`}
@@ -145,7 +214,6 @@ function CommentCard({ comment, currentUser }) {
                         {isSubmitting ? "Post..." : "Post"}
                     </button>
 
-                    {/* FELMEDDELANDE FÖR SVAR (visas om det finns ett fel) */}
                     {replyError && (
                         <p className="absolute left-11 -bottom-4 text-[10px] text-red-500 font-medium">
                             {replyError}
@@ -156,19 +224,31 @@ function CommentCard({ comment, currentUser }) {
 
             {/* LISTA ÖVER SVAR (REPLIES) */}
             {replies.length > 0 && (
-                <div className="pl-8 space-y-2.5 mt-1 border-l-2 border-gray-100 ml-4">
-                    {replies.map((reply) => (
-                        <CommentReplyItem
-                            key={reply._id}
-                            reply={reply}
-                            comment={comment}
-                            currentUser={currentUser}
-                            handleReplyToReply={handleReplyToReply}
-                        />
-                    ))}
+                <div className="pl-6 space-y-2 mt-1 border-l-2 border-gray-100 ml-3">
+                    {replies.map((reply) => {
+                        const isReplyHighlighted =
+                            Boolean(focusedReplyId) &&
+                            String(reply._id) === String(highlightedId);
+
+                        return (
+                            <div
+                                key={reply._id}
+                                id={`reply-${reply._id}`}
+                                className={`scroll-mt-24 p-2 rounded-xl transition-colors duration-700 ease-out ${
+                                    isReplyHighlighted ? "bg-gray-100" : "bg-transparent"
+                                }`}
+                            >
+                                <CommentReplyItem
+                                    reply={reply}
+                                    comment={comment}
+                                    currentUser={currentUser}
+                                    handleReplyToReply={handleReplyToReply}
+                                />
+                            </div>
+                        );
+                    })}
                 </div>
             )}
-
         </section>
     );
 }

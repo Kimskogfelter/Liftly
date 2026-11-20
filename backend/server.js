@@ -41,9 +41,18 @@ const io = new Server(httpServer, {
 server.set('io', io);
 
 io.on('connection', (socket) => {
-    // Låt användaren ansluta till sitt egna rum baserat på sin userId
+    // Personligt rum för notiser
     socket.on('join', (userId) => {
-        socket.join(userId);
+        if (userId) socket.join(userId.toString());
+    });
+
+    // Rum per inlägg för likes och kommentarer i realtid
+    socket.on('joinPost', (postId) => {
+        if (postId) socket.join(`post:${postId}`);
+    });
+
+    socket.on('leavePost', (postId) => {
+        if (postId) socket.leave(`post:${postId}`);
     });
 });
 

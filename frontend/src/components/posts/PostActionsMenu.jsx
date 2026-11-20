@@ -113,16 +113,20 @@ function PostActionsMenu({ post, handleDeletePost, handleEditPost, currentUser, 
 
             {/* 2. Edit Post Modal */}
             {showEditPostModal && createPortal(
-                <div 
+                <div
                     className={backdropClasses}
                     onClick={() => setShowEditPostModal(false)}
                 >
                     <div onClick={(e) => e.stopPropagation()}>
-                        <EditPostModal 
-                            currentUser={currentUser} 
-                            post={post} 
-                            handleEditPost={handleEditPost} 
-                            onClose={() => setShowEditPostModal(false)} 
+                        <EditPostModal
+                            currentUser={currentUser}
+                            post={post}
+                            handleEditPost={handleEditPost}
+                            onClose={() => setShowEditPostModal(false)}
+                            onSaved={() => {
+                                setShowEditPostModal(false);
+                                closeMenu();
+                            }}
                         />
                     </div>
                 </div>,
@@ -131,16 +135,16 @@ function PostActionsMenu({ post, handleDeletePost, handleEditPost, currentUser, 
 
             {/* 3. Delete Post Modal */}
             {showDeletePostModal && createPortal(
-                <div 
+                <div
                     className={backdropClasses}
                     onClick={() => setShowDeletePostModal(false)}
                 >
                     <div onClick={(e) => e.stopPropagation()}>
-                        <DeletePostModal 
-                            currentUser={currentUser} 
-                            post={post} 
-                            handleDeletePost={handleDeletePost} 
-                            onClose={() => setShowDeletePostModal(false)} 
+                        <DeletePostModal
+                            currentUser={currentUser}
+                            post={post}
+                            handleDeletePost={handleDeletePost}
+                            onClose={() => setShowDeletePostModal(false)}
                         />
                     </div>
                 </div>,
@@ -150,12 +154,12 @@ function PostActionsMenu({ post, handleDeletePost, handleEditPost, currentUser, 
             {/* 4. Report Post Modal */}
             {showReportPostModal && createPortal(
                 <div onClick={(e) => e.stopPropagation()}>
-                    <ReportPostModal 
-                        postId={post._id} 
+                    <ReportPostModal
+                        postId={post._id}
                         onClose={() => {
                             setShowReportPostModal(false);
                             closeMenu();
-                        }} 
+                        }}
                     />
                 </div>,
                 document.body

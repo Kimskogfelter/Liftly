@@ -4,7 +4,7 @@ import NotificationModal from "../notifications/NotificationModal";
 import { useState, useEffect } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import api from "../../api/axios";
-import { createAppSocket } from "../../api/socket";
+import { createAppSocket, disconnectAppSocket } from "../../api/socket";
 
 function AppLayout({ currentUser, setCurrentUser }) {
     const [showCreatePost, setShowCreatePost] = useState(false);
@@ -30,7 +30,10 @@ function AppLayout({ currentUser, setCurrentUser }) {
     };
 
     useEffect(() => {
-        if (!currentUser) return;
+        if (!currentUser) {
+            disconnectAppSocket();
+            return;
+        }
 
         api.get("/notifications")
             .then((res) => {
@@ -45,13 +48,15 @@ function AppLayout({ currentUser, setCurrentUser }) {
         const userId = currentUser.id || currentUser._id;
         const socket = createAppSocket(userId);
 
-        socket.on("newNotification", (newNotif) => {
+        const handleNewNotification = (newNotif) => {
             setNotifications((prev) => [newNotif, ...prev]);
             setUnreadCount((prev) => prev + 1);
-        });
+        };
+
+        socket.on("newNotification", handleNewNotification);
 
         return () => {
-            socket.disconnect();
+            socket.off("newNotification", handleNewNotification);
         };
     }, [currentUser]);
 

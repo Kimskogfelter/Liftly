@@ -66,7 +66,8 @@ export const createComment = async (req, res, next) => {
                 sender: req.user.id,
                 type: 'comment',
                 message: 'commented on your post.',
-                post: postId
+                post: postId,
+                comment: newComment._id
             });
 
             // Populera sender så att username och profileImage följer med i realtid
@@ -88,6 +89,14 @@ export const createComment = async (req, res, next) => {
                     { postId: postId.toString() }
                 );
             }
+        }
+
+        const io = req.app.get('io');
+        if (io) {
+            io.to(`post:${postId}`).emit('comment:created', {
+                postId: postId.toString(),
+                comment: newComment,
+            });
         }
 
         return res.status(201).json({ message: 'Comment created: ', newComment });
@@ -258,7 +267,9 @@ export const replyComment = async (req, res, next) => {
                 sender: req.user.id,
                 type: 'comment',
                 message: 'replied to your comment.',
-                post: comment.post
+                post: comment.post,
+                comment: comment._id,
+                replyId: addedReply?._id || null
             });
 
             // Populera sender så att username och profileImage följer med i realtid
@@ -280,6 +291,16 @@ export const replyComment = async (req, res, next) => {
                     { postId: comment.post.toString() }
                 );
             }
+        }
+
+
+        const io = req.app.get('io');
+        if (io) {
+            io.to(`post:${comment.post.toString()}`).emit('comment:replied', {
+                postId: comment.post.toString(),
+                commentId: comment._id.toString(),
+                reply: addedReply,
+            });
         }
 
         return res.status(201).json({

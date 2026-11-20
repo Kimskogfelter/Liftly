@@ -27,7 +27,7 @@ const PostFooter = ({
                     <div className="flex items-center gap-1.5">
                         <button
                             className={`text-lg cursor-pointer transition-transform active:scale-90 ${isLiked ? "text-red-500" : "text-black hover:text-gray-600"}`}
-                            onClick={() => handlePostLikeToggle(isLiked, setIsLiked, setLikesCount, post, currentUser)}
+                            onClick={() => handlePostLikeToggle()}
                         >
                             {isLiked ? <FiHeart className="fill-red-500 text-red-500" size={18} /> : <FiHeart size={18} />}
                         </button>

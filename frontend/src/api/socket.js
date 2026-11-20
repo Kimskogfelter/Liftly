@@ -1,13 +1,14 @@
 import { io } from "socket.io-client";
 import { Capacitor } from "@capacitor/core";
 
+let socketInstance = null;
+let currentSocketUserId = null;
+
 export function getApiBaseUrl() {
     const isNative = Capacitor.isNativePlatform();
     const isDev = import.meta.env.DEV;
 
     if (isNative) {
-        // Använd VITE_NATIVE_API_URL om du bygger en APK mot live,
-        // annars 10.0.2.2 för lokal backend i Android-emulatorn.
         return import.meta.env.VITE_NATIVE_API_URL || "http://10.0.2.2:5000/api";
     }
 
@@ -30,25 +31,46 @@ export function getServerBaseUrl() {
     return import.meta.env.DEV ? "http://localhost:5000" : "https://api.liftlyfit.com";
 }
 
+export function getSocket() {
+    if (!socketInstance) {
+        const socketUrl = getServerBaseUrl();
+        console.log("[Socket] Connecting to:", socketUrl);
+
+        socketInstance = io(socketUrl, {
+            withCredentials: true,
+            transports: ["websocket", "polling"],
+        });
+
+        socketInstance.on("connect", () => {
+            console.log("[Socket] Connected:", socketInstance.id);
+            if (currentSocketUserId) {
+                socketInstance.emit("join", currentSocketUserId);
+            }
+        });
+
+        socketInstance.on("connect_error", (err) => {
+            console.log("[Socket] Connection error:", err.message);
+        });
+    }
+
+    return socketInstance;
+}
+
 export function createAppSocket(userId) {
-    const socketUrl = getServerBaseUrl();
-    console.log("[Socket] Connecting to:", socketUrl);
+    currentSocketUserId = userId ? String(userId) : null;
+    const socket = getSocket();
 
-    const socket = io(socketUrl, {
-        withCredentials: true,
-        transports: ["websocket", "polling"],
-    });
-
-    socket.on("connect", () => {
-        console.log("[Socket] Connected:", socket.id);
-        if (userId) {
-            socket.emit("join", userId);
-        }
-    });
-
-    socket.on("connect_error", (err) => {
-        console.log("[Socket] Connection error:", err.message);
-    });
+    if (socket.connected && currentSocketUserId) {
+        socket.emit("join", currentSocketUserId);
+    }
 
     return socket;
+}
+
+export function disconnectAppSocket() {
+    currentSocketUserId = null;
+    if (socketInstance) {
+        socketInstance.disconnect();
+        socketInstance = null;
+    }
 }

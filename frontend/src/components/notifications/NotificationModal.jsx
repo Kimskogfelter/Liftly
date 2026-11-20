@@ -40,7 +40,16 @@ function NotificationModal({ currentUser, notifications, setNotifications, unrea
         // Navigera baserat på notis-typ
         if (notif.type === 'like' || notif.type === 'comment') {
             if (notif.post) {
-                navigate(`/posts/${notif.post}`); // Eller om du visar inlägg på en specifik sida/modal
+                const postId = String(notif.post._id || notif.post);
+                const commentId = notif.comment ? String(notif.comment._id || notif.comment) : "";
+                const replyId = notif.replyId ? String(notif.replyId) : "";
+
+                const params = new URLSearchParams();
+                if (commentId) params.set("commentId", commentId);
+                if (replyId) params.set("replyId", replyId);
+
+                const query = params.toString();
+                navigate(query ? `/posts/${postId}?${query}` : `/posts/${postId}`);
             }
         } else if (notif.type === 'follow') {
             if (notif.sender?._id) {

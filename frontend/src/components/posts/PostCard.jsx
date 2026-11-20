@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { getSocket } from "../../api/socket";
 import { handlePostLikeToggle } from "../../functions/posts/handlePostLikeToggle";
 import { handleSavePost } from "../../functions/posts/handleSavePost";
 import { createSpotifyEmbedUrl } from "../../functions/spotify/spotify";
@@ -11,7 +12,6 @@ import PostMedia from "./PostMedia";
 import PostRecipe from "./PostRecipe";
 import PostFooter from "./PostFooter";
 
-// funktion för att formatera datumstämpel
 const customTimeFormatter = (value, unit) => {
     const unitMap = {
         second: "s",
@@ -26,13 +26,20 @@ const customTimeFormatter = (value, unit) => {
 };
 
 function PostCard({ post, currentUser, setCurrentUser, handleEditPost, handleDeletePost, getSavedPosts, isDetailView }) {
+    const currentUserId = String(currentUser?.id || currentUser?._id || "");
+    const postId = String(post?._id || "");
 
     const [showPostActions, setShowPostActions] = useState(false);
-    const [likesCount, setLikesCount] = useState(post.likes?.length || 0);
-    const [isLiked, setIsLiked] = useState(post.likes?.includes(currentUser?.id) || false);
-    const [isSaved, setIsSaved] = useState(currentUser?.savedPosts?.map(String).includes(String(post._id)) || false);
+    const [isTogglingLike, setIsTogglingLike] = useState(false);
 
-    // State för att hålla koll på antalet kommentarer och uppdatera direkt
+    const [likesCount, setLikesCount] = useState(post.likes?.length || 0);
+    const [isLiked, setIsLiked] = useState(
+        Boolean(currentUserId && post.likes?.map(String).includes(currentUserId))
+    );
+    const [isSaved, setIsSaved] = useState(
+        currentUser?.savedPosts?.map(String).includes(postId) || false
+    );
+
     const [commentsCount, setCommentsCount] = useState(
         post.comments?.reduce(
             (total, comment) => total + 1 + (comment.replies?.length || 0),
@@ -40,15 +47,83 @@ function PostCard({ post, currentUser, setCurrentUser, handleEditPost, handleDel
         ) || 0
     );
 
-    // Lyssna på globalt event när en ny kommentar skapas
+    // Håll koll på om vi nyligen gjort en lokal like/unlike så vi inte skriver över med gammal prop
+    const lastLocalLikeActionRef = useRef(0);
+
+    // Synka initialt när postId eller currentUserId ändras
     useEffect(() => {
-        const handleCommentCreated = () => {
+        if (!postId) return;
+        setLikesCount(post.likes?.length || 0);
+        setIsLiked(Boolean(currentUserId && post.likes?.map(String).includes(currentUserId)));
+    }, [postId, currentUserId]);
+
+    // Synka om post.likes uppdateras utifrån (t.ex. post:updated) och det inte var ett lokalt klick precis nyss
+    useEffect(() => {
+        if (!postId || !Array.isArray(post.likes)) return;
+        const msSinceLocalClick = Date.now() - lastLocalLikeActionRef.current;
+        if (msSinceLocalClick < 1500) return;
+
+        setLikesCount(post.likes.length);
+        setIsLiked(Boolean(currentUserId && post.likes.map(String).includes(currentUserId)));
+    }, [post.likes, postId, currentUserId]);
+
+    // Synka sparat-status när currentUser ändras
+    useEffect(() => {
+        setIsSaved(currentUser?.savedPosts?.map(String).includes(postId) || false);
+    }, [currentUser?.savedPosts, postId]);
+
+    // Prenumerera på post:${post._id} via Socket.io
+    useEffect(() => {
+        if (!postId) return;
+        const socket = getSocket();
+
+        socket.emit("joinPost", postId);
+
+        const handleLiked = (payload) => {
+            if (String(payload?.postId) !== postId) return;
+
+            if (typeof payload.likesCount === "number") {
+                setLikesCount(payload.likesCount);
+            }
+            if (currentUserId && String(payload.userId) === currentUserId) {
+                setIsLiked(true);
+            }
+        };
+
+        const handleUnliked = (payload) => {
+            if (String(payload?.postId) !== postId) return;
+
+            if (typeof payload.likesCount === "number") {
+                setLikesCount(payload.likesCount);
+            }
+            if (currentUserId && String(payload.userId) === currentUserId) {
+                setIsLiked(false);
+            }
+        };
+
+        const handleCommentCreated = (payload) => {
+            if (String(payload?.postId) !== postId) return;
             setCommentsCount((prev) => prev + 1);
         };
 
-        window.addEventListener("commentCreated", handleCommentCreated);
-        return () => window.removeEventListener("commentCreated", handleCommentCreated);
-    }, []);
+        const handleCommentReplied = (payload) => {
+            if (String(payload?.postId) !== postId) return;
+            setCommentsCount((prev) => prev + 1);
+        };
+
+        socket.on("post:liked", handleLiked);
+        socket.on("post:unliked", handleUnliked);
+        socket.on("comment:created", handleCommentCreated);
+        socket.on("comment:replied", handleCommentReplied);
+
+        return () => {
+            socket.emit("leavePost", postId);
+            socket.off("post:liked", handleLiked);
+            socket.off("post:unliked", handleUnliked);
+            socket.off("comment:created", handleCommentCreated);
+            socket.off("comment:replied", handleCommentReplied);
+        };
+    }, [postId, currentUserId]);
 
     const [fullsizeImage, setFullsizeImage] = useState(null);
 
@@ -79,7 +154,19 @@ function PostCard({ post, currentUser, setCurrentUser, handleEditPost, handleDel
         }
     };
 
-    // Visar enbart underkategorin (eller kategorin om subCategory saknas)
+    const onLikeClick = () => {
+        lastLocalLikeActionRef.current = Date.now();
+        handlePostLikeToggle(
+            isLiked,
+            setIsLiked,
+            setLikesCount,
+            post,
+            currentUser,
+            isTogglingLike,
+            setIsTogglingLike
+        );
+    };
+
     const displayCategory = post.subCategory || post.category || "General";
 
     return (
@@ -103,7 +190,6 @@ function PostCard({ post, currentUser, setCurrentUser, handleEditPost, handleDel
                         onClick={!isDetailView ? handleCardClick : undefined}
                         className={`block group text-left ${!isDetailView ? "cursor-pointer transition-opacity hover:opacity-95" : ""}`}
                     >
-
                         {/* MEDIA HÖGST UPP */}
                         <PostMedia
                             hasMedia={hasMedia}
@@ -181,7 +267,7 @@ function PostCard({ post, currentUser, setCurrentUser, handleEditPost, handleDel
                     isSaved={isSaved}
                     setIsSaved={setIsSaved}
                     commentsCount={commentsCount}
-                    handlePostLikeToggle={handlePostLikeToggle}
+                    handlePostLikeToggle={onLikeClick}
                     handleSavePost={handleSavePost}
                     getSavedPosts={getSavedPosts}
                 />

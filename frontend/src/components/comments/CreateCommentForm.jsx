@@ -1,10 +1,7 @@
-import React from "react";
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState } from "react";
 import api from "../../api/axios";
 
-function CreateCommentForm({ currentUser, comments, setComments, postId }) {
-
+function CreateCommentForm({ setComments, postId }) {
   const [content, setContent] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -19,12 +16,15 @@ function CreateCommentForm({ currentUser, comments, setComments, postId }) {
     try {
       const response = await api.post(`/posts/${postId}/comments/create`, { content, postId });
       const newComment = response.data.newComment;
-      
-      setComments([newComment, ...comments]);
-      setContent("");
-      // Trigga ett globalt event så att PostCard-komponenter i flödet direkt kan uppdatera sin kommentarsräknare
-      window.dispatchEvent(new Event("commentCreated"));
 
+      if (newComment) {
+        setComments((prev) =>
+          prev.some((c) => String(c._id) === String(newComment._id))
+            ? prev
+            : [newComment, ...prev]
+        );
+      }
+      setContent("");
     } catch (err) {
       const errorResponse = err.response?.data;
       setError(errorResponse?.message || "Your comment could not be created. Please try again.");

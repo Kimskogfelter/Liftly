@@ -1,14 +1,12 @@
 import React, { useState } from "react";
 import api from "../../api/axios";
-import { useNavigate } from "react-router-dom";
 import { FiPlus } from "react-icons/fi";
 import { FaRegTrashAlt } from "react-icons/fa";
 import { IoClose } from "react-icons/io5";
 
-function EditPostModal({ onClose, handleEditPost, post, currentUser }) {
+function EditPostModal({ onClose, onSaved, handleEditPost, post, currentUser }) {
 
   const postId = post._id;
-  const navigate = useNavigate();
   const [content, setContent] = useState(post.content || "");
 
   // Recept-states (använder ?? "" så 0 bevaras i fälten)
@@ -133,15 +131,16 @@ function EditPostModal({ onClose, handleEditPost, post, currentUser }) {
 
     try {
       const response = await api.patch(`/posts/${postId}/update`, updatedData);
-
       const updatedPost = response.data.updatedPost;
-      handleEditPost(updatedPost);
-
-      if (response.status === 200) {
-        navigate('/home');
+      if (handleEditPost && updatedPost) {
+        handleEditPost(updatedPost);
       }
 
-      onClose();
+      if (onSaved) {
+        onSaved();
+      } else {
+        onClose();
+      }
 
     } catch (err) {
       const errorResponse = err.response?.data;

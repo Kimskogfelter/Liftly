@@ -118,6 +118,13 @@ export const createPost = async (req, res, next) => {
         // 7. Update users database information with new post
         await User.findByIdAndUpdate(newPost.createdBy, { $push: { posts: newPost._id } });
 
+        await newPost.populate("createdBy", "username profileImage");
+
+        const io = req.app.get('io');
+        if (io) {
+            io.emit('post:created', newPost);
+        }
+
         return res.status(201).json({ message: 'Post created successfully', newPost });
 
     } catch (error) {
@@ -250,6 +257,13 @@ export const getUserPosts = async (req, res, next) => {
         const [userPosts, totalPosts] = await Promise.all([
             Post.find(query)
                 .populate("createdBy", "username profileImage")
+                .populate({
+                    path: "comments",
+                    populate: [
+                        { path: "createdBy", select: "username profileImage" },
+                        { path: "replies.createdBy", select: "username profileImage" }
+                    ]
+                })
                 .sort({ createdAt: -1 })
                 .skip(skip)
                 .limit(limit),
@@ -603,6 +617,15 @@ export const likePost = async (req, res, next) => {
             }
         }
 
+        const io = req.app.get('io');
+        if (io) {
+            io.to(`post:${postId}`).emit('post:liked', {
+                postId: postId.toString(),
+                userId: req.user.id.toString(),
+                likesCount: likedPost.likes.length,
+            });
+        }
+
         return res.status(200).json({
             message: "Post liked",
             likesCount: likedPost.likes.length,
@@ -651,6 +674,15 @@ export const unlikePost = async (req, res, next) => {
         if (alreadyLikedPost) {
 
             const unlikedPost = await Post.findByIdAndUpdate(postId, { $pull: { likes: req.user.id } }, { new: true })
+
+            const io = req.app.get('io');
+            if (io) {
+                io.to(`post:${postId}`).emit('post:unliked', {
+                    postId: postId.toString(),
+                    userId: req.user.id.toString(),
+                    likesCount: unlikedPost.likes.length,
+                });
+            }
 
             return res.status(200).json({
                 message: "Post unliked",
@@ -792,6 +824,11 @@ export const updatePost = async (req, res, next) => {
             { new: true, runValidators: true }
         ).populate("createdBy", "username profileImage");
 
+        const io = req.app.get('io');
+        if (io) {
+            io.emit('post:updated', updatedPost);
+        }
+
         // success message
         return res.status(200).json({ message: "Post updated: ", updatedPost })
 
@@ -863,6 +900,11 @@ export const deletePost = async (req, res, next) => {
 
         // delete post
         await Post.findByIdAndDelete(postId);
+
+        const io = req.app.get('io');
+        if (io) {
+            io.emit('post:deleted', { postId: postId.toString() });
+        }
 
         return res.status(200).json(`Post with id: ${postId} was successfully removed from saved post lists and deleted from database`)
 
