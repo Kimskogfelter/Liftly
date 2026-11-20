@@ -1,6 +1,8 @@
 import React from 'react';
 import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 
+const DEFAULT_CROP = { x: 50, y: 20, zoom: 1 };
+
 const PostMedia = ({
     hasMedia,
     isVideo,
@@ -14,8 +16,24 @@ const PostMedia = ({
 }) => {
     if (!hasMedia) return null;
 
+    const rawCrop = post?.mediaCrops?.[currentMediaIndex];
+    const crop = {
+        x: Number.isFinite(Number(rawCrop?.x)) ? Number(rawCrop.x) : DEFAULT_CROP.x,
+        y: Number.isFinite(Number(rawCrop?.y)) ? Number(rawCrop.y) : DEFAULT_CROP.y,
+        zoom: Number.isFinite(Number(rawCrop?.zoom)) ? Number(rawCrop.zoom) : DEFAULT_CROP.zoom,
+    };
+
+    const mediaStyle = {
+        objectPosition: `${crop.x}% ${crop.y}%`,
+        transformOrigin: `${crop.x}% ${crop.y}%`,
+        transform: crop.zoom > 1 ? `scale(${crop.zoom})` : undefined,
+    };
+
     return (
-        <div className="relative w-[calc(100%+2rem)] -mx-4 -mt-1 mb-3 bg-gray-100 flex items-center justify-center overflow-hidden">
+        <div
+            data-feed-media="true"
+            className="relative w-[calc(100%+2rem)] -mx-4 -mt-1 mb-3 bg-gray-100 flex items-center justify-center overflow-hidden"
+        >
             {isVideo ? (
                 <video
                     src={currentMediaUrl}
@@ -23,13 +41,15 @@ const PostMedia = ({
                     loop={true}
                     playsInline={true}
                     muted={true}
-                    className="w-full h-80 object-cover"
+                    style={mediaStyle}
+                    className="w-full h-96 object-cover"
                 />
             ) : (
                 <img
                     src={currentMediaUrl}
                     alt="Post media"
-                    className={`w-full h-80 object-cover object-[center_20%] ${isDetailView ? "cursor-zoom-in" : ""}`}
+                    style={mediaStyle}
+                    className={`w-full h-96 object-cover ${isDetailView ? "cursor-zoom-in" : ""}`}
                     onClick={(e) => {
                         if (isDetailView) {
                             e.preventDefault();

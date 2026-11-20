@@ -45,10 +45,19 @@ const recipeSchema = new mongoose.Schema({
     instructions: [{ type: String }]
 }, { _id: false });
 
+// Sub-schema för utsnitt/fokus per bild (matchar index i `media`)
+const mediaCropSchema = new mongoose.Schema({
+    x: { type: Number, default: 50, min: 0, max: 100 },
+    y: { type: Number, default: 20, min: 0, max: 100 },
+    zoom: { type: Number, default: 1, min: 1, max: 3 }
+}, { _id: false });
+
 // schema for post
 const postSchema = new mongoose.Schema({
     createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
     media: [{ type: String }],
+    // Utsnitt/fokus per media-fil i samma ordning som `media`
+    mediaCrops: [mediaCropSchema],
     content: { type: String },
     spotifyUrl: { type: String, default: "" },
     comments: [{ type: Schema.Types.ObjectId, ref: "Comment" }],

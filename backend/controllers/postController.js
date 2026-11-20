@@ -14,6 +14,8 @@ import { Notification } from "../models/notificationModel.js";
 import 'dotenv/config';
 // funktion för pagination/scroll
 import { getPagination, formatPaginatedResponse } from '../utils/pagination.js';
+// media crop funktion
+import { normalizeMediaCrops } from '../utils/mediaCropUtils.js';
 
 // bad words filter for create and edit post
 import { createRequire } from 'module';
@@ -38,7 +40,7 @@ export const createPost = async (req, res, next) => {
         }
 
         // get inputs from frontend (including optional recipe, calendarShare from calendar, workoutShare from completed session)
-        const { content, hashtags, category, subCategory, spotifyUrl, recipe, calendarShare, workoutShare } = req.body;
+        const { content, hashtags, category, subCategory, spotifyUrl, recipe, calendarShare, workoutShare, mediaCrops } = req.body;
 
         // Kontrollera om inlägget innehåller fula ord
         if (content && filter.isProfane(content)) {
@@ -107,6 +109,7 @@ export const createPost = async (req, res, next) => {
         // 5. Add MEDIA only if user have chosen an image/video
         if (mediaFiles.length > 0) {
             postObject.media = mediaFiles;
+            postObject.mediaCrops = normalizeMediaCrops(mediaCrops, mediaFiles.length);
         }
 
         // 6. Create post once in database with finished post object
