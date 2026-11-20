@@ -530,60 +530,101 @@ export const unlikeCommentReply = async (req, res, next) => {
 // PROTECTED
 
 export const deleteComment = async (req, res, next) => {
-
-
-
     try {
-
-        // fetch comment id from url params
         const { commentId } = req.params;
 
-        // check id
         if (!mongoose.Types.ObjectId.isValid(commentId)) {
             return res.status(404).json({ message: 'Comment Id is not valid' });
         }
 
-        // find comment
         const comment = await Comment.findById(commentId);
-
-        // check if comments exists
         if (!comment) {
-
             return res.status(404).json({ message: 'Comment not found' });
-
         }
 
-        // check if the user is the correct user
-        // converting createdBy objectId to string so the createdBy id can be compared to the logged in users id
         if (comment.createdBy.toString() !== req.user.id) {
-            return res.status(403).json({ message: 'You cant delete this comment' })
+            return res.status(403).json({ message: 'You cant delete this comment' });
         }
 
+        const postId = comment.post.toString();
+        const removedCount = 1 + (comment.replies?.length || 0);
 
-        // find correct post for comment in database
-        const postId = comment.post;
-
-
-        // remove comment from post
         await Post.findByIdAndUpdate(postId, {
             $pull: { comments: commentId }
-        })
+        });
 
-        // delete comment
         await Comment.findByIdAndDelete(commentId);
-        return res.status(200).json(`Comment with id: ${commentId} was successfully removed from post: ${postId} and deleted from database`)
+        await Notification.deleteMany({ comment: commentId });
 
+        const io = req.app.get('io');
+        if (io) {
+            io.to(`post:${postId}`).emit('comment:deleted', {
+                postId,
+                commentId: commentId.toString(),
+                removedCount,
+            });
+        }
 
-
-
-
+        return res.status(200).json({
+            message: "Comment deleted successfully",
+            commentId: commentId.toString(),
+            postId,
+            removedCount,
+        });
     } catch (error) {
-        // Om något går fel när vi försöker radera användaren:
-        // 1. Vi tar det fel som fångas upp i 'catch' (det som kallas 'error')
-        // 2. Vi skapar ett nytt fel-objekt av typen HttpError med det här felmeddelandet
-        // 3. Vi skickar det nya fel-objektet vidare till Express med 'next()'
-        //    → Express vet då att något gick fel och kan skicka tillbaka ett HTTP-fel till klienten
-        return next(new HttpError(error.message || "Could not delete comment", 500))
+        return next(new HttpError(error.message || "Could not delete comment", 500));
     }
+};
 
-}
+
+// ---------------------------- DELETE COMMENT REPLY --------------------------- 
+// DELETE req: api/posts/comments/:commentId/replies/:replyId
+// PROTECTED
+
+export const deleteCommentReply = async (req, res, next) => {
+    try {
+        const { commentId, replyId } = req.params;
+
+        if (!mongoose.Types.ObjectId.isValid(commentId) || !mongoose.Types.ObjectId.isValid(replyId)) {
+            return res.status(404).json({ message: "Invalid ID format" });
+        }
+
+        const comment = await Comment.findById(commentId);
+        if (!comment) {
+            return res.status(404).json({ message: "Comment not found" });
+        }
+
+        const reply = comment.replies.id(replyId);
+        if (!reply) {
+            return res.status(404).json({ message: "Reply not found" });
+        }
+
+        if (reply.createdBy.toString() !== req.user.id) {
+            return res.status(403).json({ message: "You cant delete this reply" });
+        }
+
+        const postId = comment.post.toString();
+
+        reply.deleteOne();
+        await comment.save();
+        await Notification.deleteMany({ replyId });
+
+        const io = req.app.get('io');
+        if (io) {
+            io.to(`post:${postId}`).emit('comment:replyDeleted', {
+                postId,
+                commentId: comment._id.toString(),
+                replyId: replyId.toString(),
+            });
+        }
+
+        return res.status(200).json({
+            message: "Reply deleted successfully",
+            commentId: comment._id.toString(),
+            replyId: replyId.toString(),
+            postId,
+        });
+    } catch (error) {
+        return next(new HttpError(error.message || "Could not delete reply", 500));
+    }
+};

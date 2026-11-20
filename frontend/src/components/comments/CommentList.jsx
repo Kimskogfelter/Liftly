@@ -7,14 +7,20 @@ const LOAD_STEP = 10;
 const countCommentWithReplies = (comment) =>
     1 + (comment?.replies?.length || 0);
 
-function CommentList({ comments, currentUser, focusedCommentId = "", focusedReplyId = "" }) {
+function CommentList({
+    comments,
+    currentUser,
+    focusedCommentId = "",
+    focusedReplyId = "",
+    onCommentDeleted,
+    onReplyDeleted,
+}) {
     const [visibleCount, setVisibleCount] = useState(INITIAL_COUNT);
     const [highlightedId, setHighlightedId] = useState("");
     const scrolledTargetRef = useRef("");
 
     const targetId = focusedReplyId || focusedCommentId;
 
-    // Expandera listan så den kommentar (eller föräldrakommentar till svaret) som notisen pekar på syns
     useEffect(() => {
         if (!targetId || comments.length === 0) return;
 
@@ -32,7 +38,6 @@ function CommentList({ comments, currentUser, focusedCommentId = "", focusedRepl
         }
     }, [targetId, comments, focusedCommentId, focusedReplyId, visibleCount]);
 
-    // Scrolla mjukt till rätt kommentar eller svar och tona ut markeringen efter 2,5s
     useEffect(() => {
         if (!targetId || comments.length === 0) return;
         if (scrolledTargetRef.current === targetId) return;
@@ -93,6 +98,8 @@ function CommentList({ comments, currentUser, focusedCommentId = "", focusedRepl
                     focusedCommentId={focusedCommentId}
                     focusedReplyId={focusedReplyId}
                     highlightedId={highlightedId}
+                    onCommentDeleted={onCommentDeleted}
+                    onReplyDeleted={onReplyDeleted}
                 />
             ))}
 

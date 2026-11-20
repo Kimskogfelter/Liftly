@@ -4,6 +4,7 @@ import api from "../../api/axios";
 import { getSocket } from "../../api/socket";
 import ProfileImage from "../users/ProfileImage";
 import CommentReplyItem from "./CommentReplyItem";
+import DeleteCommentModal from "./DeleteCommentModal";
 import { handleCommentLikeToggle } from "../../functions/comments/handleCommentLikeToggle";
 import { FiHeart } from "react-icons/fi";
 import TimeAgo from "react-timeago";
@@ -14,8 +15,12 @@ function CommentCard({
     focusedCommentId = "",
     focusedReplyId = "",
     highlightedId = "",
+    onCommentDeleted,
+    onReplyDeleted,
 }) {
     const currentUserId = String(currentUser?.id || currentUser?._id || "");
+    const commentOwnerId = String(comment.createdBy?._id || comment.createdBy || "");
+    const isCommentOwner = Boolean(currentUserId && commentOwnerId === currentUserId);
 
     const [isLiked, setIsLiked] = useState(
         comment.likes?.map(String).includes(currentUserId) || false
@@ -28,6 +33,7 @@ function CommentCard({
     const [replies, setReplies] = useState(comment.replies || []);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [replyError, setReplyError] = useState("");
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
 
     useEffect(() => {
         setReplies(comment.replies || []);
@@ -40,7 +46,7 @@ function CommentCard({
         );
     }, [comment._id, comment.likes, currentUserId]);
 
-    // Lyssna på nya replies i realtid för denna kommentar
+    // Lyssna på nya och raderade replies i realtid för denna kommentar
     useEffect(() => {
         if (!comment?._id) return;
         const socket = getSocket();
@@ -56,9 +62,18 @@ function CommentCard({
             );
         };
 
+        const handleReplyDeleted = (payload) => {
+            if (String(payload?.commentId) !== commentId || !payload?.replyId) return;
+            setReplies((prev) =>
+                prev.filter((r) => String(r._id) !== String(payload.replyId))
+            );
+        };
+
         socket.on("comment:replied", handleReplyAdded);
+        socket.on("comment:replyDeleted", handleReplyDeleted);
         return () => {
             socket.off("comment:replied", handleReplyAdded);
+            socket.off("comment:replyDeleted", handleReplyDeleted);
         };
     }, [comment?._id]);
 
@@ -108,7 +123,15 @@ function CommentCard({
         }
     };
 
-    // Highlighta bara huvudkommentaren om det INTE är en svarsnotis (focusedReplyId)
+    const handleLocalReplyDeleted = (deletedReplyId) => {
+        setReplies((prev) =>
+            prev.filter((r) => String(r._id) !== String(deletedReplyId))
+        );
+        if (onReplyDeleted) {
+            onReplyDeleted(comment._id, deletedReplyId);
+        }
+    };
+
     const isCommentHighlighted =
         !focusedReplyId && String(comment._id) === String(highlightedId);
 
@@ -155,6 +178,15 @@ function CommentCard({
                         >
                             {showReplyInput ? "Cancel" : "Reply"}
                         </button>
+
+                        {isCommentOwner && (
+                            <button
+                                onClick={() => setShowDeleteModal(true)}
+                                className="hover:text-red-500 transition-colors cursor-pointer font-semibold"
+                            >
+                                Delete
+                            </button>
+                        )}
                     </div>
                 </div>
 
@@ -243,11 +275,26 @@ function CommentCard({
                                     comment={comment}
                                     currentUser={currentUser}
                                     handleReplyToReply={handleReplyToReply}
+                                    onReplyDeleted={handleLocalReplyDeleted}
                                 />
                             </div>
                         );
                     })}
                 </div>
+            )}
+
+            {/* BEKRÄFTELSEMODAL FÖR RADERING AV HUVUDKOMMENTAR */}
+            {showDeleteModal && (
+                <DeleteCommentModal
+                    targetType="comment"
+                    commentId={comment._id}
+                    onClose={() => setShowDeleteModal(false)}
+                    onDeleted={(deletedId) => {
+                        if (onCommentDeleted) {
+                            onCommentDeleted(deletedId);
+                        }
+                    }}
+                />
             )}
         </section>
     );

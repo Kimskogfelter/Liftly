@@ -25,6 +25,15 @@ const customTimeFormatter = (value, unit) => {
     return `${value}${unitMap[unit] || unit.charAt(0)}`;
 };
 
+const calcCommentsTotal = (commentsArr) =>
+    (commentsArr || []).reduce(
+        (total, comment) =>
+            total +
+            1 +
+            (comment && typeof comment === "object" ? comment.replies?.length || 0 : 0),
+        0
+    );
+
 function PostCard({ post, currentUser, setCurrentUser, handleEditPost, handleDeletePost, getSavedPosts, isDetailView }) {
     const currentUserId = String(currentUser?.id || currentUser?._id || "");
     const postId = String(post?._id || "");
@@ -40,24 +49,18 @@ function PostCard({ post, currentUser, setCurrentUser, handleEditPost, handleDel
         currentUser?.savedPosts?.map(String).includes(postId) || false
     );
 
-    const [commentsCount, setCommentsCount] = useState(
-        post.comments?.reduce(
-            (total, comment) => total + 1 + (comment.replies?.length || 0),
-            0
-        ) || 0
+    const [commentsCount, setCommentsCount] = useState(() =>
+        calcCommentsTotal(post.comments)
     );
 
-    // Håll koll på om vi nyligen gjort en lokal like/unlike så vi inte skriver över med gammal prop
     const lastLocalLikeActionRef = useRef(0);
 
-    // Synka initialt när postId eller currentUserId ändras
     useEffect(() => {
         if (!postId) return;
         setLikesCount(post.likes?.length || 0);
         setIsLiked(Boolean(currentUserId && post.likes?.map(String).includes(currentUserId)));
     }, [postId, currentUserId]);
 
-    // Synka om post.likes uppdateras utifrån (t.ex. post:updated) och det inte var ett lokalt klick precis nyss
     useEffect(() => {
         if (!postId || !Array.isArray(post.likes)) return;
         const msSinceLocalClick = Date.now() - lastLocalLikeActionRef.current;
@@ -67,12 +70,15 @@ function PostCard({ post, currentUser, setCurrentUser, handleEditPost, handleDel
         setIsLiked(Boolean(currentUserId && post.likes.map(String).includes(currentUserId)));
     }, [post.likes, postId, currentUserId]);
 
-    // Synka sparat-status när currentUser ändras
+    useEffect(() => {
+        if (!postId || !Array.isArray(post.comments)) return;
+        setCommentsCount(calcCommentsTotal(post.comments));
+    }, [post.comments, postId]);
+
     useEffect(() => {
         setIsSaved(currentUser?.savedPosts?.map(String).includes(postId) || false);
     }, [currentUser?.savedPosts, postId]);
 
-    // Prenumerera på post:${post._id} via Socket.io
     useEffect(() => {
         if (!postId) return;
         const socket = getSocket();
@@ -111,10 +117,23 @@ function PostCard({ post, currentUser, setCurrentUser, handleEditPost, handleDel
             setCommentsCount((prev) => prev + 1);
         };
 
+        const handleCommentDeleted = (payload) => {
+            if (String(payload?.postId) !== postId) return;
+            const step = typeof payload?.removedCount === "number" ? payload.removedCount : 1;
+            setCommentsCount((prev) => Math.max(0, prev - step));
+        };
+
+        const handleCommentReplyDeleted = (payload) => {
+            if (String(payload?.postId) !== postId) return;
+            setCommentsCount((prev) => Math.max(0, prev - 1));
+        };
+
         socket.on("post:liked", handleLiked);
         socket.on("post:unliked", handleUnliked);
         socket.on("comment:created", handleCommentCreated);
         socket.on("comment:replied", handleCommentReplied);
+        socket.on("comment:deleted", handleCommentDeleted);
+        socket.on("comment:replyDeleted", handleCommentReplyDeleted);
 
         return () => {
             socket.emit("leavePost", postId);
@@ -122,6 +141,8 @@ function PostCard({ post, currentUser, setCurrentUser, handleEditPost, handleDel
             socket.off("post:unliked", handleUnliked);
             socket.off("comment:created", handleCommentCreated);
             socket.off("comment:replied", handleCommentReplied);
+            socket.off("comment:deleted", handleCommentDeleted);
+            socket.off("comment:replyDeleted", handleCommentReplyDeleted);
         };
     }, [postId, currentUserId]);
 
@@ -173,7 +194,6 @@ function PostCard({ post, currentUser, setCurrentUser, handleEditPost, handleDel
         <>
             <section className="w-full max-w-lg mx-auto bg-white rounded-lg shadow-sm border border-gray-100 p-4 font-sans text-gray-800 my-3 relative h-auto flex flex-col justify-between">
                 <div>
-                    {/* HEADER: Användare, Tid, Kategori och Meny */}
                     <PostHeader
                         post={post}
                         currentUser={currentUser}
@@ -185,12 +205,10 @@ function PostCard({ post, currentUser, setCurrentUser, handleEditPost, handleDel
                         customTimeFormatter={customTimeFormatter}
                     />
 
-                    {/* POST INNEHÅLL */}
                     <div
                         onClick={!isDetailView ? handleCardClick : undefined}
                         className={`block group text-left ${!isDetailView ? "cursor-pointer transition-opacity hover:opacity-95" : ""}`}
                     >
-                        {/* MEDIA HÖGST UPP */}
                         <PostMedia
                             hasMedia={hasMedia}
                             isVideo={isVideo}
@@ -203,7 +221,6 @@ function PostCard({ post, currentUser, setCurrentUser, handleEditPost, handleDel
                             setFullsizeImage={setFullsizeImage}
                         />
 
-                        {/* TEXT & HASHTAGS */}
                         <div className="mb-2 px-0.5 space-y-1">
                             <p className={`${isDetailView ? "" : "line-clamp-2 overflow-hidden"} text-xs text-gray-800 font-normal leading-relaxed whitespace-pre-wrap`}>
                                 {post.content}
@@ -230,17 +247,13 @@ function PostCard({ post, currentUser, setCurrentUser, handleEditPost, handleDel
                             )}
                         </div>
 
-                        {/* RECEPT-KORT */}
                         <PostRecipe recipe={post.recipe} isDetailView={isDetailView} />
 
-                        {/* KALENDER-KORT (DELAD MÅNAD) - LJUS STIL */}
                         <PostCalendarShare calendarShare={post.calendarShare} />
 
-                        {/* TRÄNINGSPASS-KORT (DELAT PASS) */}
                         <PostWorkoutShare workoutShare={post.workoutShare} />
                     </div>
 
-                    {/* SPOTIFY EMBED */}
                     {spotifyEmbedUrl && (
                         <div className="mt-2 mb-2 overflow-hidden rounded-lg border border-gray-100 shadow-2xs">
                             <iframe
@@ -255,7 +268,6 @@ function PostCard({ post, currentUser, setCurrentUser, handleEditPost, handleDel
                     )}
                 </div>
 
-                {/* FOOTER */}
                 <PostFooter
                     post={post}
                     currentUser={currentUser}

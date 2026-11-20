@@ -19,7 +19,46 @@ function SinglePostPage({ currentUser, setCurrentUser }) {
 
     const navigate = useNavigate();
 
-    // 1. Hämta inläggsdetaljer och kommentarer (och rensa gammalt fel vid ny navigation)
+    const removeCommentFromState = (deletedCommentId) => {
+        const targetId = String(deletedCommentId);
+        setComments((prev) => prev.filter((c) => String(c._id) !== targetId));
+        setPost((prev) =>
+            prev
+                ? {
+                      ...prev,
+                      comments: (prev.comments || []).filter(
+                          (c) => String(c?._id || c) !== targetId
+                      ),
+                  }
+                : prev
+        );
+    };
+
+    const removeReplyFromState = (parentCommentId, deletedReplyId) => {
+        const cId = String(parentCommentId);
+        const rId = String(deletedReplyId);
+
+        const stripReply = (list) =>
+            list.map((c) => {
+                if (!c || typeof c !== "object" || String(c._id) !== cId) return c;
+                return {
+                    ...c,
+                    replies: (c.replies || []).filter((r) => String(r._id) !== rId),
+                };
+            });
+
+        setComments((prev) => stripReply(prev));
+        setPost((prev) =>
+            prev
+                ? {
+                      ...prev,
+                      comments: stripReply(prev.comments || []),
+                  }
+                : prev
+        );
+    };
+
+    // 1. Hämta inläggsdetaljer och kommentarer
     useEffect(() => {
         let isActive = true;
 
@@ -56,7 +95,7 @@ function SinglePostPage({ currentUser, setCurrentUser }) {
         };
     }, [postId, focusedCommentId, focusedReplyId]);
 
-    // 2. Lyssna på nya kommentarer och svar i realtid via rummet post:${postId}
+    // 2. Lyssna på skapade och raderade kommentarer/svar i realtid
     useEffect(() => {
         if (!postId) return;
         const socket = getSocket();
@@ -72,14 +111,32 @@ function SinglePostPage({ currentUser, setCurrentUser }) {
                     ? prev
                     : [payload.comment, ...prev]
             );
+
+            setPost((prev) => {
+                if (!prev) return prev;
+                const existing = prev.comments || [];
+                if (existing.some((c) => String(c?._id || c) === String(payload.comment._id))) {
+                    return prev;
+                }
+                return {
+                    ...prev,
+                    comments: [payload.comment, ...existing],
+                };
+            });
         };
 
         const handleCommentReplied = (payload) => {
             if (String(payload?.postId) !== targetPostId || !payload?.commentId || !payload?.reply) return;
 
-            setComments((prev) =>
-                prev.map((comment) => {
-                    if (String(comment._id) !== String(payload.commentId)) return comment;
+            const addReplyToList = (list) =>
+                list.map((comment) => {
+                    if (
+                        !comment ||
+                        typeof comment !== "object" ||
+                        String(comment._id) !== String(payload.commentId)
+                    ) {
+                        return comment;
+                    }
                     const existingReplies = comment.replies || [];
                     if (existingReplies.some((r) => String(r._id) === String(payload.reply._id))) {
                         return comment;
@@ -88,17 +145,46 @@ function SinglePostPage({ currentUser, setCurrentUser }) {
                         ...comment,
                         replies: [...existingReplies, payload.reply],
                     };
-                })
+                });
+
+            setComments((prev) => addReplyToList(prev));
+            setPost((prev) =>
+                prev
+                    ? {
+                          ...prev,
+                          comments: addReplyToList(prev.comments || []),
+                      }
+                    : prev
             );
+        };
+
+        const handleCommentDeleted = (payload) => {
+            if (String(payload?.postId) !== targetPostId || !payload?.commentId) return;
+            removeCommentFromState(payload.commentId);
+        };
+
+        const handleCommentReplyDeleted = (payload) => {
+            if (
+                String(payload?.postId) !== targetPostId ||
+                !payload?.commentId ||
+                !payload?.replyId
+            ) {
+                return;
+            }
+            removeReplyFromState(payload.commentId, payload.replyId);
         };
 
         socket.on("comment:created", handleCommentCreated);
         socket.on("comment:replied", handleCommentReplied);
+        socket.on("comment:deleted", handleCommentDeleted);
+        socket.on("comment:replyDeleted", handleCommentReplyDeleted);
 
         return () => {
             socket.emit("leavePost", targetPostId);
             socket.off("comment:created", handleCommentCreated);
             socket.off("comment:replied", handleCommentReplied);
+            socket.off("comment:deleted", handleCommentDeleted);
+            socket.off("comment:replyDeleted", handleCommentReplyDeleted);
         };
     }, [postId]);
 
@@ -141,7 +227,6 @@ function SinglePostPage({ currentUser, setCurrentUser }) {
 
     return (
         <>
-
             {!isLoading && error && (
                 <div className="max-w-lg mx-auto mt-20 px-4 text-center">
                     <p className="text-sm text-zinc-500">
@@ -149,7 +234,6 @@ function SinglePostPage({ currentUser, setCurrentUser }) {
                     </p>
                 </div>
             )}
-
 
             {post && (
                 <section className="flex-1 max-w-2xl mx-auto pt-16 xl:pt-6 pb-24 font-sans text-gray-800">
@@ -174,6 +258,8 @@ function SinglePostPage({ currentUser, setCurrentUser }) {
                         comments={comments}
                         focusedCommentId={focusedCommentId}
                         focusedReplyId={focusedReplyId}
+                        onCommentDeleted={removeCommentFromState}
+                        onReplyDeleted={removeReplyFromState}
                     />
                 </section>
             )}
