@@ -16,9 +16,6 @@
 
 - fixa så man kan lägga till flera spotify låtar i samma inlägg?!
 
-- [ ] Implementera Socket.io för live-uppdatering av likes och kommentarer direkt i inläggsflödet (via `room:postId`)
-- [ ] Implementera funktion för att radera egna kommentarer (gärna via long-press / meny à la TikTok)
-
 - TESTA Andriod studio, se till att live backend funkar mot android??!! 
 
 - Checklista för att stoppa skräp användare:
@@ -90,7 +87,8 @@ Skapa en dedikerad vy som visar alla inlägg taggade med en viss hashtag när ma
 - [x] att alla delar som skapar, raderar, uppdaterar delar där de kan förekomma väntetid visar att saker laddas, tex deleting vid radering av inlägg, saving etc.. finns på create post men osäker på tex edit och delete post
 - [x] FIXA så email valideras först, innan man kan ändra till en annan?? FIXAT PGA BOTTAR SÅ EMAIL MÅSTE VERIFIERAS NÄR KONTO SKAPAS
 - [x] fixa så man ser total vikt man lyft under ett träningspass när passet är slutfört (som en popup) samt kunna dela passet
-
+- [x] Live-uppdateringar via Socket.io för inlägg, likes, kommentarer och svar (med realtidsräknare och notis-highlight)
+- [x] Radering av egna kommentarer och svar med diskret Delete-knapp och bekräftelsemodal
 
 
 
