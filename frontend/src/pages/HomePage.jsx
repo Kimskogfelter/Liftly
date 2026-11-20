@@ -1,5 +1,6 @@
 import { useState, React, useEffect, useRef, useCallback } from "react";
 import api from "../api/axios";
+import { getSocket } from "../api/socket";
 import PostFeed from "../components/posts/PostFeed";
 
 function HomePage({ currentUser, setCurrentUser }) {
@@ -22,14 +23,12 @@ function HomePage({ currentUser, setCurrentUser }) {
 
     try {
       if (activeTab === "posts") {
-        // Hämta publika inlägg med pagination
         const response = await api.get(`/posts?page=${currentPage}&limit=10`);
         const { posts: newPosts, hasMore } = response.data;
 
         setPosts((prev) => (isInitialLoad ? newPosts : [...prev, ...newPosts]));
         setHasMorePosts(hasMore);
       } else if (activeTab === "following" && currentUser) {
-        // Hämta following-inlägg med pagination
         const response = await api.get(`/posts/following?page=${currentPage}&limit=10`);
         const { followingPosts: newPosts, hasMore } = response.data;
 
@@ -48,13 +47,11 @@ function HomePage({ currentUser, setCurrentUser }) {
   };
 
   // Återställ sida & ladda om när man byter flik
-  // Lyssna på när ett nytt inlägg skapas (från CreatePostModal i Navbaren)
   useEffect(() => {
     setPage(1);
     setHasMorePosts(true);
     fetchPosts(1, true);
 
-    // Lyssna på när ett nytt inlägg skapas
     const handleNewPost = () => {
       setPage(1);
       setHasMorePosts(true);
@@ -65,13 +62,66 @@ function HomePage({ currentUser, setCurrentUser }) {
     return () => window.removeEventListener("postCreated", handleNewPost);
   }, [activeTab]);
 
+  // Realtidslyssnare för nya, uppdaterade och raderade inlägg via Socket.io
+  useEffect(() => {
+    const socket = getSocket();
+
+    const handleSocketPostCreated = (newPost) => {
+      if (!newPost?._id) return;
+
+      setPosts((prev) =>
+        prev.some((p) => p._id === newPost._id) ? prev : [newPost, ...prev]
+      );
+
+      const creatorId = String(newPost.createdBy?._id || newPost.createdBy);
+      const followingIds = (currentUser?.following || []).map((id) =>
+        String(id._id || id)
+      );
+
+      if (followingIds.includes(creatorId)) {
+        setFollowingPosts((prev) =>
+          prev.some((p) => p._id === newPost._id) ? prev : [newPost, ...prev]
+        );
+      }
+    };
+
+    const handleSocketPostUpdated = (updatedPost) => {
+      if (!updatedPost?._id) return;
+
+      setPosts((prev) =>
+        prev.map((p) => (String(p._id) === String(updatedPost._id) ? updatedPost : p))
+      );
+
+      setFollowingPosts((prev) =>
+        prev.map((p) => (String(p._id) === String(updatedPost._id) ? updatedPost : p))
+      );
+    };
+
+    const handleSocketPostDeleted = (payload) => {
+      const deletedId = String(payload?.postId || payload?._id || payload || "");
+      if (!deletedId) return;
+
+      setPosts((prev) => prev.filter((p) => String(p._id) !== deletedId));
+      setFollowingPosts((prev) => prev.filter((p) => String(p._id) !== deletedId));
+    };
+
+    socket.on("post:created", handleSocketPostCreated);
+    socket.on("post:updated", handleSocketPostUpdated);
+    socket.on("post:deleted", handleSocketPostDeleted);
+
+    return () => {
+      socket.off("post:created", handleSocketPostCreated);
+      socket.off("post:updated", handleSocketPostUpdated);
+      socket.off("post:deleted", handleSocketPostDeleted);
+    };
+  }, [currentUser]);
+
   // Hämta fler inlägg när 'page' ökar
   useEffect(() => {
     if (page > 1) {
       fetchPosts(page, false);
     }
   }, [page]);
-
 
   // Ref-callback som kopplas till det sista elementet i PostFeed
   const lastPostElementRef = useCallback(
@@ -91,13 +141,13 @@ function HomePage({ currentUser, setCurrentUser }) {
   );
 
   const handleEditPost = (updatedPost) => {
-    setPosts(posts.map((post) => (post._id === updatedPost._id ? updatedPost : post)));
-    setFollowingPosts(followingPosts.map((post) => (post._id === updatedPost._id ? updatedPost : post)));
+    setPosts((prev) => prev.map((post) => (post._id === updatedPost._id ? updatedPost : post)));
+    setFollowingPosts((prev) => prev.map((post) => (post._id === updatedPost._id ? updatedPost : post)));
   };
 
   const handleDeletePost = (postId) => {
-    setPosts(posts.filter((post) => post._id !== postId));
-    setFollowingPosts(followingPosts.filter((post) => post._id !== postId));
+    setPosts((prev) => prev.filter((post) => post._id !== postId));
+    setFollowingPosts((prev) => prev.filter((post) => post._id !== postId));
   };
 
   return (
