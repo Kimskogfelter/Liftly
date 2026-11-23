@@ -8,6 +8,8 @@
 - fixa så man får notiser i och utanför appen när något händer, tex en kommentar eller gilla markering, BÅDE webb och mobil
 (kolla android studio, så push notiser fungerar!! behöver fixa modal för in app notiser. samt fixa apples egna kod och egen kod för webben)
 
+- babe loggas ut från appen under tiden han är i appen på android versionen (senaste APK filen)
+
 - på mobil så aktiveras inte tangentbordet direkt när man kommer till söksidan... useRef och timeouts funkar inte!
 
 - fixa så appen kan lanseras hos app store och andriod för att lätt laddas ner
