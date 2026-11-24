@@ -3,15 +3,37 @@ import { getApiBaseUrl } from './socket';
 
 const API_BASE_URL = getApiBaseUrl();
 
+// Gemensam Axios-instans med cookies aktiverade för refreshToken-hantering
 const api = axios.create({
     baseURL: API_BASE_URL,
     withCredentials: true
 });
 
-// Variabler för att hantera parallella refresh-anrop (kölapp)
+// Tillstånd för att köa parallella anrop medan en token-refresh pågår
 let isRefreshing = false;
 let failedQueue = [];
 
+// Sökvägar som får visas utan inloggad session
+const PUBLIC_PATHS = [
+    '/',
+    '/home',
+    '/login',
+    '/register',
+    '/forgot-password',
+    '/privacy'
+];
+
+// Avgör om nuvarande sökväg är en publik vy (inkl. öppna profiler och enskilda inlägg)
+const isPublicPath = (pathname = '') => {
+    if (PUBLIC_PATHS.includes(pathname)) return true;
+    if (pathname.startsWith('/verify-email/')) return true;
+    if (pathname.startsWith('/reset-password/')) return true;
+    if (pathname.startsWith('/users/')) return true;
+    if (pathname.startsWith('/posts/')) return true;
+    return false;
+};
+
+// Löser upp eller avvisar alla köade anrop när ett refresh-försök är klart
 const processQueue = (error, token = null) => {
     failedQueue.forEach((prom) => {
         if (error) {
@@ -23,11 +45,12 @@ const processQueue = (error, token = null) => {
     failedQueue = [];
 };
 
-// 1. REQUEST INTERCEPTOR: Skicka med den kortlivade Access Token i Authorization-headern
+// 1. REQUEST INTERCEPTOR: Bifogar kortlivad Access Token om användaren är inloggad
 api.interceptors.request.use(
     (config) => {
-        const user = JSON.parse(localStorage.getItem('currentUser'));
-        const token = user?.token; // Access token (15m)
+        const stored = localStorage.getItem('currentUser');
+        const user = stored ? JSON.parse(stored) : null;
+        const token = user?.token;
 
         if (token) {
             config.headers['Authorization'] = `Bearer ${token}`;
@@ -37,21 +60,32 @@ api.interceptors.request.use(
     (error) => Promise.reject(error)
 );
 
-// 2. RESPONSE INTERCEPTOR: Fånga 401-fel och förnya token automatiskt via HttpOnly Cookie
+// 2. RESPONSE INTERCEPTOR: Förnyar token vid 401 och hanterar utloggning om refresh misslyckas
 api.interceptors.response.use(
     (response) => response,
     async (error) => {
         const originalRequest = error.config;
 
-        // 🛑 VIKTIGT: Om anropet gällde inloggning ska vi INTE göra refresh eller ladda om sidan vid 401
+        if (!originalRequest) {
+            return Promise.reject(error);
+        }
+
+        // Inloggningsanrop ska returnera sitt fel utan att trigga refresh
         if (originalRequest.url && originalRequest.url.includes('/users/login')) {
             return Promise.reject(error);
         }
 
-        // Om svaret är 401 och det inte gällde själva refresh-anropet
+        // Försök förnya access token vid 401 om anropet inte redan har gjorts om
         if (error.response?.status === 401 && !originalRequest._retry) {
+            const stored = localStorage.getItem('currentUser');
+            const user = stored ? JSON.parse(stored) : null;
 
-            // 🔒 OM ETT REFRESH-ANROP REDAN PÅGÅR: Lägg detta anrop i kön och vänta!
+            // Utloggade gäster saknar token och ska inte försöka refresha
+            if (!user?.token) {
+                return Promise.reject(error);
+            }
+
+            // Lägg anropet i kö om en token-refresh redan pågår
             if (isRefreshing) {
                 return new Promise((resolve, reject) => {
                     failedQueue.push({ resolve, reject });
@@ -67,7 +101,7 @@ api.interceptors.response.use(
             isRefreshing = true;
 
             try {
-                // 🔴 Cookien med refreshToken skickas automatiskt med tack vare withCredentials: true
+                // Skickar refresh-cookie automatiskt tack vare withCredentials: true
                 const response = await axios.post(
                     `${API_BASE_URL}/users/refresh`,
                     {},
@@ -77,28 +111,33 @@ api.interceptors.response.use(
                 const { token: newAccessToken } = response.data;
 
                 // Uppdatera enbart access token i localStorage
-                const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-                const updatedUser = { ...currentUser, token: newAccessToken };
+                const latestUser = JSON.parse(localStorage.getItem('currentUser')) || {};
+                const updatedUser = { ...latestUser, token: newAccessToken };
                 localStorage.setItem('currentUser', JSON.stringify(updatedUser));
 
-                window.dispatchEvent(new Event("userTokenRefreshed"));
+                window.dispatchEvent(new Event('userTokenRefreshed'));
 
-                // Släpp fram alla anrop som stod i kön och väntade
+                // Kör om alla väntande anrop med den nya access tokenen
                 processQueue(null, newAccessToken);
 
-                // Uppdatera Authorization-headern för det ursprungliga anropet och kör om det
                 originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
                 return api(originalRequest);
-
             } catch (refreshError) {
-                // Om refresh har misslyckats (t.ex. 30 dagar har gått): Skicka fel till kön & logga ut
+                // Rensa lokal session när refresh misslyckas och låt appen gå till gästläge
                 processQueue(refreshError, null);
 
                 localStorage.removeItem('currentUser');
-                window.location.href = '/login';
+                window.dispatchEvent(new Event('userLoggedOut'));
+
+                const currentPath = window.location.pathname;
+                if (!isPublicPath(currentPath)) {
+                    window.location.href = '/login';
+                }
+
                 return Promise.reject(refreshError);
             } finally {
-                isRefreshing = false; // Lås upp igen när allt är klart
+                // Säkerställ att kön alltid låses upp även vid oväntade fel
+                isRefreshing = false;
             }
         }
 
