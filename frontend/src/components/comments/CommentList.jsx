@@ -1,12 +1,15 @@
 import React, { useState, useEffect, useRef } from "react";
 import CommentCard from "./CommentCard";
 
+// Antal kommentarer som visas initialt och hur många som laddas per klick på "Show more"
 const INITIAL_COUNT = 3;
 const LOAD_STEP = 10;
 
+// Räknar en huvudkommentar plus alla dess svar
 const countCommentWithReplies = (comment) =>
     1 + (comment?.replies?.length || 0);
 
+// Renderar paginerad kommentarlista med stöd för scroll och markering av fokuserad kommentar/svar
 function CommentList({
     comments,
     currentUser,
@@ -21,6 +24,7 @@ function CommentList({
 
     const targetId = focusedReplyId || focusedCommentId;
 
+    // Utökar antalet synliga kommentarer så att en fokuserad kommentar eller reply ryms i listan
     useEffect(() => {
         if (!targetId || comments.length === 0) return;
 
@@ -38,6 +42,7 @@ function CommentList({
         }
     }, [targetId, comments, focusedCommentId, focusedReplyId, visibleCount]);
 
+    // Scrollar mjukt till fokuserad kommentar/reply och markerar den tillfälligt (2.5s)
     useEffect(() => {
         if (!targetId || comments.length === 0) return;
         if (scrolledTargetRef.current === targetId) return;
@@ -49,6 +54,7 @@ function CommentList({
         let attempts = 0;
         let highlightTimeoutId = null;
 
+        // Försöker hitta DOM-elementet tills det renderats (max ~2.5s)
         const intervalId = setInterval(() => {
             attempts += 1;
             const el = document.getElementById(elementId);
@@ -70,6 +76,7 @@ function CommentList({
             }
         }, 100);
 
+        // Rensar intervall och highlight-timer vid avbrott eller unmount
         return () => {
             clearInterval(intervalId);
             if (highlightTimeoutId) clearTimeout(highlightTimeoutId);
@@ -78,6 +85,7 @@ function CommentList({
 
     const visibleComments = comments.slice(0, visibleCount);
 
+    // Räknar totalt antal poster (kommentarer + replies) samt hur många som återstår att visa
     const totalAllCount = comments.reduce(
         (sum, c) => sum + countCommentWithReplies(c),
         0
@@ -103,9 +111,11 @@ function CommentList({
                 />
             ))}
 
+            {/* Knapp för att visa fler kommentarer/svar */}
             {remainingAllCount > 0 && (
                 <div className="flex justify-center">
                     <button
+                        type="button"
                         onClick={() => setVisibleCount((prev) => prev + LOAD_STEP)}
                         className="text-xs font-semibold text-zinc-500 hover:text-black pt-1 cursor-pointer"
                     >

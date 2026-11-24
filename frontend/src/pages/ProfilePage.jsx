@@ -1,5 +1,5 @@
 import { useState, useEffect, React, useRef, useCallback } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import ProfileImage from "../components/users/ProfileImage";
 import EditProfileImage from "../components/users/EditProfileImage";
@@ -12,37 +12,53 @@ import { handleFollowUserToggle } from "../functions/user/handleFollowUserToggle
 import { FaCamera } from "react-icons/fa";
 import { FiSettings, FiMoreHorizontal } from "react-icons/fi";
 
+// Profilsida som visar användarinfo, följ/redigera-knappar och paginerat inläggsflöde
 function ProfilePage({ currentUser, setCurrentUser }) {
+  const navigate = useNavigate();
   const [error, setError] = useState("");
   const { userId } = useParams();
 
   const [targetUser, setTargetUser] = useState(null);
   const [posts, setPosts] = useState([]);
 
-  // Paginerings-states
+  // Pagineringsstate för användarens inlägg
   const [page, setPage] = useState(1);
   const [hasMorePosts, setHasMorePosts] = useState(true);
   const [loadingMorePosts, setLoadingMorePosts] = useState(false);
 
   const observer = useRef();
 
+  // State för modaler och menyer på profilsidan
   const [showEditProfileImage, setShowEditProfileImage] = useState(false);
   const [showEditProfileModal, setShowEditProfileModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [followModalType, setFollowModalType] = useState(null);
 
-  const myId = (currentUser?._id || currentUser?.id)?.toString();
+  const myId = String(currentUser?._id || currentUser?.id || "");
+  const isAuthenticated = Boolean(myId);
+
   const isAlreadyFollowing = Boolean(
     targetUser?.followers?.some((item) => {
-      const followerId = typeof item === 'object' ? (item._id || item.id) : item;
-      return followerId?.toString() === myId;
+      const followerId = typeof item === "object" ? item._id || item.id : item;
+      return String(followerId || "") === myId;
     })
   );
 
-  const isOwnProfile = targetUser?._id === currentUser?.id || targetUser?._id === currentUser?._id;
+  const isOwnProfile = Boolean(
+    targetUser?._id && myId && String(targetUser._id) === myId
+  );
 
-  // 1. Hämta enbart användarinformationen
+  // Skickar utloggade användare till /login vid kontokrävande klick
+  const requireAuth = (action) => {
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+    action();
+  };
+
+  // 1. Hämtar användarinformation för profilen som visas
   const getUserInfo = async () => {
     try {
       const response = await api.get(`/users/${userId}`);
@@ -53,7 +69,7 @@ function ProfilePage({ currentUser, setCurrentUser }) {
     }
   };
 
-  // 2. Hämta användarens inlägg med paginering
+  // 2. Hämtar användarens inlägg sida för sida (10 per sida)
   const fetchUserPosts = async (currentPage, isInitialLoad = false) => {
     if (!userId) return;
     setLoadingMorePosts(true);
@@ -75,6 +91,7 @@ function ProfilePage({ currentUser, setCurrentUser }) {
     }
   };
 
+  // Laddar om profilinfo och första sidan med inlägg när userId i URL:en ändras
   useEffect(() => {
     getUserInfo();
     setPage(1);
@@ -82,12 +99,14 @@ function ProfilePage({ currentUser, setCurrentUser }) {
     fetchUserPosts(1, true);
   }, [userId]);
 
+  // Hämtar nästa sida med inlägg när sidnumret ökar (utöver sid 1)
   useEffect(() => {
     if (page > 1) {
       fetchUserPosts(page, false);
     }
   }, [page]);
 
+  // IntersectionObserver för oändlig scroll på sista inlägget
   const lastPostElementRef = useCallback(
     (node) => {
       if (loadingMorePosts) return;
@@ -104,24 +123,46 @@ function ProfilePage({ currentUser, setCurrentUser }) {
     [loadingMorePosts, hasMorePosts]
   );
 
+  // Uppdaterar redigerat inlägg i listan
   const handleEditPost = (updatedPost) => {
     setPosts(posts.map((post) => (post._id === updatedPost._id ? updatedPost : post)));
   };
 
+  // Tar bort raderat inlägg från listan
   const handleDeletePost = (postId) => {
     setPosts(posts.filter((post) => post._id !== postId));
+  };
+
+  // Växlar följ/avfölj (kräver inloggning)
+  const handleFollowClick = () => {
+    requireAuth(() => {
+      handleFollowUserToggle(
+        targetUser,
+        setTargetUser,
+        currentUser,
+        setCurrentUser,
+        isAlreadyFollowing
+      );
+    });
+  };
+
+  // Öppnar åtgärdsmeny för annan användare (kräver inloggning)
+  const handleOpenUserMenu = () => {
+    requireAuth(() => {
+      setShowUserMenu(true);
+    });
   };
 
   return (
     <section className="flex-1 md:px-6 max-w-4xl mx-auto font-sans text-gray-800 pt-16 xl:pt-6">
       {error && <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-4 text-sm font-medium">{error}</div>}
 
-      {/* User Header Info Card */}
+      {/* Profilkort med avatar, statistik, bio och åtgärder */}
       <div className="w-full max-w-md mx-auto bg-white p-5 mb-4 font-sans relative">
-
-        {/* Inställningsikon uppe i högra hörnet (visas endast för egen profil) */}
+        {/* Inställningsknapp för egen profil */}
         {isOwnProfile && (
           <button
+            type="button"
             onClick={() => setShowSettingsModal(true)}
             className="absolute top-5 right-5 text-gray-400 hover:text-gray-800 transition-colors p-1.5 rounded-full hover:bg-gray-100 cursor-pointer"
             title="Account Settings"
@@ -130,10 +171,11 @@ function ProfilePage({ currentUser, setCurrentUser }) {
           </button>
         )}
 
-        {/* Options button for other users */}
+        {/* Menyknapp för annan användare (kräver inloggning) */}
         {!isOwnProfile && (
           <button
-            onClick={() => setShowUserMenu(true)}
+            type="button"
+            onClick={handleOpenUserMenu}
             className="absolute top-5 right-5 text-gray-400 hover:text-gray-800 transition-colors p-1.5 rounded-full hover:bg-gray-100 cursor-pointer"
             title="Options"
           >
@@ -149,7 +191,7 @@ function ProfilePage({ currentUser, setCurrentUser }) {
           />
         )}
 
-        {/* ÖVRE RADEN: Bild & Info bredvid varandra */}
+        {/* Övre raden: profilbild, räknare och bio */}
         <div className="flex items-center gap-5">
           <div className="w-20 h-20 md:w-32 md:h-32 shrink-0 rounded-full overflow-hidden border border-gray-100">
             {isOwnProfile ? (
@@ -181,15 +223,14 @@ function ProfilePage({ currentUser, setCurrentUser }) {
               <div>
                 <span className="font-bold text-black text-sm">{targetUser?.posts?.length || 0}</span> posts
               </div>
-              <div className="cursor-pointer" onClick={() => setFollowModalType('followers')}>
+              <div className="cursor-pointer" onClick={() => setFollowModalType("followers")}>
                 <span className="font-bold text-black text-sm">{targetUser?.followers?.length || 0}</span> followers
               </div>
-              <div className="cursor-pointer" onClick={() => setFollowModalType('following')}>
+              <div className="cursor-pointer" onClick={() => setFollowModalType("following")}>
                 <span className="font-bold text-black text-sm">{targetUser?.following?.length || 0}</span> following
               </div>
             </div>
 
-            {/* Bio text (utan förvirrande hover-redigering) */}
             <p className="text-gray-700 text-xs leading-relaxed max-w-xs pt-0.5">
               {targetUser?.profileBio || "No bio yet."}
             </p>
@@ -200,10 +241,11 @@ function ProfilePage({ currentUser, setCurrentUser }) {
           </div>
         </div>
 
-        {/* KNAPP-RAD: "Edit profile" för ägaren ELLER "Follow" för besökare */}
+        {/* Knapp-rad: "Edit profile" för egen profil eller "Follow"/"Following" för andra */}
         <div className="mt-4 w-full">
           {isOwnProfile ? (
             <button
+              type="button"
               onClick={() => setShowEditProfileModal(true)}
               className="w-full py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer bg-gray-100 hover:bg-gray-200 text-black border border-gray-300/80 shadow-xs"
             >
@@ -211,21 +253,22 @@ function ProfilePage({ currentUser, setCurrentUser }) {
             </button>
           ) : (
             <button
-              onClick={() => handleFollowUserToggle(targetUser, setTargetUser, currentUser, setCurrentUser, isAlreadyFollowing)}
-              className={`w-full py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${isAlreadyFollowing
-                ? "bg-gray-100 hover:bg-gray-200 text-black border border-gray-300"
-                : "bg-black hover:bg-zinc-800 text-white"
-                }`}
+              type="button"
+              onClick={handleFollowClick}
+              className={`w-full py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
+                isAlreadyFollowing
+                  ? "bg-gray-100 hover:bg-gray-200 text-black border border-gray-300"
+                  : "bg-black hover:bg-zinc-800 text-white"
+              }`}
             >
               {isAlreadyFollowing ? "Following" : "Follow"}
             </button>
           )}
         </div>
 
-        {/* Social Links Block (100% klickbara länkar) */}
+        {/* Externa sociala länkar */}
         {targetUser?.socialLinks && (
           <div className="flex items-center gap-2 md:gap-3 mt-4 pt-3 border-t border-gray-100/60">
-            {/* Instagram */}
             {targetUser.socialLinks.instagram && (
               <a
                 href={`https://instagram.com/${targetUser.socialLinks.instagram}`}
@@ -240,7 +283,6 @@ function ProfilePage({ currentUser, setCurrentUser }) {
               </a>
             )}
 
-            {/* TikTok */}
             {targetUser.socialLinks.tiktok && (
               <a
                 href={`https://tiktok.com/@${targetUser.socialLinks.tiktok}`}
@@ -255,7 +297,6 @@ function ProfilePage({ currentUser, setCurrentUser }) {
               </a>
             )}
 
-            {/* YouTube */}
             {targetUser.socialLinks.youtube && (
               <a
                 href={`https://youtube.com/@${targetUser.socialLinks.youtube}`}
@@ -271,10 +312,9 @@ function ProfilePage({ currentUser, setCurrentUser }) {
             )}
           </div>
         )}
-
       </div>
 
-      {/* Posts Section */}
+      {/* Användarens inläggsflöde */}
       <div>
         <PostFeed
           posts={posts}

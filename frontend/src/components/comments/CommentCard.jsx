@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 import { getSocket } from "../../api/socket";
 import ProfileImage from "../users/ProfileImage";
@@ -9,6 +9,7 @@ import { handleCommentLikeToggle } from "../../functions/comments/handleCommentL
 import { FiHeart } from "react-icons/fi";
 import TimeAgo from "react-timeago";
 
+// Visar en huvudkommentar, dess gilla-/svara-/radera-åtgärder och eventuella svar
 function CommentCard({
     comment,
     currentUser,
@@ -18,10 +19,15 @@ function CommentCard({
     onCommentDeleted,
     onReplyDeleted,
 }) {
+    const navigate = useNavigate();
+
+    // Normaliserade ID:n för att avgöra inloggningsstatus och ägarskap
     const currentUserId = String(currentUser?.id || currentUser?._id || "");
+    const isAuthenticated = Boolean(currentUserId);
     const commentOwnerId = String(comment.createdBy?._id || comment.createdBy || "");
     const isCommentOwner = Boolean(currentUserId && commentOwnerId === currentUserId);
 
+    // Lokal state för gilla-status, antal likes, svarsfält och svar
     const [isLiked, setIsLiked] = useState(
         comment.likes?.map(String).includes(currentUserId) || false
     );
@@ -35,10 +41,12 @@ function CommentCard({
     const [replyError, setReplyError] = useState("");
     const [showDeleteModal, setShowDeleteModal] = useState(false);
 
+    // Synkar svarslistan när kommentaren uppdateras utifrån
     useEffect(() => {
         setReplies(comment.replies || []);
     }, [comment._id, comment.replies]);
 
+    // Synkar gilla-markering och antal likes när kommentar eller inloggad användare ändras
     useEffect(() => {
         setLikesCount(comment.likes?.length || 0);
         setIsLiked(
@@ -46,7 +54,7 @@ function CommentCard({
         );
     }, [comment._id, comment.likes, currentUserId]);
 
-    // Lyssna på nya och raderade replies i realtid för denna kommentar
+    // Lyssnar på nya och raderade svar i realtid via Socket.IO för denna kommentar
     useEffect(() => {
         if (!comment?._id) return;
         const socket = getSocket();
@@ -71,12 +79,24 @@ function CommentCard({
 
         socket.on("comment:replied", handleReplyAdded);
         socket.on("comment:replyDeleted", handleReplyDeleted);
+
+        // Städar bort socket-lyssnare vid unmount eller byte av kommentar
         return () => {
             socket.off("comment:replied", handleReplyAdded);
             socket.off("comment:replyDeleted", handleReplyDeleted);
         };
     }, [comment?._id]);
 
+    // Skickar utloggade användare till /login innan kontokrävande åtgärder körs
+    const requireAuth = (action) => {
+        if (!isAuthenticated) {
+            navigate("/login");
+            return;
+        }
+        action();
+    };
+
+    // Förbereder svarsfältet med @användarnamn för en huvudkommentar
     const handleReplyToComment = () => {
         const username = comment.createdBy?.username || "";
         setReplyToUser(username);
@@ -84,13 +104,17 @@ function CommentCard({
         setShowReplyInput(true);
     };
 
+    // Förbereder svarsfältet med @användarnamn för ett befintligt svar
     const handleReplyToReply = (targetReply) => {
-        const username = targetReply.createdBy?.username || "";
-        setReplyToUser(username);
-        setReplyContent(`@${username} `);
-        setShowReplyInput(true);
+        requireAuth(() => {
+            const username = targetReply.createdBy?.username || "";
+            setReplyToUser(username);
+            setReplyContent(`@${username} `);
+            setShowReplyInput(true);
+        });
     };
 
+    // Skickar nytt svar till backend och lägger till det i listan
     const handleSendReply = async (e) => {
         e.preventDefault();
         if (!replyContent.trim()) return;
@@ -123,6 +147,7 @@ function CommentCard({
         }
     };
 
+    // Tar bort ett svar lokalt och meddelar ev. föräldrakomponent
     const handleLocalReplyDeleted = (deletedReplyId) => {
         setReplies((prev) =>
             prev.filter((r) => String(r._id) !== String(deletedReplyId))
@@ -130,6 +155,31 @@ function CommentCard({
         if (onReplyDeleted) {
             onReplyDeleted(comment._id, deletedReplyId);
         }
+    };
+
+    // Växlar gilla på huvudkommentaren (kräver inloggning)
+    const handleToggleCommentLike = () => {
+        requireAuth(() => {
+            handleCommentLikeToggle(
+                isLiked,
+                setIsLiked,
+                setLikesCount,
+                comment,
+                currentUser
+            );
+        });
+    };
+
+    // Växlar svarsfältet eller skickar utloggad användare till /login
+    const handleToggleReplyBox = () => {
+        requireAuth(() => {
+            if (showReplyInput) {
+                setShowReplyInput(false);
+                setReplyContent("");
+            } else {
+                handleReplyToComment();
+            }
+        });
     };
 
     const isCommentHighlighted =
@@ -161,19 +211,15 @@ function CommentCard({
                         <span>{comment.content}</span>
                     </div>
 
+                    {/* Åtgärdsrad: tidpunkt, svara-knapp och ev. radera-knapp */}
                     <div className="flex items-center gap-4 text-[10px] text-gray-400 mt-1 font-medium">
                         <span>
                             <TimeAgo date={comment.createdAt} />
                         </span>
+
                         <button
-                            onClick={() => {
-                                if (showReplyInput) {
-                                    setShowReplyInput(false);
-                                    setReplyContent("");
-                                } else {
-                                    handleReplyToComment();
-                                }
-                            }}
+                            type="button"
+                            onClick={handleToggleReplyBox}
                             className="hover:text-gray-600 transition-colors cursor-pointer font-semibold"
                         >
                             {showReplyInput ? "Cancel" : "Reply"}
@@ -181,6 +227,7 @@ function CommentCard({
 
                         {isCommentOwner && (
                             <button
+                                type="button"
                                 onClick={() => setShowDeleteModal(true)}
                                 className="hover:text-red-500 transition-colors cursor-pointer font-semibold"
                             >
@@ -201,16 +248,9 @@ function CommentCard({
                     </span>
 
                     <button
+                        type="button"
                         className="cursor-pointer transition-transform active:scale-90"
-                        onClick={() =>
-                            handleCommentLikeToggle(
-                                isLiked,
-                                setIsLiked,
-                                setLikesCount,
-                                comment,
-                                currentUser
-                            )
-                        }
+                        onClick={handleToggleCommentLike}
                     >
                         <FiHeart
                             size={13}

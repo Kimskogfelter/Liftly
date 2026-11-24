@@ -22,34 +22,48 @@ import VerifyEmailPage from './pages/VerifyEmailPage';
 import { registerPushToken } from './functions/user/registerPushToken';
 import api from './api/axios';
 
-
-
 function App() {
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("currentUser")) || null;
+    } catch {
+      return null;
+    }
+  });
 
-  const [currentUser, setCurrentUser] = useState(
-    JSON.parse(localStorage.getItem("currentUser")) || null
-  );
-  const [onlineUsers, setOnlineUsers] = useState([]);
+  // Synka state om interceptorn loggar ut användaren
+  useEffect(() => {
+    const handleLoggedOut = () => {
+      setCurrentUser(null);
+    };
 
-  // check if the user(token) is still valid when the app loads, if not, log out the user
+    window.addEventListener("userLoggedOut", handleLoggedOut);
+    return () => window.removeEventListener("userLoggedOut", handleLoggedOut);
+  }, []);
+
+  // Kontrollera om sparad token fortfarande är giltig vid uppstart
   useEffect(() => {
     const verifyToken = async () => {
-      const storedUser = JSON.parse(localStorage.getItem("currentUser"));
+      let storedUser = null;
+      try {
+        storedUser = JSON.parse(localStorage.getItem("currentUser"));
+      } catch {
+        localStorage.removeItem("currentUser");
+        setCurrentUser(null);
+        return;
+      }
 
       if (storedUser?.token) {
         try {
           const response = await api.get("/users/verify");
 
-          // Om backend returnerar den uppdaterade användaren vid verify (t.ex. response.data.user eller response.data):
           if (response.data) {
             const freshUser = { ...storedUser, ...response.data };
             setCurrentUser(freshUser);
             localStorage.setItem("currentUser", JSON.stringify(freshUser));
-            // Kör push-registrering när användaren har verifierats vid uppstart!
             registerPushToken();
           }
-        } catch (err) {
-          // console.log("Verifiering misslyckades, loggar ut", err);
+        } catch {
           localStorage.removeItem("currentUser");
           setCurrentUser(null);
         }
@@ -60,40 +74,73 @@ function App() {
   }, []);
 
   return (
-    <>
-      <Router>
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={<Navigate to="/home" />} />
-          <Route path="/login" element={<LoginPage setCurrentUser={setCurrentUser} />} />
-          <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
-          <Route path="/privacy" element={<PrivacyPolicyPage />} />
+    <Router>
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/" element={<Navigate to="/home" />} />
+        <Route path="/login" element={<LoginPage setCurrentUser={setCurrentUser} />} />
+        <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+        <Route path="/privacy" element={<PrivacyPolicyPage />} />
 
+        {/* Layout Routes */}
+        <Route element={<AppLayout currentUser={currentUser} setCurrentUser={setCurrentUser} />}>
+          <Route
+            path="/home"
+            element={<HomePage currentUser={currentUser} setCurrentUser={setCurrentUser} />}
+          />
+          <Route
+            path="/users/:userId"
+            element={<ProfilePage currentUser={currentUser} setCurrentUser={setCurrentUser} />}
+          />
+          <Route
+            path="/posts/:postId"
+            element={<SinglePostPage currentUser={currentUser} setCurrentUser={setCurrentUser} />}
+          />
 
           {/* Protected Routes */}
-          <Route element={<AppLayout currentUser={currentUser} setCurrentUser={setCurrentUser} />}>
-            <Route path="/home" element={<HomePage currentUser={currentUser} setCurrentUser={setCurrentUser} />} /> {/* NOT protected, uses the AppLayout component to render layout and navbar */}
-            <Route path="/savedPosts" element={currentUser ? <SavedPostsPage currentUser={currentUser} setCurrentUser={setCurrentUser} /> : <Navigate to="/login" />} />
-            <Route path="/users/:userId" element={currentUser ? <ProfilePage currentUser={currentUser} setCurrentUser={setCurrentUser} /> : <Navigate to="/login" />} />
-            <Route path="/posts/:postId" element={currentUser ? <SinglePostPage currentUser={currentUser} setCurrentUser={setCurrentUser} /> : <Navigate to="/login" />} />
-            <Route path="/search" element={currentUser ? <SearchPage currentUser={currentUser} /> : <Navigate to="/login" />} />
-            <Route path="/category/:categoryName" element={currentUser ? <CategoryPage currentUser={currentUser} /> : <Navigate to="/login" />} />
-            <Route path="/hashtag/:hashtag" element={currentUser ? <HashtagPage currentUser={currentUser} /> : <Navigate to="/login" />} />
-            <Route path="/training" element={currentUser ? <TrainingPage currentUser={currentUser} /> : <Navigate to="/login" />} />
-            <Route path="/workouts" element={currentUser ? <WorkoutPage currentUser={currentUser} /> : <Navigate to="/login" />} />
-            <Route path="/workouts/:workoutId" element={currentUser ? <SingleWorkoutPage currentUser={currentUser} /> : <Navigate to="/login" />} />
-            <Route path="/foodlogs" element={currentUser ? <FoodLogPage currentUser={currentUser} /> : <Navigate to="/login" />} />
-            <Route path="/calendar" element={currentUser ? <CalendarPage currentUser={currentUser} /> : <Navigate to="/login" />} />
-          </Route>
-
-        </Routes>
-      </Router>
-
-    </>
-  )
+          <Route
+            path="/savedPosts"
+            element={currentUser ? <SavedPostsPage currentUser={currentUser} setCurrentUser={setCurrentUser} /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/search"
+            element={currentUser ? <SearchPage currentUser={currentUser} /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/category/:categoryName"
+            element={currentUser ? <CategoryPage currentUser={currentUser} /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/hashtag/:hashtag"
+            element={currentUser ? <HashtagPage currentUser={currentUser} /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/training"
+            element={currentUser ? <TrainingPage currentUser={currentUser} /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/workouts"
+            element={currentUser ? <WorkoutPage currentUser={currentUser} /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/workouts/:workoutId"
+            element={currentUser ? <SingleWorkoutPage currentUser={currentUser} /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/foodlogs"
+            element={currentUser ? <FoodLogPage currentUser={currentUser} /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/calendar"
+            element={currentUser ? <CalendarPage currentUser={currentUser} /> : <Navigate to="/login" />}
+          />
+        </Route>
+      </Routes>
+    </Router>
+  );
 }
 
-export default App
+export default App;

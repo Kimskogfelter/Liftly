@@ -10,7 +10,7 @@ export const postRouter = Router();
 
 // ---------------------------- post routes SUBROUTES --------------------------- 
 postRouter.post('/create', authMiddleware, upload.array("media", 5), createPost)
-postRouter.get('/users/:userId', authMiddleware, getUserPosts)
+postRouter.get('/users/:userId', getUserPosts); // Public route so logged-out visitors can view a user's posts on shared profile links (no authMiddleware)
 postRouter.get('/following',authMiddleware, getFollowingPosts)
 postRouter.get('/category',authMiddleware, getCategoryPosts)
 postRouter.get('/hashtag',authMiddleware, getHashtagPosts)
@@ -45,5 +45,5 @@ postRouter.delete('/comments/:commentId/replies/:replyId/unlike', authMiddleware
 
 // ---------------------------- post routes GENERIC ---------------------------
 
-postRouter.get('/:postId',authMiddleware, getPost)
+postRouter.get('/:postId', getPost) // Public route so logged-out visitors can view shared single-post links (no authMiddleware)
 postRouter.delete('/:postId',authMiddleware, deletePost)

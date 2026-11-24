@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import TimeAgo from "react-timeago";
 import { FiHeart } from "react-icons/fi";
 import ProfileImage from "../users/ProfileImage";
 import DeleteCommentModal from "./DeleteCommentModal";
 import { handleCommentReplyLikeToggle } from "../../functions/comments/handleCommentReplyLikeToggle";
 
+// Visar ett enskilt svar (reply) under en kommentar med gilla-, svara- och radera-knapp
 function CommentReplyItem({
     reply,
     comment,
@@ -13,10 +14,15 @@ function CommentReplyItem({
     handleReplyToReply,
     onReplyDeleted,
 }) {
+    const navigate = useNavigate();
+
+    // Normaliserade ID:n för att avgöra inloggningsstatus och om användaren äger svaret
     const currentUserId = String(currentUser?.id || currentUser?._id || "");
+    const isAuthenticated = Boolean(currentUserId);
     const replyOwnerId = String(reply.createdBy?._id || reply.createdBy || "");
     const isReplyOwner = Boolean(currentUserId && replyOwnerId === currentUserId);
 
+    // Lokal state för gilla-status, antal likes och bekräftelsemodal för radering
     const [isReplyLiked, setIsReplyLiked] = useState(
         reply.likes?.map(String).includes(currentUserId) || false
     );
@@ -25,12 +31,42 @@ function CommentReplyItem({
     );
     const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-    // Hantera Mention / Text-uppdelning
+    // Delar upp texten om svaret börjar med en @mention för färgad markering
     const content = reply.content || "";
     const isMention = content.startsWith("@");
     const words = content.split(" ");
     const mentionTag = isMention ? words[0] : "";
     const actualMessage = isMention ? words.slice(1).join(" ") : content;
+
+    // Skickar utloggade användare till /login innan kontokrävande åtgärder körs
+    const requireAuth = (action) => {
+        if (!isAuthenticated) {
+            navigate("/login");
+            return;
+        }
+        action();
+    };
+
+    // Öppnar svarsfältet för att svara på detta reply (kräver inloggning)
+    const handleReplyClick = () => {
+        requireAuth(() => {
+            handleReplyToReply(reply);
+        });
+    };
+
+    // Växlar gilla på svaret (kräver inloggning)
+    const handleToggleReplyLike = () => {
+        requireAuth(() => {
+            handleCommentReplyLikeToggle(
+                isReplyLiked,
+                setIsReplyLiked,
+                setReplyLikesCount,
+                comment,
+                reply,
+                currentUser
+            );
+        });
+    };
 
     return (
         <>
@@ -40,7 +76,7 @@ function CommentReplyItem({
                     <ProfileImage profileImage={reply.createdBy?.profileImage} />
                 </div>
 
-                {/* Innehåll */}
+                {/* Svarstext, användarlänk och åtgärder */}
                 <div className="flex-1 text-xs text-gray-800 leading-relaxed wrap-break-word">
                     <Link
                         to={`/users/${reply.createdBy?._id}`}
@@ -57,11 +93,13 @@ function CommentReplyItem({
 
                     <span className="text-xs text-gray-700">{actualMessage}</span>
 
-                    {/* Tid, Reply & Delete-knapp */}
+                    {/* Tid, svara-knapp och ev. radera-knapp för ägaren */}
                     <div className="flex items-center gap-3 text-[9px] text-gray-400 mt-0.5 font-medium">
                         <TimeAgo date={reply.createdAt} />
+
                         <button
-                            onClick={() => handleReplyToReply(reply)}
+                            type="button"
+                            onClick={handleReplyClick}
                             className="hover:text-gray-600 transition-colors cursor-pointer font-semibold"
                         >
                             Reply
@@ -69,6 +107,7 @@ function CommentReplyItem({
 
                         {isReplyOwner && (
                             <button
+                                type="button"
                                 onClick={() => setShowDeleteModal(true)}
                                 className="hover:text-red-500 transition-colors cursor-pointer font-semibold"
                             >
@@ -78,7 +117,7 @@ function CommentReplyItem({
                     </div>
                 </div>
 
-                {/* Like-knapp för svaret */}
+                {/* Gilla-knapp och antal likes för svaret */}
                 <div className="flex items-center gap-1 shrink-0 pt-0.5">
                     <span
                         className={`text-[9px] font-semibold ${
@@ -89,17 +128,9 @@ function CommentReplyItem({
                     </span>
 
                     <button
+                        type="button"
                         className="cursor-pointer transition-transform active:scale-90"
-                        onClick={() =>
-                            handleCommentReplyLikeToggle(
-                                isReplyLiked,
-                                setIsReplyLiked,
-                                setReplyLikesCount,
-                                comment,
-                                reply,
-                                currentUser
-                            )
-                        }
+                        onClick={handleToggleReplyLike}
                     >
                         <FiHeart
                             size={11}
@@ -113,6 +144,7 @@ function CommentReplyItem({
                 </div>
             </div>
 
+            {/* Bekräftelsemodal vid radering av svar */}
             {showDeleteModal && (
                 <DeleteCommentModal
                     targetType="reply"

@@ -6,6 +6,7 @@ import PostCard from "../components/posts/PostCard";
 import CreateCommentForm from "../components/comments/CreateCommentForm";
 import CommentList from "../components/comments/CommentList";
 
+// Detaljsida för ett enskilt inlägg med kommentarer, svar och realtidsuppdateringar
 function SinglePostPage({ currentUser, setCurrentUser }) {
     const { postId } = useParams();
     const [searchParams] = useSearchParams();
@@ -19,21 +20,23 @@ function SinglePostPage({ currentUser, setCurrentUser }) {
 
     const navigate = useNavigate();
 
+    // Tar bort en raderad huvudkommentar från både comments-listan och post-objektet
     const removeCommentFromState = (deletedCommentId) => {
         const targetId = String(deletedCommentId);
         setComments((prev) => prev.filter((c) => String(c._id) !== targetId));
         setPost((prev) =>
             prev
                 ? {
-                      ...prev,
-                      comments: (prev.comments || []).filter(
-                          (c) => String(c?._id || c) !== targetId
-                      ),
-                  }
+                    ...prev,
+                    comments: (prev.comments || []).filter(
+                        (c) => String(c?._id || c) !== targetId
+                    ),
+                }
                 : prev
         );
     };
 
+    // Tar bort ett raderat svar (reply) under rätt föräldrakommentar
     const removeReplyFromState = (parentCommentId, deletedReplyId) => {
         const cId = String(parentCommentId);
         const rId = String(deletedReplyId);
@@ -51,14 +54,14 @@ function SinglePostPage({ currentUser, setCurrentUser }) {
         setPost((prev) =>
             prev
                 ? {
-                      ...prev,
-                      comments: stripReply(prev.comments || []),
-                  }
+                    ...prev,
+                    comments: stripReply(prev.comments || []),
+                }
                 : prev
         );
     };
 
-    // 1. Hämta inläggsdetaljer och kommentarer
+    // 1. Hämtar inläggsdetaljer och kommentarer när postId (eller fokus-parametrar) ändras
     useEffect(() => {
         let isActive = true;
 
@@ -90,12 +93,13 @@ function SinglePostPage({ currentUser, setCurrentUser }) {
             fetchPostDetails();
         }
 
+        // Avbryter state-uppdatering om komponenten avmonteras mitt i en hämtning
         return () => {
             isActive = false;
         };
     }, [postId, focusedCommentId, focusedReplyId]);
 
-    // 2. Lyssna på skapade och raderade kommentarer/svar i realtid
+    // 2. Lyssnar på nya och raderade kommentarer/svar i realtid via Socket.IO
     useEffect(() => {
         if (!postId) return;
         const socket = getSocket();
@@ -151,9 +155,9 @@ function SinglePostPage({ currentUser, setCurrentUser }) {
             setPost((prev) =>
                 prev
                     ? {
-                          ...prev,
-                          comments: addReplyToList(prev.comments || []),
-                      }
+                        ...prev,
+                        comments: addReplyToList(prev.comments || []),
+                    }
                     : prev
             );
         };
@@ -179,6 +183,7 @@ function SinglePostPage({ currentUser, setCurrentUser }) {
         socket.on("comment:deleted", handleCommentDeleted);
         socket.on("comment:replyDeleted", handleCommentReplyDeleted);
 
+        // Lämnar inläggets socket-rum och städar bort lyssnare vid unmount
         return () => {
             socket.emit("leavePost", targetPostId);
             socket.off("comment:created", handleCommentCreated);
@@ -188,7 +193,7 @@ function SinglePostPage({ currentUser, setCurrentUser }) {
         };
     }, [postId]);
 
-    // 3. Uppdatera eller skicka tillbaka till /home om inlägget ändras eller raderas
+    // 3. Uppdaterar inlägget vid redigering eller navigerar till /home om det raderas i realtid
     useEffect(() => {
         if (!postId) return;
         const socket = getSocket();
@@ -211,22 +216,26 @@ function SinglePostPage({ currentUser, setCurrentUser }) {
         socket.on("post:updated", handlePostUpdated);
         socket.on("post:deleted", handlePostDeleted);
 
+        // Städar bort lyssnare för uppdatering/radering av inlägget
         return () => {
             socket.off("post:updated", handlePostUpdated);
             socket.off("post:deleted", handlePostDeleted);
         };
     }, [postId, navigate]);
 
+    // Uppdaterar lokalt inlägg efter redigering
     const handleEditPost = (updatedPost) => {
         setPost(updatedPost);
     };
 
+    // Navigerar till /home efter att aktuellt inlägg raderats
     const handleDeletePost = () => {
         navigate("/home");
     };
 
     return (
         <>
+            {/* Felmeddelande om inlägget inte hittades eller tagits bort */}
             {!isLoading && error && (
                 <div className="max-w-lg mx-auto mt-20 px-4 text-center">
                     <p className="text-sm text-zinc-500">
@@ -235,6 +244,7 @@ function SinglePostPage({ currentUser, setCurrentUser }) {
                 </div>
             )}
 
+            {/* Detaljvy med inläggskort, formulär för ny kommentar och kommentarlista */}
             {post && (
                 <section className="flex-1 max-w-2xl mx-auto pt-16 xl:pt-6 pb-24 font-sans text-gray-800">
                     <PostCard

@@ -12,6 +12,7 @@ import PostMedia from "./PostMedia";
 import PostRecipe from "./PostRecipe";
 import PostFooter from "./PostFooter";
 
+// Kortformaterar tidsenheter till t.ex. "5m", "2h" eller "3d"
 const customTimeFormatter = (value, unit) => {
     const unitMap = {
         second: "s",
@@ -25,6 +26,7 @@ const customTimeFormatter = (value, unit) => {
     return `${value}${unitMap[unit] || unit.charAt(0)}`;
 };
 
+// Räknar ihop både huvudkommentarer och alla svar i listan
 const calcCommentsTotal = (commentsArr) =>
     (commentsArr || []).reduce(
         (total, comment) =>
@@ -35,9 +37,12 @@ const calcCommentsTotal = (commentsArr) =>
     );
 
 function PostCard({ post, currentUser, setCurrentUser, handleEditPost, handleDeletePost, getSavedPosts, isDetailView }) {
+    // Användar- och inläggs-ID normaliserade till strängar för säkra jämförelser
     const currentUserId = String(currentUser?.id || currentUser?._id || "");
+    const isAuthenticated = Boolean(currentUserId);
     const postId = String(post?._id || "");
 
+    // Lokal UI- och interaktionsstate för inlägget
     const [showPostActions, setShowPostActions] = useState(false);
     const [isTogglingLike, setIsTogglingLike] = useState(false);
 
@@ -48,19 +53,21 @@ function PostCard({ post, currentUser, setCurrentUser, handleEditPost, handleDel
     const [isSaved, setIsSaved] = useState(
         currentUser?.savedPosts?.map(String).includes(postId) || false
     );
-
     const [commentsCount, setCommentsCount] = useState(() =>
         calcCommentsTotal(post.comments)
     );
 
+    // Sparar tidsstämpel för senaste lokala like-klick för att undvika snabb överskrivning
     const lastLocalLikeActionRef = useRef(0);
 
+    // Synkar antal likes och om användaren gillar när inlägg eller inloggad användare byts
     useEffect(() => {
         if (!postId) return;
         setLikesCount(post.likes?.length || 0);
         setIsLiked(Boolean(currentUserId && post.likes?.map(String).includes(currentUserId)));
     }, [postId, currentUserId]);
 
+    // Uppdaterar likes från post-props om inget lokalt like-klick skett precis nyss (< 1.5s)
     useEffect(() => {
         if (!postId || !Array.isArray(post.likes)) return;
         const msSinceLocalClick = Date.now() - lastLocalLikeActionRef.current;
@@ -70,15 +77,18 @@ function PostCard({ post, currentUser, setCurrentUser, handleEditPost, handleDel
         setIsLiked(Boolean(currentUserId && post.likes.map(String).includes(currentUserId)));
     }, [post.likes, postId, currentUserId]);
 
+    // Uppdaterar totalt antal kommentarer (inkl. svar) när post.comments ändras
     useEffect(() => {
         if (!postId || !Array.isArray(post.comments)) return;
         setCommentsCount(calcCommentsTotal(post.comments));
     }, [post.comments, postId]);
 
+    // Synkar sparad-markering när användarens sparade inlägg uppdateras
     useEffect(() => {
         setIsSaved(currentUser?.savedPosts?.map(String).includes(postId) || false);
     }, [currentUser?.savedPosts, postId]);
 
+    // Lyssnar på realtidsuppdateringar (likes och kommentarer/svar) via Socket.IO för detta inlägg
     useEffect(() => {
         if (!postId) return;
         const socket = getSocket();
@@ -135,6 +145,7 @@ function PostCard({ post, currentUser, setCurrentUser, handleEditPost, handleDel
         socket.on("comment:deleted", handleCommentDeleted);
         socket.on("comment:replyDeleted", handleCommentReplyDeleted);
 
+        // Lämnar inläggets rum och städar bort lyssnare vid unmount eller byte av inlägg
         return () => {
             socket.emit("leavePost", postId);
             socket.off("post:liked", handleLiked);
@@ -146,8 +157,8 @@ function PostCard({ post, currentUser, setCurrentUser, handleEditPost, handleDel
         };
     }, [postId, currentUserId]);
 
+    // Media- och modalstate för bilder, video och Spotify-embed
     const [fullsizeImage, setFullsizeImage] = useState(null);
-
     const spotifyEmbedUrl = post.spotifyUrl ? createSpotifyEmbedUrl(post.spotifyUrl) : null;
     const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
 
@@ -157,10 +168,12 @@ function PostCard({ post, currentUser, setCurrentUser, handleEditPost, handleDel
 
     const navigate = useNavigate();
 
+    // Öppnar inläggets detaljvy
     const handleCardClick = () => {
         navigate(`/posts/${post._id}`);
     };
 
+    // Bläddrar framåt/bakåt bland inläggets bilder
     const handleNextMedia = (e) => {
         e.preventDefault();
         if (post.media && currentMediaIndex < post.media.length - 1) {
@@ -175,17 +188,43 @@ function PostCard({ post, currentUser, setCurrentUser, handleEditPost, handleDel
         }
     };
 
+    // Skickar utloggade användare till /login innan åtgärden körs
+    const requireAuth = (action) => {
+        if (!isAuthenticated) {
+            navigate("/login");
+            return;
+        }
+        action();
+    };
+
+    // Hanterar gilla-klick (kräver inloggning)
     const onLikeClick = () => {
-        lastLocalLikeActionRef.current = Date.now();
-        handlePostLikeToggle(
-            isLiked,
-            setIsLiked,
-            setLikesCount,
-            post,
-            currentUser,
-            isTogglingLike,
-            setIsTogglingLike
-        );
+        requireAuth(() => {
+            lastLocalLikeActionRef.current = Date.now();
+            handlePostLikeToggle(
+                isLiked,
+                setIsLiked,
+                setLikesCount,
+                post,
+                currentUser,
+                isTogglingLike,
+                setIsTogglingLike
+            );
+        });
+    };
+
+    // Hanterar spara-klick (kräver inloggning)
+    const onSaveClick = () => {
+        requireAuth(() => {
+            handleSavePost(
+                isSaved,
+                setIsSaved,
+                post,
+                currentUser,
+                setCurrentUser,
+                getSavedPosts
+            );
+        });
     };
 
     const displayCategory = post.subCategory || post.category || "General";
@@ -194,6 +233,7 @@ function PostCard({ post, currentUser, setCurrentUser, handleEditPost, handleDel
         <>
             <section className="w-full max-w-lg mx-auto bg-white rounded-lg shadow-sm border border-gray-100 p-4 font-sans text-gray-800 my-3 relative h-auto flex flex-col justify-between">
                 <div>
+                    {/* Topprad med användare, kategori och ev. redigera/ta bort/rapportera-meny */}
                     <PostHeader
                         post={post}
                         currentUser={currentUser}
@@ -203,8 +243,10 @@ function PostCard({ post, currentUser, setCurrentUser, handleEditPost, handleDel
                         handleEditPost={handleEditPost}
                         handleDeletePost={handleDeletePost}
                         customTimeFormatter={customTimeFormatter}
+                        requireAuth={requireAuth}
                     />
 
+                    {/* Klickbar inläggsyta som leder till detaljvyn i flödet */}
                     <div
                         onClick={!isDetailView ? handleCardClick : undefined}
                         className={`block group text-left ${!isDetailView ? "cursor-pointer transition-opacity hover:opacity-95" : ""}`}
@@ -221,6 +263,7 @@ function PostCard({ post, currentUser, setCurrentUser, handleEditPost, handleDel
                             setFullsizeImage={setFullsizeImage}
                         />
 
+                        {/* Inläggstext och klickbara hashtags */}
                         <div className="mb-2 px-0.5 space-y-1">
                             <p className={`${isDetailView ? "" : "line-clamp-2 overflow-hidden"} text-xs text-gray-800 font-normal leading-relaxed whitespace-pre-wrap`}>
                                 {post.content}
@@ -247,6 +290,7 @@ function PostCard({ post, currentUser, setCurrentUser, handleEditPost, handleDel
                             )}
                         </div>
 
+                        {/* Valfria delade block: recept, kalender och träningspass */}
                         <PostRecipe recipe={post.recipe} isDetailView={isDetailView} />
 
                         <PostCalendarShare calendarShare={post.calendarShare} />
@@ -254,6 +298,7 @@ function PostCard({ post, currentUser, setCurrentUser, handleEditPost, handleDel
                         <PostWorkoutShare workoutShare={post.workoutShare} />
                     </div>
 
+                    {/* Valfri Spotify-spelare */}
                     {spotifyEmbedUrl && (
                         <div className="mt-2 mb-2 overflow-hidden rounded-lg border border-gray-100 shadow-2xs">
                             <iframe
@@ -268,6 +313,7 @@ function PostCard({ post, currentUser, setCurrentUser, handleEditPost, handleDel
                     )}
                 </div>
 
+                {/* Bottenrad med gilla, kommentarer och spara */}
                 <PostFooter
                     post={post}
                     currentUser={currentUser}
@@ -280,10 +326,11 @@ function PostCard({ post, currentUser, setCurrentUser, handleEditPost, handleDel
                     setIsSaved={setIsSaved}
                     commentsCount={commentsCount}
                     handlePostLikeToggle={onLikeClick}
-                    handleSavePost={handleSavePost}
+                    handleSavePost={onSaveClick}
                     getSavedPosts={getSavedPosts}
                 />
 
+                {/* Fullskärmsvisning för vald bild */}
                 {fullsizeImage && (
                     <FullsizeImageModal imageUrl={fullsizeImage} onClose={() => setFullsizeImage(null)} />
                 )}

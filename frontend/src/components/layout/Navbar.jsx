@@ -7,18 +7,26 @@ import logo from '../../assets/images/liftly-logo.png';
 import ProfileImage from "../users/ProfileImage";
 import { logout } from "../../functions/user/logout";
 
+// Navigation i mobil och desktop med kategorifilter, genvägar och auth-läge
 function Navbar({ currentUser, setCurrentUser, onOpenCreatePost, onOpenNotifications, unreadCount }) {
   const navigate = useNavigate();
+
+  // Användar-ID och profilsökväg: skickar till /login om användaren är utloggad
+  const currentUserId = currentUser?.id || currentUser?._id;
+  const profilePath = currentUserId ? `/users/${currentUserId}` : "/login";
+
+  // State för mobilens kategoridropdown
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [expandedCategory, setExpandedCategory] = useState(null);
 
-  // Desktop dropdown state
+  // State för desktopens kategoridropdown
   const [isDesktopDropdownOpen, setIsDesktopDropdownOpen] = useState(false);
   const [expandedDesktopCategory, setExpandedDesktopCategory] = useState(null);
 
   const dropdownRef = useRef(null);
   const desktopDropdownRef = useRef(null);
 
+  // Stänger öppna kategorimenyer vid klick utanför respektive dropdown
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -31,9 +39,12 @@ function Navbar({ currentUser, setCurrentUser, onOpenCreatePost, onOpenNotificat
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
+
+    // Städar bort global muslyssnare när komponenten avmonteras
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Stänger menyn och navigerar till vald kategori eller startsida
   const handleSelect = (category, subCategory = null, isDesktop = false) => {
     if (isDesktop) {
       setIsDesktopDropdownOpen(false);
@@ -51,15 +62,13 @@ function Navbar({ currentUser, setCurrentUser, onOpenCreatePost, onOpenNotificat
       navigate(`/category/${category}`);
     }
   };
-  // Återanvändbar meny där ALLA rader har hover, pekhand och ren text utan streck
+
+  // Återanvändbar kategorimeny för både mobil och desktop
   const renderCategoryMenu = (isDesktop = false) => {
     const setExp = isDesktop ? setExpandedDesktopCategory : setExpandedCategory;
     const expVal = isDesktop ? expandedDesktopCategory : expandedCategory;
 
-    // Gemensam stil för vanliga knappar (All, General, Supplements, Activewear etc.)
     const standardButtonStyle = "w-full text-left px-3.5 py-1.5 hover:bg-zinc-800 transition-colors text-zinc-300 hover:text-white cursor-pointer";
-
-    // Gemensam stil för huvudkategorier med underkategorier (Food, Training, Music)
     const accordionStyle = "w-full text-left px-3.5 py-1.5 hover:bg-zinc-800 transition-colors flex items-center justify-between cursor-pointer text-zinc-300 hover:text-white";
 
     return (
@@ -201,14 +210,11 @@ function Navbar({ currentUser, setCurrentUser, onOpenCreatePost, onOpenNotificat
   return (
     <>
       {/* =========================================================================
-          1. MOBILE VIEW (Top Header + Bottom Menu)
+          1. MOBILVY (Topplist + Bottenmeny)
           ========================================================================= */}
       <div className="block xl:hidden">
         <header className="fixed top-0 left-0 w-full h-14 bg-[#0D0D0E] border-b border-zinc-800 flex items-center justify-between px-4 z-50">
-          {/* <Link to="/home">
-            <img className="h-5 w-auto object-contain" src={logo} alt="Liftly logo" />
-          </Link> */}
-
+          {/* Kategoriväljare i mobilens topplist */}
           <div className="relative" ref={dropdownRef}>
             <button
               type="button"
@@ -222,12 +228,14 @@ function Navbar({ currentUser, setCurrentUser, onOpenCreatePost, onOpenNotificat
             {isDropdownOpen && renderCategoryMenu(false)}
           </div>
 
+          {/* Sök samt logga ut / logga in */}
           <div className="flex items-center gap-1">
             <Link to="/search" className="text-zinc-400 hover:text-white p-2 transition-colors">
               <CiSearch size={22} />
             </Link>
             {currentUser ? (
               <button
+                type="button"
                 onClick={() => logout(setCurrentUser, navigate)}
                 className="text-zinc-400 hover:text-red-400 p-1.5 transition-colors cursor-pointer"
                 title="Log out"
@@ -245,6 +253,7 @@ function Navbar({ currentUser, setCurrentUser, onOpenCreatePost, onOpenNotificat
           </div>
         </header>
 
+        {/* Bottenmeny på mobil */}
         <nav className="fixed bottom-0 left-0 w-full h-16 bg-[#0D0D0E] border-t border-zinc-800 flex items-center justify-around px-2 z-50">
           <Link to="/home" className="text-zinc-400 hover:text-white p-2 transition-colors">
             <FiHome size={22} />
@@ -255,7 +264,11 @@ function Navbar({ currentUser, setCurrentUser, onOpenCreatePost, onOpenNotificat
           <Link to="/training" className="text-zinc-400 hover:text-white p-2 transition-colors">
             <IoBarbellOutline size={22} />
           </Link>
-          <button onClick={onOpenNotifications} className="text-zinc-400 hover:text-white p-2 transition-colors cursor-pointer relative">
+          <button
+            type="button"
+            onClick={onOpenNotifications}
+            className="text-zinc-400 hover:text-white p-2 transition-colors cursor-pointer relative"
+          >
             <FiBell size={22} />
             {unreadCount > 0 && (
               <span className="absolute top-1 right-1 bg-red-500 text-white text-[9px] font-bold px-1 min-w-4 h-4 flex items-center justify-center rounded-full ring-2 ring-[#0D0D0E]">
@@ -263,10 +276,15 @@ function Navbar({ currentUser, setCurrentUser, onOpenCreatePost, onOpenNotificat
               </span>
             )}
           </button>
-          <button onClick={onOpenCreatePost} className="text-zinc-400 hover:text-white p-2 transition-colors cursor-pointer">
+          <button
+            type="button"
+            onClick={onOpenCreatePost}
+            className="text-zinc-400 hover:text-white p-2 transition-colors cursor-pointer"
+          >
             <FiPlusSquare size={22} />
           </button>
-          <Link to={`/users/${currentUser?.id}`} className="p-2">
+          {/* Profil-länk: leder till egen profil som inloggad, annars till /login */}
+          <Link to={profilePath} className="p-2">
             <div className="w-6 h-6 rounded-full overflow-hidden border border-zinc-800 shrink-0">
               <ProfileImage currentUser={currentUser} />
             </div>
@@ -275,24 +293,28 @@ function Navbar({ currentUser, setCurrentUser, onOpenCreatePost, onOpenNotificat
       </div>
 
       {/* =========================================================================
-          2. DESKTOP VIEW (Sidebar on the left side)
+          2. DESKTOPVY (Sidomeny till vänster)
           ========================================================================= */}
       <nav className="hidden xl:flex flex-col justify-between items-center w-34 h-screen bg-[#0D0D0E] p-4 border-r border-zinc-800 fixed top-0 left-0 z-50 font-sans">
         <div className="flex flex-col items-start w-full gap-5">
+          {/* Logotyp */}
           <div className="shrink-0 pl-1.5">
             <Link to="/home">
               <img className="h-7 w-auto object-contain" src={logo} alt="Liftly logo" />
             </Link>
           </div>
 
+          {/* Sök */}
           <Link to="/search" className="flex items-center gap-2.5 w-full py-2 px-2 text-zinc-400 hover:text-white hover:bg-zinc-900/50 rounded-lg transition-all">
             <CiSearch size={16} className="shrink-0" />
             <span className="text-xs font-medium tracking-wide">Search</span>
           </Link>
 
+          {/* Huvudmeny */}
           <ul className="flex flex-col items-start gap-0.5 w-full">
+            {/* Profil-länk: leder till egen profil som inloggad, annars till /login */}
             <li className="w-full">
-              <Link to={`/users/${currentUser?.id}`} className="flex items-center gap-2.5 w-full py-2 px-2 text-zinc-400 hover:text-white md:hover:bg-zinc-900/50 rounded-lg transition-all">
+              <Link to={profilePath} className="flex items-center gap-2.5 w-full py-2 px-2 text-zinc-400 hover:text-white md:hover:bg-zinc-900/50 rounded-lg transition-all">
                 <div className="w-5 h-5 rounded-full overflow-hidden border border-zinc-800 shrink-0">
                   <ProfileImage currentUser={currentUser} />
                 </div>
@@ -316,6 +338,7 @@ function Navbar({ currentUser, setCurrentUser, onOpenCreatePost, onOpenNotificat
 
             <li className="w-full">
               <button
+                type="button"
                 onClick={onOpenNotifications}
                 className="flex items-center justify-between w-full py-2 px-2 text-zinc-400 hover:text-white md:hover:bg-zinc-900/50 rounded-lg transition-all cursor-pointer relative"
               >
@@ -332,13 +355,17 @@ function Navbar({ currentUser, setCurrentUser, onOpenCreatePost, onOpenNotificat
             </li>
 
             <li className="w-full">
-              <button onClick={onOpenCreatePost} className="flex items-center gap-2.5 w-full text-left py-2 px-2 text-zinc-400 hover:text-white md:hover:bg-zinc-900/50 rounded-lg transition-all cursor-pointer">
+              <button
+                type="button"
+                onClick={onOpenCreatePost}
+                className="flex items-center gap-2.5 w-full text-left py-2 px-2 text-zinc-400 hover:text-white md:hover:bg-zinc-900/50 rounded-lg transition-all cursor-pointer"
+              >
                 <FiPlusSquare size={16} className="shrink-0" />
                 <span className="text-xs font-medium tracking-wide">Create</span>
               </button>
             </li>
 
-            {/* DESKTOP CATEGORY BUTTON */}
+            {/* Kategoridropdown på desktop */}
             <li className="w-full relative mt-2" ref={desktopDropdownRef}>
               <div className="px-2 mb-0.5">
                 <span className="text-[10px] font-bold tracking-wider uppercase text-zinc-600">Category</span>
@@ -357,9 +384,11 @@ function Navbar({ currentUser, setCurrentUser, onOpenCreatePost, onOpenNotificat
           </ul>
         </div>
 
+        {/* Logga ut / Logga in längst ner i sidomenyn */}
         <div className="w-full border-t border-zinc-900 pt-2">
           {currentUser ? (
             <button
+              type="button"
               onClick={() => logout(setCurrentUser, navigate)}
               className="flex items-center gap-2.5 w-full py-2 px-2 text-zinc-500 hover:text-red-400 transition-colors text-xs font-medium cursor-pointer rounded-lg hover:bg-red-950/10"
             >
