@@ -2,6 +2,10 @@ import { useState } from 'react';
 import api from '../api/axios';
 import { useNavigate, Link } from 'react-router-dom';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import {
+  validatePasswordInput,
+  PASSWORD_REQUIREMENTS_TEXT,
+} from '../functions/user/passwordValidation';
 import logo from '../assets/images/liftly-logo.png';
 
 function RegisterPage() {
@@ -21,6 +25,13 @@ function RegisterPage() {
   // function to handle user registration
   const registerUser = async (e) => {
     e.preventDefault();
+
+    // Validera lösenord och bekräftelselösenord enligt gemensamma regler
+    const passwordError = validatePasswordInput(password, confirmPassword);
+    if (passwordError) {
+      setError(passwordError);
+      return;
+    }
 
     if (!acceptedGDPR) {
       // Visa ett felmeddelande i din UI om man försöker registrera utan att kryssa i
@@ -43,12 +54,12 @@ function RegisterPage() {
 
     } catch (err) {
       // Hantera fel säkert med ?. så det aldrig kraschar
-      const errorMessage = 
-        err.response?.data?.message || 
-        err.response?.data || 
-        err.message || 
+      const errorMessage =
+        err.response?.data?.message ||
+        err.response?.data ||
+        err.message ||
         "Your registration attempt was unsuccessful. Please check your input and try again.";
-      
+
       setError(errorMessage);
     } finally {
       setIsLoading(false); // Stäng av laddningsläget oavsett om det lyckas eller misslyckas
@@ -134,18 +145,24 @@ function RegisterPage() {
               {showPassword ? <FaEye size={14} /> : <FaEyeSlash size={14} />}
             </button>
           </div>
+
+          <p className="text-[11px] text-gray-400 leading-relaxed">
+            {PASSWORD_REQUIREMENTS_TEXT}
+          </p>
+
           {/* --- DOLT HONEYPOT-FÄLT --- */}
-        <div style={{ display: 'none' }} aria-hidden="true">
-          <input
-            type="text"
-            id="website"
-            name="website"
-            value={website}
-            onChange={(e) => setWebsite(e.target.value)}
-            tabIndex={-1}
-            autoComplete="off"
-          />
-        </div>
+          <div style={{ display: 'none' }} aria-hidden="true">
+            <input
+              type="text"
+              id="website"
+              name="website"
+              value={website}
+              onChange={(e) => setWebsite(e.target.value)}
+              tabIndex={-1}
+              autoComplete="off"
+            />
+          </div>
+
           {/* GDPR Checkbox */}
           <div className="flex items-start gap-2.5 my-3">
             <input
@@ -168,13 +185,13 @@ function RegisterPage() {
           </div>
 
           {/* Sign up button */}
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="mt-1 w-full rounded bg-[#4A4545] py-2 text-xs font-medium text-white transition-colors hover:bg-[#575151] focus:outline-none focus:ring-1 focus:ring-gray-400 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isLoading ? "Signing up..." : "Sign up"}
-        </button>
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="mt-1 w-full rounded bg-[#4A4545] py-2 text-xs font-medium text-white transition-colors hover:bg-[#575151] focus:outline-none focus:ring-1 focus:ring-gray-400 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isLoading ? "Signing up..." : "Sign up"}
+          </button>
         </form>
 
         {/* Error message */}

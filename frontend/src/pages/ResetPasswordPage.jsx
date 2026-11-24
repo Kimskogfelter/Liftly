@@ -1,6 +1,10 @@
 import React, { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import api from "../api/axios";
+import {
+  validatePasswordInput,
+  PASSWORD_REQUIREMENTS_TEXT,
+} from "../functions/user/passwordValidation";
 import logo from "../assets/images/liftly-logo.png";
 
 function ResetPasswordPage() {
@@ -16,12 +20,10 @@ function ResetPasswordPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (password !== confirmPassword) {
-      return setError("Passwords do not match.");
-    }
-
-    if (password.length < 10) {
-      return setError("Password must be at least 10 characters long.");
+    // Kör samma lösenordsvalidering som vid registrering innan anrop till backend
+    const validationError = validatePasswordInput(password, confirmPassword);
+    if (validationError) {
+      return setError(validationError);
     }
 
     setLoading(true);
@@ -30,7 +32,9 @@ function ResetPasswordPage() {
 
     try {
       const res = await api.patch(
-        `/users/reset-password/${token}`, { password });
+        `/users/reset-password/${token}`,
+        { password }
+      );
       setMessage(res.data.message);
 
       setTimeout(() => {
@@ -84,6 +88,10 @@ function ResetPasswordPage() {
               className="w-full rounded bg-white px-3 py-2 text-xs text-black placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400"
             />
           </div>
+
+          <p className="text-[11px] text-gray-400 leading-relaxed">
+            {PASSWORD_REQUIREMENTS_TEXT}
+          </p>
 
           <button
             type="submit"
