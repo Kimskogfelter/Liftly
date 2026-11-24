@@ -57,9 +57,10 @@ function Navbar({ currentUser, setCurrentUser, onOpenCreatePost, onOpenNotificat
     if (category === "All") {
       navigate("/home");
     } else if (subCategory) {
-      navigate(`/category/${category}?sub=${subCategory}`);
+      // URL-koda underkategorin så tecken som "&" i "Lunch & Dinner" inte tolkas som query-avgränsare
+      navigate(`/category/${encodeURIComponent(category)}?sub=${encodeURIComponent(subCategory)}`);
     } else {
-      navigate(`/category/${category}`);
+      navigate(`/category/${encodeURIComponent(category)}`);
     }
   };
 
