@@ -5,7 +5,8 @@ import ContactModal from "./ContactModal";
 import DeleteAccountModal from "./DeleteAccountModal";
 import EditAccountModal from "./EditAccountModal";
 import ChangePasswordModal from "./ChangePasswordModal";
-import { FiUser, FiLock, FiTrash2, FiX, FiMail, FiShield } from "react-icons/fi";
+import { FiUser, FiLock, FiTrash2, FiX, FiMail, FiShield, FiLogOut } from "react-icons/fi";
+import { logout } from "../../functions/user/logout";
 
 function SettingsModal({ onClose, currentUser, setCurrentUser, getUserInfo }) {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -16,6 +17,11 @@ function SettingsModal({ onClose, currentUser, setCurrentUser, getUserInfo }) {
 
   const backdropClasses =
     "fixed inset-0 z-50 flex items-start sm:items-center justify-center bg-black/40 backdrop-blur-md p-0 sm:p-4 overflow-y-auto animate-in fade-in duration-200";
+
+  const handleLogoutClick = async () => {
+    onClose();
+    await logout(setCurrentUser, navigate);
+  };
 
   return createPortal(
     <div className={backdropClasses} onClick={onClose}>
@@ -138,6 +144,24 @@ function SettingsModal({ onClose, currentUser, setCurrentUser, getUserInfo }) {
                 <p className="text-xs font-bold text-gray-800">Delete Account</p>
                 <p className="text-[10px] text-gray-400">
                   Permanently remove your account and data
+                </p>
+              </div>
+            </div>
+          </button>
+          {/* Log out */}
+          <button
+            type="button"
+            onClick={handleLogoutClick}
+            className="w-full flex items-center justify-between p-3.5 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors text-left cursor-pointer group"
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-white rounded-lg shadow-xs text-gray-700 group-hover:scale-105 transition-transform">
+                <FiLogOut size={16} />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-gray-800">Log out</p>
+                <p className="text-[10px] text-gray-400">
+                  Sign out of your account
                 </p>
               </div>
             </div>

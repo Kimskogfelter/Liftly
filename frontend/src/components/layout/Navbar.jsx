@@ -1,19 +1,41 @@
 import { useState, useRef, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { CiSearch } from "react-icons/ci";
 import { FiHome, FiBookmark, FiPlusSquare, FiLogOut, FiChevronDown, FiBell } from "react-icons/fi";
 import { IoBarbellOutline } from "react-icons/io5";
 import logo from '../../assets/images/liftly-logo.png';
 import ProfileImage from "../users/ProfileImage";
-import { logout } from "../../functions/user/logout";
 
-// Navigation i mobil och desktop med kategorifilter, genvägar och auth-läge
-function Navbar({ currentUser, setCurrentUser, onOpenCreatePost, onOpenNotifications, unreadCount }) {
+// Navigation i mobil och desktop med kategorifilter, aktiv sidmarkering och auth-läge
+function Navbar({ currentUser, onOpenCreatePost, onOpenNotifications, unreadCount }) {
   const navigate = useNavigate();
+  const location = useLocation();
+  const currentPath = location.pathname;
 
   // Användar-ID och profilsökväg: skickar till /login om användaren är utloggad
   const currentUserId = currentUser?.id || currentUser?._id;
   const profilePath = currentUserId ? `/users/${currentUserId}` : "/login";
+
+  // Undersidor som hör till Training & Health-hubben (justera vid behov efter App.jsx)
+  const trainingPaths = [
+    "/training",
+    "/workouts",
+    "/calendar",
+    "/activityCalendar",
+    "/foodLog",
+    "/food-log",
+    "/foodlog",
+  ];
+
+  // Aktiv rutt-kontroll för mobil- och desktopmenyn
+  const isHomeActive = currentPath === "/home" || currentPath === "/";
+  const isSavedActive = currentPath === "/savedPosts";
+  const isTrainingActive = trainingPaths.some((path) =>
+    currentPath.toLowerCase().startsWith(path.toLowerCase())
+  );
+  const isProfileActive = Boolean(currentUserId && currentPath === `/users/${currentUserId}`);
+  const isSearchActive = currentPath === "/search";
+  const isCategoryActive = currentPath.startsWith("/category");
 
   // State för mobilens kategoridropdown
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -211,7 +233,7 @@ function Navbar({ currentUser, setCurrentUser, onOpenCreatePost, onOpenNotificat
   return (
     <>
       {/* =========================================================================
-          1. MOBILVY (Topplist + Bottenmeny)
+1. MOBILVY (Topplist + Bottenmeny)
           ========================================================================= */}
       <div className="block xl:hidden">
         <header className="fixed top-0 left-0 w-full h-14 bg-[#0D0D0E] border-b border-zinc-800 flex items-center justify-between px-4 z-50">
@@ -220,7 +242,9 @@ function Navbar({ currentUser, setCurrentUser, onOpenCreatePost, onOpenNotificat
             <button
               type="button"
               onClick={() => setIsDropdownOpen((prev) => !prev)}
-              className="text-xs bg-zinc-900 border border-zinc-800 text-zinc-300 rounded-lg px-2.5 py-1.5 flex items-center gap-1.5 focus:outline-none cursor-pointer"
+              className={`text-xs bg-zinc-900 border rounded-lg px-2.5 py-1.5 flex items-center gap-1.5 focus:outline-none cursor-pointer transition-colors ${
+                isCategoryActive ? "border-zinc-600 text-white" : "border-zinc-800 text-zinc-300"
+              }`}
             >
               <span>Categories</span>
               <FiChevronDown size={12} className="text-zinc-400" />
@@ -229,19 +253,32 @@ function Navbar({ currentUser, setCurrentUser, onOpenCreatePost, onOpenNotificat
             {isDropdownOpen && renderCategoryMenu(false)}
           </div>
 
-          {/* Sök samt logga ut / logga in */}
-          <div className="flex items-center gap-1">
-            <Link to="/search" className="text-zinc-400 hover:text-white p-2 transition-colors">
+          {/* Sök samt notiser (inloggad) eller logga in (utloggad) */}
+          <div className="flex items-center gap-1.5">
+            <Link
+              to="/search"
+              className={`p-2 transition-colors ${
+                isSearchActive ? "text-white" : "text-zinc-400 hover:text-white"
+              }`}
+              aria-label="Search"
+            >
               <CiSearch size={22} />
             </Link>
+
             {currentUser ? (
               <button
                 type="button"
-                onClick={() => logout(setCurrentUser, navigate)}
-                className="text-zinc-400 hover:text-red-400 p-1.5 transition-colors cursor-pointer"
-                title="Log out"
+                onClick={onOpenNotifications}
+                className="text-zinc-400 hover:text-white p-2 transition-colors cursor-pointer relative"
+                title="Notifications"
+                aria-label="Notifications"
               >
-                <FiLogOut size={18} />
+                <FiBell size={20} />
+                {unreadCount > 0 && (
+                  <span className="absolute top-1 right-1 bg-red-500 text-white text-[9px] font-bold px-1 min-w-4 h-4 flex items-center justify-center rounded-full ring-2 ring-[#0D0D0E]">
+                    {unreadCount}
+                  </span>
+                )}
               </button>
             ) : (
               <Link
@@ -254,39 +291,62 @@ function Navbar({ currentUser, setCurrentUser, onOpenCreatePost, onOpenNotificat
           </div>
         </header>
 
-        {/* Bottenmeny på mobil */}
+        {/* Bottenmeny på mobil (5 ikoner med centrerad vit Träning-knapp) */}
         <nav className="fixed bottom-0 left-0 w-full h-16 bg-[#0D0D0E] border-t border-zinc-800 flex items-center justify-around px-2 z-50">
-          <Link to="/home" className="text-zinc-400 hover:text-white p-2 transition-colors">
+          {/* Home */}
+          <Link
+            to="/home"
+            className={`p-2 transition-colors flex items-center justify-center ${
+              isHomeActive ? "text-white" : "text-zinc-500 hover:text-zinc-300"
+            }`}
+            aria-label="Home"
+          >
             <FiHome size={22} />
           </Link>
-          <Link to="/savedPosts" className="text-zinc-400 hover:text-white p-2 transition-colors">
+
+          {/* Saved */}
+          <Link
+            to="/savedPosts"
+            className={`p-2 transition-colors flex items-center justify-center ${
+              isSavedActive ? "text-white" : "text-zinc-500 hover:text-zinc-300"
+            }`}
+            aria-label="Saved"
+          >
             <FiBookmark size={22} />
           </Link>
-          <Link to="/training" className="text-zinc-400 hover:text-white p-2 transition-colors">
+
+          {/* Training (centrerad vit huvudknapp) */}
+          <Link
+            to="/training"
+            className={`w-11 h-11 rounded-full bg-white text-black flex items-center justify-center shadow-md hover:bg-zinc-200 active:scale-95 transition-all ${
+              isTrainingActive ? "ring-2 ring-white/50 ring-offset-2 ring-offset-[#0D0D0E]" : ""
+            }`}
+            aria-label="Training"
+          >
             <IoBarbellOutline size={22} />
           </Link>
-          <button
-            type="button"
-            onClick={onOpenNotifications}
-            className="text-zinc-400 hover:text-white p-2 transition-colors cursor-pointer relative"
-          >
-            <FiBell size={22} />
-            {unreadCount > 0 && (
-              <span className="absolute top-1 right-1 bg-red-500 text-white text-[9px] font-bold px-1 min-w-4 h-4 flex items-center justify-center rounded-full ring-2 ring-[#0D0D0E]">
-                {unreadCount}
-              </span>
-            )}
-          </button>
+
+          {/* Create */}
           <button
             type="button"
             onClick={onOpenCreatePost}
-            className="text-zinc-400 hover:text-white p-2 transition-colors cursor-pointer"
+            className="text-zinc-500 hover:text-zinc-300 p-2 transition-colors flex items-center justify-center cursor-pointer"
+            aria-label="Create post"
           >
             <FiPlusSquare size={22} />
           </button>
-          {/* Profil-länk: leder till egen profil som inloggad, annars till /login */}
-          <Link to={profilePath} className="p-2">
-            <div className="w-6 h-6 rounded-full overflow-hidden border border-zinc-800 shrink-0">
+
+          {/* Profile */}
+          <Link
+            to={profilePath}
+            className="p-2 flex items-center justify-center"
+            aria-label="Profile"
+          >
+            <div
+              className={`w-6 h-6 rounded-full overflow-hidden shrink-0 transition-all ${
+                isProfileActive ? "ring-2 ring-white" : "border border-zinc-800 opacity-80"
+              }`}
+            >
               <ProfileImage currentUser={currentUser} />
             </div>
           </Link>
@@ -294,7 +354,7 @@ function Navbar({ currentUser, setCurrentUser, onOpenCreatePost, onOpenNotificat
       </div>
 
       {/* =========================================================================
-          2. DESKTOPVY (Sidomeny till vänster)
+2. DESKTOPVY (Sidomeny till vänster)
           ========================================================================= */}
       <nav className="hidden xl:flex flex-col justify-between items-center w-34 h-screen bg-[#0D0D0E] p-4 border-r border-zinc-800 fixed top-0 left-0 z-50 font-sans">
         <div className="flex flex-col items-start w-full gap-5">
@@ -306,34 +366,66 @@ function Navbar({ currentUser, setCurrentUser, onOpenCreatePost, onOpenNotificat
           </div>
 
           {/* Sök */}
-          <Link to="/search" className="flex items-center gap-2.5 w-full py-2 px-2 text-zinc-400 hover:text-white hover:bg-zinc-900/50 rounded-lg transition-all">
+          <Link
+            to="/search"
+            className={`flex items-center gap-2.5 w-full py-2 px-2 rounded-lg transition-all ${
+              isSearchActive
+                ? "bg-zinc-900 text-white font-semibold"
+                : "text-zinc-400 hover:text-white hover:bg-zinc-900/50 font-medium"
+            }`}
+          >
             <CiSearch size={16} className="shrink-0" />
-            <span className="text-xs font-medium tracking-wide">Search</span>
+            <span className="text-xs tracking-wide">Search</span>
           </Link>
 
           {/* Huvudmeny */}
           <ul className="flex flex-col items-start gap-0.5 w-full">
             {/* Profil-länk: leder till egen profil som inloggad, annars till /login */}
             <li className="w-full">
-              <Link to={profilePath} className="flex items-center gap-2.5 w-full py-2 px-2 text-zinc-400 hover:text-white md:hover:bg-zinc-900/50 rounded-lg transition-all">
-                <div className="w-5 h-5 rounded-full overflow-hidden border border-zinc-800 shrink-0">
+              <Link
+                to={profilePath}
+                className={`flex items-center gap-2.5 w-full py-2 px-2 rounded-lg transition-all ${
+                  isProfileActive
+                    ? "bg-zinc-900 text-white font-semibold"
+                    : "text-zinc-400 hover:text-white md:hover:bg-zinc-900/50 font-medium"
+                }`}
+              >
+                <div
+                  className={`w-5 h-5 rounded-full overflow-hidden shrink-0 ${
+                    isProfileActive ? "ring-1 ring-white" : "border border-zinc-800"
+                  }`}
+                >
                   <ProfileImage currentUser={currentUser} />
                 </div>
-                <span className="text-xs font-medium tracking-wide">Profile</span>
+                <span className="text-xs tracking-wide">Profile</span>
               </Link>
             </li>
 
             <li className="w-full">
-              <Link to="/savedPosts" className="flex items-center gap-2.5 w-full py-2 px-2 text-zinc-400 hover:text-white md:hover:bg-zinc-900/50 rounded-lg transition-all">
+              <Link
+                to="/savedPosts"
+                className={`flex items-center gap-2.5 w-full py-2 px-2 rounded-lg transition-all ${
+                  isSavedActive
+                    ? "bg-zinc-900 text-white font-semibold"
+                    : "text-zinc-400 hover:text-white md:hover:bg-zinc-900/50 font-medium"
+                }`}
+              >
                 <FiBookmark size={16} className="shrink-0" />
-                <span className="text-xs font-medium tracking-wide">Saved</span>
+                <span className="text-xs tracking-wide">Saved</span>
               </Link>
             </li>
 
             <li className="w-full">
-              <Link to="/training" className="flex items-center gap-2.5 w-full py-2 px-2 text-zinc-400 hover:text-white md:hover:bg-zinc-900/50 rounded-lg transition-all">
+              <Link
+                to="/training"
+                className={`flex items-center gap-2.5 w-full py-2 px-2 rounded-lg transition-all ${
+                  isTrainingActive
+                    ? "bg-zinc-900 text-white font-semibold"
+                    : "text-zinc-400 hover:text-white md:hover:bg-zinc-900/50 font-medium"
+                }`}
+              >
                 <IoBarbellOutline size={16} className="shrink-0" />
-                <span className="text-xs font-medium tracking-wide">Training</span>
+                <span className="text-xs tracking-wide">Training</span>
               </Link>
             </li>
 
@@ -374,7 +466,11 @@ function Navbar({ currentUser, setCurrentUser, onOpenCreatePost, onOpenNotificat
               <button
                 type="button"
                 onClick={() => setIsDesktopDropdownOpen((prev) => !prev)}
-                className="w-full text-xs text-zinc-400 hover:text-white px-2 py-1.5 rounded-lg hover:bg-zinc-900/50 flex items-center justify-between cursor-pointer font-medium transition-colors"
+                className={`w-full text-xs px-2 py-1.5 rounded-lg flex items-center justify-between cursor-pointer transition-colors ${
+                  isCategoryActive
+                    ? "bg-zinc-900 text-white font-semibold"
+                    : "text-zinc-400 hover:text-white hover:bg-zinc-900/50 font-medium"
+                }`}
               >
                 <span>All</span>
                 <FiChevronDown size={12} />
@@ -385,18 +481,9 @@ function Navbar({ currentUser, setCurrentUser, onOpenCreatePost, onOpenNotificat
           </ul>
         </div>
 
-        {/* Logga ut / Logga in längst ner i sidomenyn */}
-        <div className="w-full border-t border-zinc-900 pt-2">
-          {currentUser ? (
-            <button
-              type="button"
-              onClick={() => logout(setCurrentUser, navigate)}
-              className="flex items-center gap-2.5 w-full py-2 px-2 text-zinc-500 hover:text-red-400 transition-colors text-xs font-medium cursor-pointer rounded-lg hover:bg-red-950/10"
-            >
-              <FiLogOut size={14} className="shrink-0" />
-              <span>Logout</span>
-            </button>
-          ) : (
+        {/* Logga in längst ner i sidomenyn när användaren är utloggad */}
+        {!currentUser && (
+          <div className="w-full border-t border-zinc-900 pt-2">
             <Link
               to="/login"
               className="flex items-center gap-2.5 w-full py-2 px-2 text-zinc-500 hover:text-white transition-colors text-xs font-medium cursor-pointer rounded-lg hover:bg-zinc-900/50"
@@ -404,8 +491,8 @@ function Navbar({ currentUser, setCurrentUser, onOpenCreatePost, onOpenNotificat
               <FiLogOut size={14} className="shrink-0" />
               <span>Log in</span>
             </Link>
-          )}
-        </div>
+          </div>
+        )}
       </nav>
     </>
   );
