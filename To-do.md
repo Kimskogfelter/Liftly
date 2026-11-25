@@ -1,78 +1,82 @@
 # Liftly - Project To-Do List
 
-## Säkerhet & Autentisering
-- KANSKE SENARE Ändra namnet token till accessToken i både frontend och backend för bättre förståelse av vad den gör
+---
 
-## Nya Funktioner
-- skönhetsfilter till bild/video, måste väll finnas enkla tillägg för detta?? eller måste man koda allt själv??
-- fixa så man får notiser i och utanför appen när något händer, tex en kommentar eller gilla markering, BÅDE webb och mobil
-(kolla android studio, så push notiser fungerar!! behöver fixa modal för in app notiser. samt fixa apples egna kod och egen kod för webben)
+## ⏳ PÅGÅENDE
 
-- babe loggas ut från appen under tiden han är i appen på android versionen (senaste APK filen)
+- [ ] fixa så man får notiser i och utanför appen när något händer, tex en kommentar eller gilla markering, BÅDE webb och mobil
+  (kolla android studio, så push notiser fungerar!! behöver fixa modal för in app notiser. samt fixa apples egna kod och egen kod för webben)
 
-- på mobil så aktiveras inte tangentbordet direkt när man kommer till söksidan... useRef och timeouts funkar inte!
+- [ ] babe loggas ut från appen under tiden han är i appen på android versionen (senaste APK filen)
 
-- fixa så appen kan lanseras hos app store och andriod för att lätt laddas ner
+- [ ] på mobil så aktiveras inte tangentbordet direkt när man kommer till söksidan... useRef och timeouts funkar inte!
 
-- uppdatera README.md med screenshots från de olika delarna på appen
+- [ ] fixa så appen kan lanseras hos app store och andriod för att lätt laddas ner
 
-- fixa så man kan lägga till flera spotify låtar i samma inlägg?!
+- [ ] uppdatera README.md med screenshots från de olika delarna på appen
 
-- TESTA Andriod studio, se till att live backend funkar mot android??!! 
+- [ ] TESTA Andriod studio, se till att live backend funkar mot android??!!
 
-- Checklista för att stoppa skräp användare:
-    [x] Rate limiter för registrering – Stoppar överdrivna försök från samma IP-adress.
+- [ ] Checklista för att stoppa skräp användare:
+    - [x] Rate limiter för registrering – Stoppar överdrivna försök från samma IP-adress.
+    - [x] Honeypot-fält (Steg 1) – Det enklaste och snabbaste skyddet mot standardbottar. (Rekommenderas att börja här!)
+    - [x] E-postvalidering / Blockering av skräpdomäner (Steg 2) – För att stoppa tillfälliga/fejkade mailadresser.
+    - [ ] Cloudflare Turnstile (Steg 3 - vid behov) – Det tunga, osynliga artilleriet om bottarna fortsätter.
 
-    [x] Honeypot-fält (Steg 1) – Det enklaste och snabbaste skyddet mot standardbottar. (Rekommenderas att börja här!)
+---
 
-    [x] E-postvalidering / Blockering av skräpdomäner (Steg 2) – För att stoppa tillfälliga/fejkade mailadresser.
+## 🔮 FRAMTIDA / PAUSAT
 
-    [ ] Cloudflare Turnstile (Steg 3 - vid behov) – Det tunga, osynliga artilleriet om bottarna fortsätter.
+- [ ] Real-time beauty/AR camera filters: Pausad tills vidare. Enkla CSS/Canvas-filter ger bara ljusjustering; riktig hudutjämning och makeup-effekter kräver Face Mesh, WebGL-shaders eller kommersiella/native SDK:er (Swift/Kotlin) som är för tunga att underhålla i nuläget.
 
+- [ ] fixa så man kan lägga till flera spotify låtar i samma inlägg?!
 
+- [ ] KANSKE SENARE Ändra namnet token till accessToken i både frontend och backend för bättre förståelse av vad den gör
 
-## ✅ Redan Klart
+---
+
+## ✅ KLART
+
 - [x] Vända inläggsordning (`.reverse()`) på profilsidan så nyaste inläggen visas överst.
 - [x] Standardisera toppmarginaler och layout på Search, Saved, Category och Profile.
 - [x] **All / Following Tab-meny (`Home.jsx`)**
-  Fixa sticky-positionering så att flikarna inte hamnar ovanpå eller täcker inläggen vid scroll.
+  Fixa sticky-positionering så att flikarna inte hamnar ovanpå eller täcker inläggen vid scroll.
 - [x] **Skapa inlägg (`CreatePostForm.jsx`)**
-Gör "Add photo/video"-knappen mer framträdande och centrerad överst i rutan med text.
+  Gör "Add photo/video"-knappen mer framträdande och centrerad överst i rutan med text.
 - [x] **Bildbeskäring (`PostCard.jsx`)**
-Justera bild-höjd och `object-cover` så att vertikala bilder/videos inte beskärs för hårt i flödet.
+  Justera bild-höjd och `object-cover` så att vertikala bilder/videos inte beskärs för hårt i flödet.
 - [x] **Egen Hashtag-sida**
-Skapa en dedikerad vy som visar alla inlägg taggade med en viss hashtag när man klickar på den.
+  Skapa en dedikerad vy som visar alla inlägg taggade med en viss hashtag när man klickar på den.
 - [x] **Träningspass & Mallar**
-  - [x] Bygga funktion för att skapa och spara egna träningspass som enkelt kan plockas fram och loggas under gympasset. Namnge som "Workouts" i navmeny
+  - [x] Bygga funktion för att skapa och spara egna träningspass som enkelt kan plockas fram och loggas under gympasset. Namnge som "Workouts" i navmeny
 - [x] **Glömt Lösenord**
-  - [x] Skapa återställningsflöde med e-post/tillfällig token för lösenordsåterställning.
+  - [x] Skapa återställningsflöde med e-post/tillfällig token för lösenordsåterställning.
 - [x] skapa reply schema, controller etc för kommentarer så användare kan svara på varandras kommentarer på inlägg
 - [x] Lägg till en following sida som ska visa alla man följer så man lätt kan avfölja personer
 - [x] Pagination & Infinite Scroll (Flöde, Profil, Kategori, Hashtag, Sparade & Sök)
-  - [x] Backend: Uppdaterat samtliga post-endpoints (/posts, /posts/following, /posts/users/:userId, /posts/category, /posts/hashtag, /users/savedposts, /search) till att hantera page och limit samt returnera en enhetlig paginerad datastruktur (posts, hasMore, currentPage, totalPosts).
-  - [x] Frontend: Implementerat Infinite Scroll med IntersectionObserver i PostFeed och alla tillhörande vyer (HomePage, ProfilePage, CategoryPage, HashtagPage, SavedPostsPage, SearchPage) för sömlös och prestandaoptimerad laddning på mobil och desktop.
+  - [x] Backend: Uppdaterat samtliga post-endpoints (/posts, /posts/following, /posts/users/:userId, /posts/category, /posts/hashtag, /users/savedposts, /search) till att hantera page och limit samt returnera en enhetlig paginerad datastruktur (posts, hasMore, currentPage, totalPosts).
+  - [x] Frontend: Implementerat Infinite Scroll med IntersectionObserver i PostFeed och alla tillhörande vyer (HomePage, ProfilePage, CategoryPage, HashtagPage, SavedPostsPage, SearchPage) för sömlös och prestandaoptimerad laddning på mobil och desktop.
 - [x] **Backend: Refresh Tokens & Cookies**
-  - [x] Installera och konfigurera `cookie-parser` i Express.
-  - [x] Uppdatera `/login`-controllern att skapa `accessToken` (15m) och `refreshToken` (30d) i en `httpOnly` cookie.
-  - [x] Skapa endpoint `/api/v1/users/refresh` som validerar cookien och skickar en ny `accessToken`.
+  - [x] Installera och konfigurera `cookie-parser` i Express.
+  - [x] Uppdatera `/login`-controllern att skapa `accessToken` (15m) och `refreshToken` (30d) i en `httpOnly` cookie.
+  - [x] Skapa endpoint `/api/v1/users/refresh` som validerar cookien och skickar en ny `accessToken`.
 - [x] **Frontend: Silent Token Refresh**
-  - [x] Skapa en Axios Interceptor som fångar 401-svar i bakgrunden.
-  - [x] Förnya `accessToken` automatiskt utan att användaren märker det eller blir utloggad.
-- [x] Lägg till länk till instagram/tiktok/youtube ifall man vill på en användares profilsida 
+  - [x] Skapa en Axios Interceptor som fångar 401-svar i bakgrunden.
+  - [x] Förnya `accessToken` automatiskt utan att användaren märker det eller blir utloggad.
+- [x] Lägg till länk till instagram/tiktok/youtube ifall man vill på en användares profilsida
 - [x] RENSA bort alla console.logs
 - [x] fixa problemet med att man loggas ut från mobilen, har med refresh token i user controllern att göra (egen domän!!)
 - [x] ordna fler under kategorier på musik, mat, träning
-- [x] ändra sido scroll menyn på saved posts för mobil vyn till en drop down lista? 
+- [x] ändra sido scroll menyn på saved posts för mobil vyn till en drop down lista?
 - [x] **Tränings- & Matdagbok**
-  - [x] Utveckla loggbok där användare kan registrera daglig träning och kost/kcal/protein intag i samma vy.
-- ta bort ljudet som spelas upp när ett set är klart under träningspass samt ändra till vibration istället?! 
-- dubbelkolla ifall du behöver någon del som användaren klickar i att de godkänner att deras info sparas pga GDPR när de skapar en användare ?! FIXAT med checkbox vid reg samt länk till privacy policy sida
+  - [x] Utveckla loggbok där användare kan registrera daglig träning och kost/kcal/protein intag i samma vy.
+- [x] dubbelkolla ifall du behöver någon del som användaren klickar i att de godkänner att deras info sparas pga GDPR när de skapar en användare ?! FIXAT med checkbox vid reg samt länk till privacy policy sida
 - [x] **Recept & Mat**
-  - [x] Skapa struktur och gränssnitt för att bygga egna recept (ingredienser, instruktioner, tillagningstid och makronätring).
+  - [x] Skapa struktur och gränssnitt för att bygga egna recept (ingredienser, instruktioner, tillagningstid och makronätring).
 - [x] fixa så glömt lösenord mejl skickas till alla användare inte bara mig själv! tydligen blockerat av resend under test och behöver fixa egen domän alt nå annat gratis fix
 - [x] fixa kontakta oss sida så folk kan skicka in förbättringar, buggar etc till min email/egen mejl till lifly?!
 - [x] lägg till antal träffar gällande posts på söksidan, saved posts, category och hashtag. tänk på pagination !!
-- [x] fixa så men enklare ser att det är ett musik inlägg i post grid item 
+- [x] fixa så men enklare ser att det är ett musik inlägg i post grid item
 - [x] fixa att man kan klicka i avklarat träningspass på single workout page vyn, så bockas de av automatiskt i kalendern
 - [x] dubbelkolla att ingen del i backend skickar med känslig information till frontend!!
 - [x] se till så det syns att det är en delad kalender vy i post grid item komponenten
@@ -82,18 +86,14 @@ Skapa en dedikerad vy som visar alla inlägg taggade med en viss hashtag när ma
 - [x] byt plats så add ingredient och add step när man skapar recept hamnar under varje tillagd del? blir irriterande på mobil att behöva scrolla upp varje gång man ska lägga till något nytt i receptet
 - [x] redan inskrivna sociala användarnamn fylls inte i när man klickar edit profile på profilsidan FIXAT
 - [x] fixa så enter och mellanslag sparas i skapta inlägg. just nu tas enters bort vilket gör att all text flyter samman och blir svårt att läsa
-- [x] FIXA så användare kan redigera email, användarnamn och ändra lösenord
- på sina skapade användare!! 
-- [x] fixa ett språk filter mot fula ord?! 
+- [x] FIXA så användare kan redigera email, användarnamn och ändra lösenord på sina skapade användare!!
+- [x] fixa ett språk filter mot fula ord?!
 - [x] fixa betalplan för server via Render så den alltid är uppe
 - [x] att alla delar som skapar, raderar, uppdaterar delar där de kan förekomma väntetid visar att saker laddas, tex deleting vid radering av inlägg, saving etc.. finns på create post men osäker på tex edit och delete post
 - [x] FIXA så email valideras först, innan man kan ändra till en annan?? FIXAT PGA BOTTAR SÅ EMAIL MÅSTE VERIFIERAS NÄR KONTO SKAPAS
 - [x] fixa så man ser total vikt man lyft under ett träningspass när passet är slutfört (som en popup) samt kunna dela passet
 - [x] Live-uppdateringar via Socket.io för inlägg, likes, kommentarer och svar (med realtidsräknare och notis-highlight)
 - [x] Radering av egna kommentarer och svar med diskret Delete-knapp och bekräftelsemodal
-
-
-
 
 ### Apple store krav klara
 - [x] 1. Innehållsmoderering (Kopplat till din fulords- och gilla-fråga!):
