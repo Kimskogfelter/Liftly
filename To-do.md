@@ -13,6 +13,8 @@
 
 - [ ] lägg till notis del för varje övning på workout model
 
+- [ ] lägg till att man ser hur många som sparat ett inlägg (samt notis när ett inlägg sparats och av vem??)
+
 - [ ] KATEGORI SIDAN, ikonen och titeln tar upp för mycket plats på mobil och ser konstigt ut vid lång titel
 
 - [ ] på mobil så aktiveras inte tangentbordet direkt när man kommer till söksidan... useRef och timeouts funkar inte!
