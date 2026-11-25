@@ -10,6 +10,6 @@ export const logout = async (setCurrentUser, navigate) => {
         // 2. Rensa lokalt i React oavsett vad backend svarade
         localStorage.removeItem("currentUser");
         setCurrentUser(null);
-        navigate("/login");
+        navigate("/home");
     }
 };
